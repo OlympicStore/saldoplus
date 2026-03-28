@@ -154,10 +154,21 @@ const Index = () => {
       <header className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
           <h1 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">Dashboard Financeiro</h1>
-          <button onClick={openPeopleEditor} className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Nomes</span>
-          </button>
+          <div className="flex items-center gap-3">
+            {profile && (
+              <span className="text-xs text-text-muted hidden sm:inline">
+                {profile.full_name || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
+              </span>
+            )}
+            <button onClick={openPeopleEditor} className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Nomes</span>
+            </button>
+            <button onClick={signOut} className="flex items-center gap-1.5 text-text-muted hover:text-status-negative transition-colors text-sm">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          </div>
         </div>
       </header>
 
