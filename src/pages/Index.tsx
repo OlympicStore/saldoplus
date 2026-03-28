@@ -19,16 +19,14 @@ const initialFixedExpenses: FixedExpense[] = [
   { id: "1", item: "Água", dueDay: 10, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
   { id: "2", item: "Gás/Eletricidade", dueDay: 15, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
   { id: "3", item: "Internet", dueDay: 20, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
-  { id: "4", item: "Renda", dueDay: 1, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
-  { id: "5", item: "Futsal", dueDay: 5, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
 ];
 
-const defaultPeople = ["Claudia", "Pedro", "Costa"];
-const defaultCategories = ["Comida", "Sr. João", "Carro (Gasolina)", "Diversão"];
+const defaultPeople = ["João", "Maria"];
+const defaultCategories = ["Supermercado"];
 
 type Tab = "dashboard" | "fixed" | "variable" | "income" | "annual" | "goals";
 
-const tabs: { key: Tab; label: string }[] = [
+const allTabs: { key: Tab; label: string }[] = [
   { key: "dashboard", label: "Home" },
   { key: "fixed", label: "Fixos" },
   { key: "variable", label: "Variáveis" },
@@ -36,6 +34,12 @@ const tabs: { key: Tab; label: string }[] = [
   { key: "annual", label: "Anual" },
   { key: "goals", label: "Metas" },
 ];
+
+const planTabs: Record<string, Tab[]> = {
+  essencial: ["dashboard", "fixed", "variable", "annual"],
+  casa: ["dashboard", "fixed", "variable", "income", "annual", "goals"],
+  pro: ["dashboard", "fixed", "variable", "income", "annual", "goals"],
+};
 
 const Index = () => {
   const { profile, isAdmin, signOut } = useAuth();
