@@ -68,6 +68,19 @@ export const Dashboard = ({
     return cumulative;
   }, [selectedMonth, fixedExpenses, variableExpenses, incomes, salaryConfigs]);
 
+  // Use manual override if set, otherwise auto-calculated
+  const displayBalance = currentBalance !== 0 ? currentBalance : autoBalance;
+
+  const startEditBalance = () => {
+    setEditBalanceVal(displayBalance.toFixed(2).replace(".", ","));
+    setEditingBalance(true);
+  };
+  const saveBalance = () => {
+    const num = parseFloat(editBalanceVal.replace(",", "."));
+    if (!isNaN(num)) onUpdateBalance(num);
+    setEditingBalance(false);
+  };
+
   // Paid/pending fixed
   const paidFixed = fixedExpenses.filter((e) => e.monthlyPaid[selectedMonth]).reduce((s, e) => s + (e.monthlyValues[selectedMonth] ?? 0), 0);
   const pendingFixed = current.totalFixed - paidFixed;
