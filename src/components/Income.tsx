@@ -27,7 +27,7 @@ export const Income = ({
 
   const monthIncomes = incomes.filter((i) => new Date(i.date).getMonth() === selectedMonth);
   const activeSalaries = salaryConfigs.filter((s) => s.active);
-  const totalSalary = activeSalaries.reduce((s, c) => s + c.value, 0);
+  const totalSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[selectedMonth] ?? 0), 0);
   const totalOther = monthIncomes.filter((i) => i.type === "other").reduce((s, i) => s + i.value, 0);
   const totalIncome = totalSalary + totalOther;
 
@@ -44,12 +44,17 @@ export const Income = ({
   const startEditSalary = (person: string) => {
     const config = salaryConfigs.find((s) => s.person === person);
     setEditingSalary(person);
-    setEditSalaryVal(config ? config.value.toFixed(2).replace(".", ",") : "0,00");
+    const value = config ? (config.monthlyValues[selectedMonth] ?? 0) : 0;
+    setEditSalaryVal(value.toFixed(2).replace(".", ","));
   };
 
   const saveSalary = (person: string) => {
     const num = parseFloat(editSalaryVal.replace(",", "."));
-    if (!isNaN(num)) onUpdateSalary(person, { value: num });
+    if (!isNaN(num)) {
+      const config = salaryConfigs.find((s) => s.person === person);
+      const currentMonthlyValues = config?.monthlyValues ?? {};
+      onUpdateSalary(person, { monthlyValues: { ...currentMonthlyValues, [selectedMonth]: num } });
+    }
     setEditingSalary(null);
   };
 
@@ -70,12 +75,12 @@ export const Income = ({
 
       {/* Salários */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-4">
-        <span className="label-caps mb-3 block">Salários Fixos</span>
+        <span className="label-caps mb-3 block">Salários (este mês)</span>
         <div className="space-y-3">
           {people.map((person) => {
             const config = salaryConfigs.find((s) => s.person === person);
             const isActive = config?.active ?? false;
-            const value = config?.value ?? 0;
+            const value = config?.monthlyValues[selectedMonth] ?? 0;
             return (
               <div key={person} className="flex items-center gap-3">
                 <button
