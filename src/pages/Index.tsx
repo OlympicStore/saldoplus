@@ -45,6 +45,9 @@ const Index = () => {
   const { profile, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const now = new Date();
+  const userPlan = profile?.plan || "essencial";
+  const allowedTabs = planTabs[userPlan] || planTabs.essencial;
+  const tabs = allTabs.filter((t) => allowedTabs.includes(t.key));
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>(initialFixedExpenses);
