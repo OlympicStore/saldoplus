@@ -196,13 +196,37 @@ export const Dashboard = ({
 
   return (
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
-      {/* Saldo atual (automático) */}
+      {/* Saldo acumulado (editável) */}
       <div className="text-center mb-6">
         <span className="label-caps">Saldo Acumulado</span>
-        <p className={`display-value mt-1 ${autoBalance >= 0 ? "text-foreground" : "text-status-negative"}`}>
-          {fmt(autoBalance)}
+        {editingBalance ? (
+          <div className="flex items-center justify-center gap-2 mt-1">
+            <input
+              autoFocus
+              value={editBalanceVal}
+              onChange={(e) => setEditBalanceVal(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveBalance()}
+              className="w-40 text-2xl font-semibold font-mono text-center bg-background border border-primary rounded-lg px-3 py-1 focus:outline-none"
+            />
+            <button onClick={saveBalance} className="text-status-paid"><Check className="h-5 w-5" /></button>
+            <button onClick={() => setEditingBalance(false)} className="text-text-muted"><X className="h-5 w-5" /></button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-2 mt-1">
+            <p className={`display-value ${displayBalance >= 0 ? "text-foreground" : "text-status-negative"}`}>
+              {fmt(displayBalance)}
+            </p>
+            <button onClick={startEditBalance} className="text-text-muted hover:text-foreground transition-colors">
+              <Pencil className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        <p className="text-xs text-text-muted mt-1">
+          {currentBalance !== 0 ? "Valor editado manualmente" : "Calculado automaticamente"}
+          {currentBalance !== 0 && (
+            <button onClick={() => onUpdateBalance(0)} className="ml-2 underline hover:text-foreground">repor automático</button>
+          )}
         </p>
-        <p className="text-xs text-text-muted mt-1">Calculado automaticamente a partir das entradas e saídas</p>
       </div>
 
       {/* Resumo do mês */}
