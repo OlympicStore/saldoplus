@@ -5,7 +5,8 @@ import { FixedExpenses } from "@/components/FixedExpenses";
 import { VariableExpenses } from "@/components/VariableExpenses";
 import { AnnualOverview } from "@/components/AnnualOverview";
 import { Income } from "@/components/Income";
-import { Settings, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import { Settings, ChevronLeft, ChevronRight, LogOut, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus, BillAttachment } from "@/types/expense";
 import type { FinancialGoal } from "@/types/goal";
 import type { Income as IncomeType, SalaryConfig } from "@/types/income";
@@ -37,7 +38,8 @@ const tabs: { key: Tab; label: string }[] = [
 ];
 
 const Index = () => {
-  const { profile, signOut } = useAuth();
+  const { profile, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
   const now = new Date();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -159,6 +161,12 @@ const Index = () => {
               <span className="text-xs text-text-muted hidden sm:inline">
                 {profile.full_name || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
+            )}
+            {isAdmin && (
+              <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors text-sm">
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
             )}
             <button onClick={openPeopleEditor} className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
               <Settings className="h-4 w-4" />
