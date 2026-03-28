@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 215 16% 47%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 239 84% 67%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 160 84% 39%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Custom tokens */
+    --surface: 0 0% 100%;
+    --surface-hover: 210 40% 97%;
+    --border-subtle: 214 32% 91%;
+    --text-primary: 222 47% 11%;
+    --text-secondary: 215 20% 40%;
+    --text-muted: 215 16% 57%;
+
+    /* Person colors */
+    --person-claudia: 239 84% 67%;
+    --person-claudia-bg: 226 100% 95%;
+    --person-pedro: 38 92% 50%;
+    --person-pedro-bg: 46 100% 95%;
+    --person-costa: 160 84% 39%;
+    --person-costa-bg: 152 76% 94%;
+
+    /* Status */
+    --status-paid: 160 84% 39%;
+    --status-pending: 38 92% 50%;
+    --status-negative: 0 84% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .label-caps {
+    @apply text-[10px] font-bold uppercase tracking-[0.1em];
+    color: hsl(var(--text-muted));
+  }
+
+  .display-value {
+    @apply text-4xl font-semibold;
+    letter-spacing: -0.04em;
+  }
+}
