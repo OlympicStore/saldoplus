@@ -37,6 +37,7 @@ const tabs: { key: Tab; label: string }[] = [
 ];
 
 const Index = () => {
+  const { profile, signOut } = useAuth();
   const now = new Date();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
