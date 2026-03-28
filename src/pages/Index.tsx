@@ -5,11 +5,12 @@ import { FixedExpenses } from "@/components/FixedExpenses";
 import { VariableExpenses } from "@/components/VariableExpenses";
 import { AnnualOverview } from "@/components/AnnualOverview";
 import { Income } from "@/components/Income";
-import { Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Settings, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus, BillAttachment } from "@/types/expense";
 import type { FinancialGoal } from "@/types/goal";
 import type { Income as IncomeType, SalaryConfig } from "@/types/income";
 import { FinancialGoals, defaultGoals } from "@/components/FinancialGoals";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
