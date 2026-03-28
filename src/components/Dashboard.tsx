@@ -150,19 +150,7 @@ export const Dashboard = ({
     return { person, paid: details.totalPaid, owes: details.totalOwed, diff: details.totalPaid - fairShare };
   });
 
-  // Debts
-  const debts: { from: string; to: string; amount: number }[] = [];
-  const debtors = personBalances.filter((b) => b.diff < 0).sort((a, b) => a.diff - b.diff).map(d => ({ ...d, remaining: Math.abs(d.diff) }));
-  const creditors = personBalances.filter((b) => b.diff > 0).sort((a, b) => b.diff - a.diff).map(c => ({ ...c, remaining: c.diff }));
-  let di = 0, ci = 0;
-  while (di < debtors.length && ci < creditors.length) {
-    const amount = Math.min(debtors[di].remaining, creditors[ci].remaining);
-    if (amount > 0.01) debts.push({ from: debtors[di].person, to: creditors[ci].person, amount });
-    debtors[di].remaining -= amount;
-    creditors[ci].remaining -= amount;
-    if (debtors[di].remaining < 0.01) di++;
-    if (creditors[ci].remaining < 0.01) ci++;
-  }
+
 
   const ComparisonBadge = ({ current: c, previous: p, inverted = false }: { current: number; previous: number; inverted?: boolean }) => {
     if (p === 0 && c === 0) return null;
