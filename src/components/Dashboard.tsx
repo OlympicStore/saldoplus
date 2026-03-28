@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { useMemo } from "react";
-import { TrendingUp, TrendingDown, Minus, ArrowRight, Clock, AlertCircle } from "lucide-react";
+import { useMemo, useState } from "react";
+import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, Pencil, Check, X } from "lucide-react";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Income, SalaryConfig } from "@/types/income";
@@ -33,8 +33,10 @@ interface DashboardProps {
 
 export const Dashboard = ({
   fixedExpenses, variableExpenses, incomes, salaryConfigs,
-  people, selectedMonth,
+  people, selectedMonth, currentBalance, onUpdateBalance,
 }: DashboardProps) => {
+  const [editingBalance, setEditingBalance] = useState(false);
+  const [editBalanceVal, setEditBalanceVal] = useState("");
 
   // === CALCULATIONS ===
   const getMonthData = (month: number) => {
