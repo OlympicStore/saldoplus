@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { useMemo } from "react";
-import { TrendingUp, TrendingDown, Minus, ArrowRight, Clock, AlertCircle } from "lucide-react";
+import { useMemo, useState } from "react";
+import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, Pencil, Check, X } from "lucide-react";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Income, SalaryConfig } from "@/types/income";
@@ -33,8 +33,10 @@ interface DashboardProps {
 
 export const Dashboard = ({
   fixedExpenses, variableExpenses, incomes, salaryConfigs,
-  people, selectedMonth,
+  people, selectedMonth, currentBalance, onUpdateBalance,
 }: DashboardProps) => {
+  const [editingBalance, setEditingBalance] = useState(false);
+  const [editBalanceVal, setEditBalanceVal] = useState("");
 
   // === CALCULATIONS ===
   const getMonthData = (month: number) => {
@@ -43,7 +45,7 @@ export const Dashboard = ({
     const totalVariable = monthVars.reduce((s, e) => s + e.value, 0);
     const totalExpenses = totalFixed + totalVariable;
     const activeSalaries = salaryConfigs.filter((s) => s.active);
-    const totalSalary = activeSalaries.reduce((s, c) => s + c.value, 0);
+    const totalSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[month] ?? 0), 0);
     const monthOtherIncome = incomes.filter((i) => new Date(i.date).getMonth() === month && i.type === "other").reduce((s, i) => s + i.value, 0);
     const totalIncome = totalSalary + monthOtherIncome;
     return { totalFixed, totalVariable, totalExpenses, totalIncome, totalSalary, monthOtherIncome, monthVars };
@@ -65,6 +67,19 @@ export const Dashboard = ({
     }
     return cumulative;
   }, [selectedMonth, fixedExpenses, variableExpenses, incomes, salaryConfigs]);
+
+  // Use manual override if set, otherwise auto-calculated
+  const displayBalance = currentBalance !== 0 ? currentBalance : autoBalance;
+
+  const startEditBalance = () => {
+    setEditBalanceVal(displayBalance.toFixed(2).replace(".", ","));
+    setEditingBalance(true);
+  };
+  const saveBalance = () => {
+    const num = parseFloat(editBalanceVal.replace(",", "."));
+    if (!isNaN(num)) onUpdateBalance(num);
+    setEditingBalance(false);
+  };
 
   // Paid/pending fixed
   const paidFixed = fixedExpenses.filter((e) => e.monthlyPaid[selectedMonth]).reduce((s, e) => s + (e.monthlyValues[selectedMonth] ?? 0), 0);
@@ -135,19 +150,7 @@ export const Dashboard = ({
     return { person, paid: details.totalPaid, owes: details.totalOwed, diff: details.totalPaid - fairShare };
   });
 
-  // Debts
-  const debts: { from: string; to: string; amount: number }[] = [];
-  const debtors = personBalances.filter((b) => b.diff < 0).sort((a, b) => a.diff - b.diff).map(d => ({ ...d, remaining: Math.abs(d.diff) }));
-  const creditors = personBalances.filter((b) => b.diff > 0).sort((a, b) => b.diff - a.diff).map(c => ({ ...c, remaining: c.diff }));
-  let di = 0, ci = 0;
-  while (di < debtors.length && ci < creditors.length) {
-    const amount = Math.min(debtors[di].remaining, creditors[ci].remaining);
-    if (amount > 0.01) debts.push({ from: debtors[di].person, to: creditors[ci].person, amount });
-    debtors[di].remaining -= amount;
-    creditors[ci].remaining -= amount;
-    if (debtors[di].remaining < 0.01) di++;
-    if (creditors[ci].remaining < 0.01) ci++;
-  }
+
 
   const ComparisonBadge = ({ current: c, previous: p, inverted = false }: { current: number; previous: number; inverted?: boolean }) => {
     if (p === 0 && c === 0) return null;
@@ -181,13 +184,37 @@ export const Dashboard = ({
 
   return (
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
-      {/* Saldo atual (automático) */}
+      {/* Saldo acumulado (editável) */}
       <div className="text-center mb-6">
         <span className="label-caps">Saldo Acumulado</span>
-        <p className={`display-value mt-1 ${autoBalance >= 0 ? "text-foreground" : "text-status-negative"}`}>
-          {fmt(autoBalance)}
+        {editingBalance ? (
+          <div className="flex items-center justify-center gap-2 mt-1">
+            <input
+              autoFocus
+              value={editBalanceVal}
+              onChange={(e) => setEditBalanceVal(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveBalance()}
+              className="w-40 text-2xl font-semibold font-mono text-center bg-background border border-primary rounded-lg px-3 py-1 focus:outline-none"
+            />
+            <button onClick={saveBalance} className="text-status-paid"><Check className="h-5 w-5" /></button>
+            <button onClick={() => setEditingBalance(false)} className="text-text-muted"><X className="h-5 w-5" /></button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-2 mt-1">
+            <p className={`display-value ${displayBalance >= 0 ? "text-foreground" : "text-status-negative"}`}>
+              {fmt(displayBalance)}
+            </p>
+            <button onClick={startEditBalance} className="text-text-muted hover:text-foreground transition-colors">
+              <Pencil className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        <p className="text-xs text-text-muted mt-1">
+          {currentBalance !== 0 ? "Valor editado manualmente" : "Calculado automaticamente"}
+          {currentBalance !== 0 && (
+            <button onClick={() => onUpdateBalance(0)} className="ml-2 underline hover:text-foreground">repor automático</button>
+          )}
         </p>
-        <p className="text-xs text-text-muted mt-1">Calculado automaticamente a partir das entradas e saídas</p>
       </div>
 
       {/* Resumo do mês */}
@@ -404,22 +431,6 @@ export const Dashboard = ({
         </div>
       </div>
 
-      {/* Quem deve a quem */}
-      {debts.length > 0 && (
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-4 block">Acertos Necessários</span>
-          <div className="space-y-3">
-            {debts.map((debt, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-background rounded-lg">
-                <span className="text-sm font-semibold text-status-negative">{debt.from}</span>
-                <ArrowRight className="h-4 w-4 text-text-muted shrink-0" />
-                <span className="text-sm font-semibold text-status-paid">{debt.to}</span>
-                <span className="ml-auto font-mono text-sm font-bold text-foreground tabular-nums">{fmt(debt.amount)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 };

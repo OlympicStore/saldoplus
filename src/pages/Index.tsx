@@ -50,7 +50,7 @@ const Index = () => {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [incomes, setIncomes] = useState<IncomeType[]>([]);
   const [salaryConfigs, setSalaryConfigs] = useState<SalaryConfig[]>(
-    defaultPeople.map((p) => ({ person: p, value: 0, active: true }))
+    defaultPeople.map((p) => ({ person: p, monthlyValues: {}, active: true }))
   );
   const [variableCategories, setVariableCategories] = useState<string[]>(defaultCategories);
 
@@ -90,7 +90,7 @@ const Index = () => {
     setSalaryConfigs((prev) => {
       const existing = prev.find((s) => s.person === person);
       if (existing) return prev.map((s) => (s.person === person ? { ...s, ...updates } : s));
-      return [...prev, { person, value: 0, active: true, ...updates }];
+      return [...prev, { person, monthlyValues: {}, active: true, ...updates }];
     });
   };
 
@@ -135,7 +135,7 @@ const Index = () => {
         const updated = [...prev];
         newPeople.forEach((p) => {
           if (!updated.find((s) => s.person === p)) {
-            updated.push({ person: p, value: 0, active: true });
+            updated.push({ person: p, monthlyValues: {}, active: true });
           }
         });
         return updated;

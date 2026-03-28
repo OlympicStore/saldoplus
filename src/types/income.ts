@@ -9,6 +9,6 @@ export interface Income {
 
 export interface SalaryConfig {
   person: string;
-  value: number;
+  monthlyValues: Record<number, number>; // value per month
   active: boolean;
 }
