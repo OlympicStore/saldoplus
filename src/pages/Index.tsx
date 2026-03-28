@@ -162,6 +162,12 @@ const Index = () => {
                 {profile.full_name || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
+            {isAdmin && (
+              <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors text-sm">
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
+            )}
             <button onClick={openPeopleEditor} className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Nomes</span>
