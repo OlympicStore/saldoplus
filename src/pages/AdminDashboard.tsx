@@ -59,7 +59,7 @@ const AdminDashboard = () => {
       supabase.rpc("get_admin_stats"),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     ]);
-    if (statsRes.data) setStats(statsRes.data as Stats);
+    if (statsRes.data) setStats(statsRes.data as unknown as Stats);
     if (usersRes.data) setUsers(usersRes.data as UserProfile[]);
     setLoading(false);
   };
@@ -77,7 +77,7 @@ const AdminDashboard = () => {
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: newPlan } : u)));
       // Refresh stats
       const { data } = await supabase.rpc("get_admin_stats");
-      if (data) setStats(data as Stats);
+      if (data) setStats(data as unknown as Stats);
     }
     setUpdatingUser(null);
   };
