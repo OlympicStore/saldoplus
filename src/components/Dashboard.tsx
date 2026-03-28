@@ -43,7 +43,7 @@ export const Dashboard = ({
     const totalVariable = monthVars.reduce((s, e) => s + e.value, 0);
     const totalExpenses = totalFixed + totalVariable;
     const activeSalaries = salaryConfigs.filter((s) => s.active);
-    const totalSalary = activeSalaries.reduce((s, c) => s + c.value, 0);
+    const totalSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[month] ?? 0), 0);
     const monthOtherIncome = incomes.filter((i) => new Date(i.date).getMonth() === month && i.type === "other").reduce((s, i) => s + i.value, 0);
     const totalIncome = totalSalary + monthOtherIncome;
     return { totalFixed, totalVariable, totalExpenses, totalIncome, totalSalary, monthOtherIncome, monthVars };
@@ -404,22 +404,6 @@ export const Dashboard = ({
         </div>
       </div>
 
-      {/* Quem deve a quem */}
-      {debts.length > 0 && (
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-4 block">Acertos Necessários</span>
-          <div className="space-y-3">
-            {debts.map((debt, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-background rounded-lg">
-                <span className="text-sm font-semibold text-status-negative">{debt.from}</span>
-                <ArrowRight className="h-4 w-4 text-text-muted shrink-0" />
-                <span className="text-sm font-semibold text-status-paid">{debt.to}</span>
-                <span className="ml-auto font-mono text-sm font-bold text-foreground tabular-nums">{fmt(debt.amount)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 };
