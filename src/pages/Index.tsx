@@ -295,6 +295,14 @@ const Index = () => {
             onUpdate={(id, u) => setFinancialGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...u } : g)))}
             onDelete={(id) => setFinancialGoals((prev) => prev.filter((g) => g.id !== id))} />
         )}
+        {activeTab === "budgets" && (
+          <CategoryBudgets
+            categories={variableCategories}
+            variableExpenses={variableExpenses}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+          />
+        )}
       </main>
     </div>
   );
