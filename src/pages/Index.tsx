@@ -28,7 +28,7 @@ const initialFixedExpenses: FixedExpense[] = [
 const defaultPeople = ["João", "Maria"];
 const defaultCategories = ["Supermercado"];
 
-type Tab = "dashboard" | "fixed" | "variable" | "income" | "annual" | "goals";
+type Tab = "dashboard" | "fixed" | "variable" | "income" | "annual" | "goals" | "budgets";
 
 const allTabs: { key: Tab; label: string }[] = [
   { key: "dashboard", label: "Home" },
@@ -37,12 +37,13 @@ const allTabs: { key: Tab; label: string }[] = [
   { key: "income", label: "Rendimentos" },
   { key: "annual", label: "Anual" },
   { key: "goals", label: "Metas" },
+  { key: "budgets", label: "Orçamentos" },
 ];
 
 const planTabs: Record<string, Tab[]> = {
   essencial: ["dashboard", "fixed", "variable", "annual"],
   casa: ["dashboard", "fixed", "variable", "income", "annual", "goals"],
-  pro: ["dashboard", "fixed", "variable", "income", "annual", "goals"],
+  pro: ["dashboard", "fixed", "variable", "income", "annual", "goals", "budgets"],
 };
 
 const Index = () => {
