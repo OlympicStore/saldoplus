@@ -203,12 +203,15 @@ const AdminDashboard = () => {
                   <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Utilizador</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Email</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Plano</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Validade</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Registado em</th>
                   <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((u) => (
+                {filteredUsers.map((u) => {
+                  const isExpired = u.plan_expires_at && new Date(u.plan_expires_at) < new Date();
+                  return (
                   <tr key={u.id} className="border-b border-border-subtle/20 hover:bg-surface-hover transition-colors">
                     <td className="px-5 py-3">
                       <p className="text-sm font-semibold text-foreground">{u.full_name || "—"}</p>
@@ -223,6 +226,16 @@ const AdminDashboard = () => {
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${PLAN_COLORS[u.plan]}`}>
                         {u.plan}
                       </span>
+                      {isExpired && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[hsl(var(--status-negative)/0.15)] text-status-negative">Expirado</span>}
+                    </td>
+                    <td className="px-5 py-3">
+                      {u.plan_expires_at ? (
+                        <span className={`text-sm ${isExpired ? "text-status-negative font-semibold" : "text-text-muted"}`}>
+                          {new Date(u.plan_expires_at).toLocaleDateString("pt-PT")}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-text-muted">—</span>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1.5">
