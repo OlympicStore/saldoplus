@@ -279,12 +279,22 @@ const AdminDashboard = () => {
                     <p className="text-sm font-semibold text-foreground truncate">{u.full_name || "—"}</p>
                     <p className="text-xs text-text-muted truncate">{u.email}</p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize shrink-0 ${PLAN_COLORS[u.plan]}`}>
-                    {u.plan}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${PLAN_COLORS[u.plan]}`}>
+                      {u.plan}
+                    </span>
+                    {u.plan_expires_at && new Date(u.plan_expires_at) < new Date() && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[hsl(var(--status-negative)/0.15)] text-status-negative">Expirado</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-text-muted">{new Date(u.created_at).toLocaleDateString("pt-PT")}</span>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-muted">{new Date(u.created_at).toLocaleDateString("pt-PT")}</span>
+                    {u.plan_expires_at && (
+                      <span className="text-[10px] text-text-muted">Válido até: {new Date(u.plan_expires_at).toLocaleDateString("pt-PT")}</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1">
                     <button
                       disabled={updatingUser === u.id || PLAN_ORDER.indexOf(u.plan) === PLAN_ORDER.length - 1}
