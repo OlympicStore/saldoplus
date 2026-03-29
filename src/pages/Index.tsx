@@ -5,6 +5,7 @@ import { FixedExpenses } from "@/components/FixedExpenses";
 import { VariableExpenses } from "@/components/VariableExpenses";
 import { AnnualOverview } from "@/components/AnnualOverview";
 import { Income } from "@/components/Income";
+import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { Settings, ChevronLeft, ChevronRight, LogOut, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus, BillAttachment } from "@/types/expense";
