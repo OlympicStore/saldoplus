@@ -17,6 +17,8 @@ interface UserProfile {
   full_name: string | null;
   plan: Plan;
   created_at: string;
+  plan_started_at: string | null;
+  plan_expires_at: string | null;
 }
 
 interface Stats {
@@ -66,16 +68,29 @@ const AdminDashboard = () => {
 
   const changePlan = async (userId: string, newPlan: Plan) => {
     setUpdatingUser(userId);
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    expiresAt.setDate(expiresAt.getDate() - 1);
+
+    const updateData: Record<string, unknown> = { plan: newPlan };
+    if (newPlan !== "essencial") {
+      updateData.plan_started_at = now.toISOString();
+      updateData.plan_expires_at = expiresAt.toISOString();
+    } else {
+      updateData.plan_started_at = null;
+      updateData.plan_expires_at = null;
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({ plan: newPlan })
+      .update(updateData)
       .eq("id", userId);
     if (error) {
       toast.error("Erro ao atualizar plano");
     } else {
-      toast.success(`Plano atualizado para ${newPlan}`);
-      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: newPlan } : u)));
-      // Refresh stats
+      toast.success(`Plano atualizado para ${newPlan} (válido até ${newPlan !== "essencial" ? expiresAt.toLocaleDateString("pt-PT") : "—"})`);
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: newPlan, plan_started_at: newPlan !== "essencial" ? now.toISOString() : null, plan_expires_at: newPlan !== "essencial" ? expiresAt.toISOString() : null } : u)));
       const { data } = await supabase.rpc("get_admin_stats");
       if (data) setStats(data as unknown as Stats);
     }

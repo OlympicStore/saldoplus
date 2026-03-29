@@ -9,6 +9,8 @@ interface Profile {
   email: string;
   full_name: string | null;
   plan: Plan;
+  plan_started_at: string | null;
+  plan_expires_at: string | null;
 }
 
 interface AuthContextType {
