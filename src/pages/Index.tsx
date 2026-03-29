@@ -5,6 +5,7 @@ import { FixedExpenses } from "@/components/FixedExpenses";
 import { VariableExpenses } from "@/components/VariableExpenses";
 import { AnnualOverview } from "@/components/AnnualOverview";
 import { Income } from "@/components/Income";
+import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { Settings, ChevronLeft, ChevronRight, LogOut, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus, BillAttachment } from "@/types/expense";
@@ -15,6 +16,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
+const MIN_YEAR = 2026;
+const MAX_YEAR = 2028;
+
 const initialFixedExpenses: FixedExpense[] = [
   { id: "1", item: "Água", dueDay: 10, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
   { id: "2", item: "Gás/Eletricidade", dueDay: 15, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
@@ -24,7 +28,7 @@ const initialFixedExpenses: FixedExpense[] = [
 const defaultPeople = ["João", "Maria"];
 const defaultCategories = ["Supermercado"];
 
-type Tab = "dashboard" | "fixed" | "variable" | "income" | "annual" | "goals";
+type Tab = "dashboard" | "fixed" | "variable" | "income" | "annual" | "goals" | "budgets";
 
 const allTabs: { key: Tab; label: string }[] = [
   { key: "dashboard", label: "Home" },
@@ -33,12 +37,13 @@ const allTabs: { key: Tab; label: string }[] = [
   { key: "income", label: "Rendimentos" },
   { key: "annual", label: "Anual" },
   { key: "goals", label: "Metas" },
+  { key: "budgets", label: "Orçamentos" },
 ];
 
 const planTabs: Record<string, Tab[]> = {
   essencial: ["dashboard", "fixed", "variable", "annual"],
   casa: ["dashboard", "fixed", "variable", "income", "annual", "goals"],
-  pro: ["dashboard", "fixed", "variable", "income", "annual", "goals"],
+  pro: ["dashboard", "fixed", "variable", "income", "annual", "goals", "budgets"],
 };
 
 const Index = () => {
@@ -49,6 +54,7 @@ const Index = () => {
   const allowedTabs = planTabs[userPlan] || planTabs.essencial;
   const tabs = allTabs.filter((t) => allowedTabs.includes(t.key));
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [selectedYear, setSelectedYear] = useState(Math.max(MIN_YEAR, Math.min(MAX_YEAR, now.getFullYear())));
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>(initialFixedExpenses);
   const [variableExpenses, setVariableExpenses] = useState<VariableExpense[]>([]);
@@ -155,8 +161,28 @@ const Index = () => {
     setShowPeopleEditor(false);
   };
 
-  const prevMonth = () => setSelectedMonth((m) => (m === 0 ? 11 : m - 1));
-  const nextMonth = () => setSelectedMonth((m) => (m === 11 ? 0 : m + 1));
+  const prevMonth = () => {
+    if (selectedMonth === 0) {
+      if (selectedYear > MIN_YEAR) {
+        setSelectedMonth(11);
+        setSelectedYear((y) => y - 1);
+      }
+    } else {
+      setSelectedMonth((m) => m - 1);
+    }
+  };
+  const nextMonth = () => {
+    if (selectedMonth === 11) {
+      if (selectedYear < MAX_YEAR) {
+        setSelectedMonth(0);
+        setSelectedYear((y) => y + 1);
+      }
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+  };
+  const isFirstMonth = selectedYear === MIN_YEAR && selectedMonth === 0;
+  const isLastMonth = selectedYear === MAX_YEAR && selectedMonth === 11;
 
   return (
     <div className="min-h-screen bg-background">
@@ -189,13 +215,13 @@ const Index = () => {
 
       <div className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-center gap-4">
-          <button onClick={prevMonth} className="p-1 text-text-muted hover:text-foreground transition-colors rounded-lg hover:bg-surface-hover">
+          <button onClick={prevMonth} disabled={isFirstMonth} className="p-1 text-text-muted hover:text-foreground transition-colors rounded-lg hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed">
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <span className="text-sm font-semibold text-foreground min-w-[120px] text-center capitalize">
-            {MONTH_NAMES[selectedMonth]} {now.getFullYear()}
+          <span className="text-sm font-semibold text-foreground min-w-[160px] text-center capitalize">
+            {MONTH_NAMES[selectedMonth]} {selectedYear}
           </span>
-          <button onClick={nextMonth} className="p-1 text-text-muted hover:text-foreground transition-colors rounded-lg hover:bg-surface-hover">
+          <button onClick={nextMonth} disabled={isLastMonth} className="p-1 text-text-muted hover:text-foreground transition-colors rounded-lg hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed">
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
@@ -268,6 +294,14 @@ const Index = () => {
             onAdd={(g) => setFinancialGoals((prev) => [...prev, g])}
             onUpdate={(id, u) => setFinancialGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...u } : g)))}
             onDelete={(id) => setFinancialGoals((prev) => prev.filter((g) => g.id !== id))} />
+        )}
+        {activeTab === "budgets" && (
+          <CategoryBudgets
+            categories={variableCategories}
+            variableExpenses={variableExpenses}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+          />
         )}
       </main>
     </div>

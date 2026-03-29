@@ -17,6 +17,8 @@ interface UserProfile {
   full_name: string | null;
   plan: Plan;
   created_at: string;
+  plan_started_at: string | null;
+  plan_expires_at: string | null;
 }
 
 interface Stats {
@@ -66,16 +68,29 @@ const AdminDashboard = () => {
 
   const changePlan = async (userId: string, newPlan: Plan) => {
     setUpdatingUser(userId);
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    expiresAt.setDate(expiresAt.getDate() - 1);
+
+    const updateData: Record<string, unknown> = { plan: newPlan };
+    if (newPlan !== "essencial") {
+      updateData.plan_started_at = now.toISOString();
+      updateData.plan_expires_at = expiresAt.toISOString();
+    } else {
+      updateData.plan_started_at = null;
+      updateData.plan_expires_at = null;
+    }
+
     const { error } = await supabase
       .from("profiles")
-      .update({ plan: newPlan })
+      .update(updateData)
       .eq("id", userId);
     if (error) {
       toast.error("Erro ao atualizar plano");
     } else {
-      toast.success(`Plano atualizado para ${newPlan}`);
-      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: newPlan } : u)));
-      // Refresh stats
+      toast.success(`Plano atualizado para ${newPlan} (válido até ${newPlan !== "essencial" ? expiresAt.toLocaleDateString("pt-PT") : "—"})`);
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: newPlan, plan_started_at: newPlan !== "essencial" ? now.toISOString() : null, plan_expires_at: newPlan !== "essencial" ? expiresAt.toISOString() : null } : u)));
       const { data } = await supabase.rpc("get_admin_stats");
       if (data) setStats(data as unknown as Stats);
     }
@@ -188,12 +203,15 @@ const AdminDashboard = () => {
                   <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Utilizador</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Email</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Plano</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Validade</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Registado em</th>
                   <th className="text-right px-5 py-3 text-xs font-semibold text-text-muted uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((u) => (
+                {filteredUsers.map((u) => {
+                  const isExpired = u.plan_expires_at && new Date(u.plan_expires_at) < new Date();
+                  return (
                   <tr key={u.id} className="border-b border-border-subtle/20 hover:bg-surface-hover transition-colors">
                     <td className="px-5 py-3">
                       <p className="text-sm font-semibold text-foreground">{u.full_name || "—"}</p>
@@ -208,6 +226,16 @@ const AdminDashboard = () => {
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${PLAN_COLORS[u.plan]}`}>
                         {u.plan}
                       </span>
+                      {isExpired && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[hsl(var(--status-negative)/0.15)] text-status-negative">Expirado</span>}
+                    </td>
+                    <td className="px-5 py-3">
+                      {u.plan_expires_at ? (
+                        <span className={`text-sm ${isExpired ? "text-status-negative font-semibold" : "text-text-muted"}`}>
+                          {new Date(u.plan_expires_at).toLocaleDateString("pt-PT")}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-text-muted">—</span>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1.5">
@@ -236,7 +264,8 @@ const AdminDashboard = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -250,12 +279,22 @@ const AdminDashboard = () => {
                     <p className="text-sm font-semibold text-foreground truncate">{u.full_name || "—"}</p>
                     <p className="text-xs text-text-muted truncate">{u.email}</p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize shrink-0 ${PLAN_COLORS[u.plan]}`}>
-                    {u.plan}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${PLAN_COLORS[u.plan]}`}>
+                      {u.plan}
+                    </span>
+                    {u.plan_expires_at && new Date(u.plan_expires_at) < new Date() && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[hsl(var(--status-negative)/0.15)] text-status-negative">Expirado</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-text-muted">{new Date(u.created_at).toLocaleDateString("pt-PT")}</span>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-muted">{new Date(u.created_at).toLocaleDateString("pt-PT")}</span>
+                    {u.plan_expires_at && (
+                      <span className="text-[10px] text-text-muted">Válido até: {new Date(u.plan_expires_at).toLocaleDateString("pt-PT")}</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1">
                     <button
                       disabled={updatingUser === u.id || PLAN_ORDER.indexOf(u.plan) === PLAN_ORDER.length - 1}
