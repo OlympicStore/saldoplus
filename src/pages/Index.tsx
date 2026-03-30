@@ -162,28 +162,7 @@ const Index = () => {
     setShowPeopleEditor(false);
   };
 
-  const prevMonth = () => {
-    if (selectedMonth === 0) {
-      if (selectedYear > MIN_YEAR) {
-        setSelectedMonth(11);
-        setSelectedYear((y) => y - 1);
-      }
-    } else {
-      setSelectedMonth((m) => m - 1);
-    }
-  };
-  const nextMonth = () => {
-    if (selectedMonth === 11) {
-      if (selectedYear < MAX_YEAR) {
-        setSelectedMonth(0);
-        setSelectedYear((y) => y + 1);
-      }
-    } else {
-      setSelectedMonth((m) => m + 1);
-    }
-  };
-  const isFirstMonth = selectedYear === MIN_YEAR && selectedMonth === 0;
-  const isLastMonth = selectedYear === MAX_YEAR && selectedMonth === 11;
+
 
   return (
     <div className="min-h-screen bg-background">
