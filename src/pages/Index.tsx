@@ -302,6 +302,8 @@ const Index = () => {
             incomes={incomes} salaryConfigs={salaryConfigs}
             people={people} selectedMonth={selectedMonth}
             currentBalance={currentBalance} onUpdateBalance={setCurrentBalance}
+            financialGoals={financialGoals}
+            userPlan={userPlan}
           />
         )}
         {activeTab === "fixed" && (

@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
-import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, Pencil, Check, X } from "lucide-react";
-import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, Pencil, Check, X, Target } from "lucide-react";
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from "recharts";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Income, SalaryConfig } from "@/types/income";
+import type { FinancialGoal } from "@/types/goal";
+import { TERM_LABELS, TERM_COLORS } from "@/types/goal";
 
 const personColors = [
   { bar: "bg-person-claudia", bg: "bg-person-claudia-bg", text: "text-person-claudia" },
