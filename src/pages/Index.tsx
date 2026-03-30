@@ -6,7 +6,7 @@ import { VariableExpenses } from "@/components/VariableExpenses";
 import { AnnualOverview } from "@/components/AnnualOverview";
 import { Income } from "@/components/Income";
 import { CategoryBudgets } from "@/components/CategoryBudgets";
-import { Settings, ChevronLeft, ChevronRight, LogOut, Shield } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus, BillAttachment } from "@/types/expense";
 import type { FinancialGoal } from "@/types/goal";
@@ -214,16 +214,48 @@ const Index = () => {
       </header>
 
       <div className="border-b border-border-subtle/60 bg-surface">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-center gap-4">
-          <button onClick={prevMonth} disabled={isFirstMonth} className="p-1 text-text-muted hover:text-foreground transition-colors rounded-lg hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed">
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <span className="text-sm font-semibold text-foreground min-w-[160px] text-center capitalize">
-            {MONTH_NAMES[selectedMonth]} {selectedYear}
-          </span>
-          <button onClick={nextMonth} disabled={isLastMonth} className="p-1 text-text-muted hover:text-foreground transition-colors rounded-lg hover:bg-surface-hover disabled:opacity-30 disabled:cursor-not-allowed">
-            <ChevronRight className="h-5 w-5" />
-          </button>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-center">
+          <div className="relative">
+            <button
+              onClick={() => setShowMonthPicker(!showMonthPicker)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-foreground hover:bg-surface-hover transition-colors capitalize"
+            >
+              {MONTH_NAMES[selectedMonth]} {selectedYear}
+              <ChevronDown className={`h-4 w-4 text-text-muted transition-transform ${showMonthPicker ? "rotate-180" : ""}`} />
+            </button>
+            {showMonthPicker && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
+                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 z-50 bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 w-[280px]">
+                  {/* Year selector */}
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    {[MIN_YEAR, MIN_YEAR + 1, MAX_YEAR].map((y) => (
+                      <button key={y} onClick={() => setSelectedYear(y)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                          selectedYear === y ? "bg-primary text-primary-foreground" : "text-text-muted hover:bg-surface-hover"
+                        }`}>
+                        {y}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Month grid */}
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {MONTH_NAMES.map((name, i) => (
+                      <button key={i}
+                        onClick={() => { setSelectedMonth(i); setShowMonthPicker(false); }}
+                        className={`px-2 py-2 rounded-lg text-xs font-medium transition-colors ${
+                          selectedMonth === i && selectedYear === selectedYear
+                            ? "bg-primary text-primary-foreground"
+                            : "text-text-secondary hover:bg-surface-hover"
+                        }`}>
+                        {name.slice(0, 3)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
