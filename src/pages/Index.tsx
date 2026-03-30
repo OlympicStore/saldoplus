@@ -63,6 +63,7 @@ const Index = () => {
   const [people, setPeople] = useState<string[]>(defaultPeople);
   const [financialGoals, setFinancialGoals] = useState<FinancialGoal[]>(defaultGoals);
   const [showPeopleEditor, setShowPeopleEditor] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [editingPeople, setEditingPeople] = useState("");
   const [currentBalance, setCurrentBalance] = useState(0);
   const [incomes, setIncomes] = useState<IncomeType[]>([]);
