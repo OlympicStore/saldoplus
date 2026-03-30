@@ -168,7 +168,10 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
-          <h1 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">Dashboard Financeiro</h1>
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+            <span className="text-foreground">Saldo</span>
+            <span className="text-primary text-2xl sm:text-3xl font-black leading-none">+</span>
+          </h1>
           <div className="flex items-center gap-3">
             {profile && (
               <span className="text-xs text-text-muted hidden sm:inline">
