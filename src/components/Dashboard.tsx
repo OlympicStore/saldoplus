@@ -38,6 +38,7 @@ interface DashboardProps {
 export const Dashboard = ({
   fixedExpenses, variableExpenses, incomes, salaryConfigs,
   people, selectedMonth, currentBalance, onUpdateBalance,
+  financialGoals = [], userPlan = "essencial",
 }: DashboardProps) => {
   const [editingBalance, setEditingBalance] = useState(false);
   const [editBalanceVal, setEditBalanceVal] = useState("");
