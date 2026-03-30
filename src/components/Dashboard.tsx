@@ -370,31 +370,137 @@ export const Dashboard = ({
         </div>
       </div>
 
-      {/* Comparação com mês anterior */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
-          <span className="label-caps">Fixos</span>
-          <p className="text-lg font-semibold text-foreground font-mono tabular-nums mt-1">{fmt(current.totalFixed)}</p>
-          <ComparisonBadge current={current.totalFixed} previous={prev.totalFixed} />
-        </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
-          <span className="label-caps">Variáveis</span>
-          <p className="text-lg font-semibold text-foreground font-mono tabular-nums mt-1">{fmt(current.totalVariable)}</p>
-          <ComparisonBadge current={current.totalVariable} previous={prev.totalVariable} />
-        </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
-          <span className="label-caps">Entradas</span>
-          <p className="text-lg font-semibold text-foreground font-mono tabular-nums mt-1">{fmt(current.totalIncome)}</p>
-          <ComparisonBadge current={current.totalIncome} previous={prev.totalIncome} inverted />
-        </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
-          <span className="label-caps">Pago vs Pendente</span>
-          <div className="flex gap-2 mt-2">
-            <span className="text-xs text-status-paid font-mono">{fmt(paidFixed)}</span>
-            <span className="text-xs text-status-pending font-mono">{fmt(pendingFixed)}</span>
+      {/* Comparação com mês anterior - formato compacto */}
+      <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
+        <span className="label-caps mb-3 block">Comparação com Mês Anterior</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <span className="text-xs text-text-muted">Entradas</span>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalIncome)}</p>
+              {(() => {
+                if (prev.totalIncome === 0 && current.totalIncome === 0) return null;
+                const pct = prev.totalIncome > 0 ? ((current.totalIncome - prev.totalIncome) / prev.totalIncome) * 100 : 0;
+                const isUp = pct > 1;
+                return pct !== 0 ? (
+                  <span className={`text-xs font-semibold flex items-center gap-0.5 ${isUp ? "text-status-paid" : "text-status-negative"}`}>
+                    {isUp ? "↑" : "↓"} {isUp ? "+" : ""}{pct.toFixed(0)}%
+                  </span>
+                ) : null;
+              })()}
+            </div>
+          </div>
+          <div>
+            <span className="text-xs text-text-muted">Saídas</span>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalExpenses)}</p>
+              {(() => {
+                if (prev.totalExpenses === 0 && current.totalExpenses === 0) return null;
+                const pct = prev.totalExpenses > 0 ? ((current.totalExpenses - prev.totalExpenses) / prev.totalExpenses) * 100 : 0;
+                const isDown = pct < -1;
+                return pct !== 0 ? (
+                  <span className={`text-xs font-semibold flex items-center gap-0.5 ${isDown ? "text-status-paid" : "text-status-negative"}`}>
+                    {pct > 0 ? "↑" : "↓"} {pct > 0 ? "+" : ""}{pct.toFixed(0)}%
+                  </span>
+                ) : null;
+              })()}
+            </div>
+          </div>
+          <div>
+            <span className="text-xs text-text-muted">Fixos</span>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalFixed)}</p>
+              <ComparisonBadge current={current.totalFixed} previous={prev.totalFixed} />
+            </div>
+          </div>
+          <div>
+            <span className="text-xs text-text-muted">Variáveis</span>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalVariable)}</p>
+              <ComparisonBadge current={current.totalVariable} previous={prev.totalVariable} />
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Metas financeiras - resumo (read-only) */}
+      {financialGoals.length > 0 && (
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
+          <span className="label-caps mb-3 block">Metas Financeiras</span>
+          <div className="space-y-3">
+            {financialGoals.slice(0, 5).map((goal) => {
+              const pct = goal.totalValue > 0 ? Math.min((goal.currentValue / goal.totalValue) * 100, 100) : 0;
+              const colors = TERM_COLORS[goal.term];
+              return (
+                <div key={goal.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <Target className={`h-3.5 w-3.5 ${colors.text}`} />
+                      <span className="text-sm font-medium text-foreground">{goal.name}</span>
+                    </div>
+                    <span className="text-xs font-mono text-text-muted tabular-nums">
+                      {fmt(goal.currentValue)} / {fmt(goal.totalValue)}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.6 }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: colors.accent }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-text-muted mt-0.5 text-right">{pct.toFixed(0)}%</p>
+                </div>
+              );
+            })}
+            {financialGoals.length > 5 && (
+              <p className="text-xs text-text-muted text-center">+{financialGoals.length - 5} metas na secção Metas</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Pro: Gráfico de gastos e rendimentos por categoria */}
+      {userPlan === "pro" && (
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
+          <span className="label-caps mb-3 block">Gastos vs Rendimentos por Categoria</span>
+          {(() => {
+            const catData: { name: string; gastos: number; rendimentos: number }[] = [];
+            // Fixed as category
+            if (current.totalFixed > 0) catData.push({ name: "Fixos", gastos: current.totalFixed, rendimentos: 0 });
+            // Variable by category
+            const varCats: Record<string, number> = {};
+            current.monthVars.forEach((e) => { varCats[e.category] = (varCats[e.category] || 0) + e.value; });
+            Object.entries(varCats).forEach(([cat, val]) => catData.push({ name: cat, gastos: val, rendimentos: 0 }));
+            // Income categories
+            if (current.totalSalary > 0) {
+              const existing = catData.find(d => d.name === "Salários");
+              if (existing) existing.rendimentos = current.totalSalary;
+              else catData.push({ name: "Salários", gastos: 0, rendimentos: current.totalSalary });
+            }
+            if (current.monthOtherIncome > 0) {
+              catData.push({ name: "Outros Rend.", gastos: 0, rendimentos: current.monthOtherIncome });
+            }
+
+            if (catData.length === 0) return <p className="text-sm text-text-muted text-center py-6">Sem dados neste mês</p>;
+
+            return (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={catData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} tickFormatter={(v) => `€${v}`} width={60} />
+                  <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid hsl(214, 32%, 91%)" }} />
+                  <Bar dataKey="gastos" name="Gastos" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar dataKey="rendimentos" name="Rendimentos" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            );
+          })()}
+        </div>
+      )}
 
       {/* Divisão por pessoa */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
