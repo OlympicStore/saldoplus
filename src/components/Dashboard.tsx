@@ -48,14 +48,19 @@ export const Dashboard = ({
   // === CALCULATIONS ===
   const getMonthData = (month: number) => {
     const monthVars = variableExpenses.filter((e) => new Date(e.date).getMonth() === month);
-    const totalFixed = fixedExpenses.reduce((s, e) => s + (e.monthlyValues[month] ?? 0), 0);
+    // Only count PAID fixed expenses in the auto balance
+    const totalFixedPaid = fixedExpenses
+      .filter(e => e.monthlyPaid[month])
+      .reduce((s, e) => s + (e.monthlyValues[month] ?? 0), 0);
+    const totalFixedAll = fixedExpenses.reduce((s, e) => s + (e.monthlyValues[month] ?? 0), 0);
     const totalVariable = monthVars.reduce((s, e) => s + e.value, 0);
-    const totalExpenses = totalFixed + totalVariable;
+    const totalExpenses = totalFixedAll;
+    const totalExpensesPaid = totalFixedPaid + totalVariable;
     const activeSalaries = salaryConfigs.filter((s) => s.active);
     const totalSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[month] ?? 0), 0);
     const monthOtherIncome = incomes.filter((i) => new Date(i.date).getMonth() === month && i.type === "other").reduce((s, i) => s + i.value, 0);
     const totalIncome = totalSalary + monthOtherIncome;
-    return { totalFixed, totalVariable, totalExpenses, totalIncome, totalSalary, monthOtherIncome, monthVars };
+    return { totalFixed: totalFixedAll, totalFixedPaid, totalVariable, totalExpenses: totalExpenses + totalVariable, totalExpensesPaid, totalIncome, totalSalary, monthOtherIncome, monthVars };
   };
 
   const current = getMonthData(selectedMonth);
