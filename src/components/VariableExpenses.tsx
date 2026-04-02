@@ -70,6 +70,7 @@ export const VariableExpenses = ({
       category: newExpense.category as any,
       value: val,
       responsible: newExpense.responsible,
+      account: "",
     });
     setNewExpense({ description: "", category: categories[0] || "", value: "", responsible: null, date: "" });
     setShowForm(false);

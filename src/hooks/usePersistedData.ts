@@ -50,7 +50,7 @@ export function usePersistedData() {
 
       if (fe.data?.length) {
         setFixedExpenses(fe.data.map((r: any) => ({
-          id: r.id, item: r.item, dueDay: r.due_day,
+          id: r.id, item: r.item, dueDay: r.due_day, account: r.account || "",
           monthlyValues: r.monthly_values || {},
           monthlyResponsible: r.monthly_responsible || {},
           monthlyPaid: r.monthly_paid || {},
@@ -61,6 +61,7 @@ export function usePersistedData() {
         setVariableExpenses(ve.data.map((r: any) => ({
           id: r.id, date: r.date, description: r.description,
           category: r.category, value: Number(r.value), responsible: r.responsible,
+          account: r.account || "",
         })));
       }
 
@@ -68,6 +69,7 @@ export function usePersistedData() {
         setIncomes(inc.data.map((r: any) => ({
           id: r.id, date: r.date, description: r.description,
           value: Number(r.value), person: r.person, type: r.type as "salary" | "other",
+          account: r.account || "",
         })));
       }
 
@@ -146,6 +148,7 @@ export function usePersistedData() {
     if (!userId) return;
     await supabase.from("fixed_expenses").upsert({
       id: expense.id, user_id: userId, item: expense.item, due_day: expense.dueDay,
+      account: expense.account || "",
       monthly_values: expense.monthlyValues, monthly_responsible: expense.monthlyResponsible,
       monthly_paid: expense.monthlyPaid,
     }, { onConflict: "id" });
@@ -157,6 +160,7 @@ export function usePersistedData() {
       id: expense.id, user_id: userId, date: expense.date,
       description: expense.description, category: expense.category,
       value: expense.value, responsible: expense.responsible,
+      account: expense.account || "",
     }, { onConflict: "id" });
   }, [userId]);
 
@@ -166,6 +170,7 @@ export function usePersistedData() {
       id: income.id, user_id: userId, date: income.date,
       description: income.description, value: income.value,
       person: income.person, type: income.type,
+      account: income.account || "",
     }, { onConflict: "id" });
   }, [userId]);
 

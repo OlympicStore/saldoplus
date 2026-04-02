@@ -93,6 +93,7 @@ export const Expenses = ({
         id: crypto.randomUUID(),
         item: newExpense.category,
         dueDay: parseInt(newExpense.dueDay) || 1,
+        account: newExpense.account || "",
         monthlyValues: { [selectedMonth]: val },
         monthlyResponsible: { [selectedMonth]: newExpense.responsible },
         monthlyPaid: { [selectedMonth]: false },
@@ -103,6 +104,7 @@ export const Expenses = ({
       onAddVariable({
         date, description: newExpense.description || newExpense.category,
         category: newExpense.category as any, value: val, responsible: newExpense.responsible,
+        account: newExpense.account || "",
       });
     }
     setNewExpense({ category: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null });

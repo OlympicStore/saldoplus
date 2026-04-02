@@ -5,6 +5,7 @@ export interface Income {
   value: number;
   person: string | null;
   type: "salary" | "other";
+  account: string;
 }
 
 export interface SalaryConfig {

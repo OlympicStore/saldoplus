@@ -6,6 +6,7 @@ export interface FixedExpense {
   id: string;
   item: string;
   dueDay: number;
+  account: string;
   /** value per month (0-11) */
   monthlyValues: Record<number, number>;
   /** responsible per month (0-11) */
@@ -21,6 +22,7 @@ export interface VariableExpense {
   category: VariableCategory;
   value: number;
   responsible: string | null;
+  account: string;
 }
 
 export interface MonthlyBillRecord {

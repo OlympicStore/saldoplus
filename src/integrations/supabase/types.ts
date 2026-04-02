@@ -145,6 +145,7 @@ export type Database = {
       }
       fixed_expenses: {
         Row: {
+          account: string
           created_at: string
           due_day: number
           id: string
@@ -156,6 +157,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account?: string
           created_at?: string
           due_day?: number
           id?: string
@@ -167,6 +169,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account?: string
           created_at?: string
           due_day?: number
           id?: string
@@ -237,6 +240,7 @@ export type Database = {
       }
       incomes: {
         Row: {
+          account: string
           created_at: string
           date: string
           description: string
@@ -248,6 +252,7 @@ export type Database = {
           value: number
         }
         Insert: {
+          account?: string
           created_at?: string
           date: string
           description?: string
@@ -259,6 +264,7 @@ export type Database = {
           value?: number
         }
         Update: {
+          account?: string
           created_at?: string
           date?: string
           description?: string
@@ -450,6 +456,7 @@ export type Database = {
       }
       variable_expenses: {
         Row: {
+          account: string
           category: string
           created_at: string
           date: string
@@ -461,6 +468,7 @@ export type Database = {
           value: number
         }
         Insert: {
+          account?: string
           category?: string
           created_at?: string
           date: string
@@ -472,6 +480,7 @@ export type Database = {
           value?: number
         }
         Update: {
+          account?: string
           category?: string
           created_at?: string
           date?: string
