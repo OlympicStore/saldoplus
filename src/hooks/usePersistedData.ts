@@ -69,6 +69,7 @@ export function usePersistedData() {
         setIncomes(inc.data.map((r: any) => ({
           id: r.id, date: r.date, description: r.description,
           value: Number(r.value), person: r.person, type: r.type as "salary" | "other",
+          account: r.account || "",
         })));
       }
 
