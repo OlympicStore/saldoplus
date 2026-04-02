@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Plus, Trash2, Filter } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { PersonSelector } from "./PersonSelector";
-import { PersonBadge } from "./PersonBadge";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Category } from "@/types/category";
 import type { Account } from "@/types/account";
@@ -56,7 +55,8 @@ export const Expenses = ({
     return cat?.type === "fixo" ? "Fixo" : "Variável";
   };
 
-  // Build unified expense rows
+  const selectedCatType = newExpense.category ? getCategoryType(newExpense.category) : null;
+
   const rows: ExpenseRow[] = [
     ...fixedExpenses.map((e): ExpenseRow => ({
       id: e.id, kind: "fixed", category: e.item,
@@ -91,7 +91,7 @@ export const Expenses = ({
     if (catType === "Fixo") {
       onAddFixed({
         id: crypto.randomUUID(),
-        item: newExpense.category,
+        item: newExpense.description || newExpense.category,
         dueDay: parseInt(newExpense.dueDay) || 1,
         account: newExpense.account || "",
         monthlyValues: { [selectedMonth]: val },
@@ -167,6 +167,12 @@ export const Expenses = ({
               </select>
             </div>
             <div className="sm:col-span-2">
+              <label className="label-caps mb-1.5 block">Título</label>
+              <input value={newExpense.description} onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                placeholder="Ex: Jantar McDonald's"
+                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Conta</label>
               <select value={newExpense.account} onChange={(e) => setNewExpense({ ...newExpense, account: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
@@ -174,27 +180,30 @@ export const Expenses = ({
                 {accounts.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
               </select>
             </div>
-            <div className="sm:col-span-2">
-              <label className="label-caps mb-1.5 block">Data</label>
-              <input type="date" value={newExpense.date} onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
-            </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-1">
               <label className="label-caps mb-1.5 block">Valor (€)</label>
               <input value={newExpense.value} onChange={(e) => setNewExpense({ ...newExpense, value: e.target.value })}
                 placeholder="0,00"
                 className="w-full text-sm font-mono bg-background border border-border-subtle rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <div className="sm:col-span-1">
-              <label className="label-caps mb-1.5 block">Dia Venc.</label>
-              <input type="number" min={1} max={31} value={newExpense.dueDay} onChange={(e) => setNewExpense({ ...newExpense, dueDay: e.target.value })}
-                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-1 focus:ring-primary" />
-            </div>
+            {selectedCatType === "Fixo" ? (
+              <div className="sm:col-span-1">
+                <label className="label-caps mb-1.5 block">Dia Venc.</label>
+                <input type="number" min={1} max={31} value={newExpense.dueDay} onChange={(e) => setNewExpense({ ...newExpense, dueDay: e.target.value })}
+                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+            ) : (
+              <div className="sm:col-span-1">
+                <label className="label-caps mb-1.5 block">Data</label>
+                <input type="date" value={newExpense.date} onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+            )}
             <div className="sm:col-span-1">
               <label className="label-caps mb-1.5 block">Quem</label>
               <PersonSelector value={newExpense.responsible} onChange={(p) => setNewExpense({ ...newExpense, responsible: p })} people={people} />
             </div>
-            <div className="sm:col-span-2 flex gap-2">
+            <div className="sm:col-span-3 flex gap-2">
               <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
               <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
             </div>
@@ -205,11 +214,11 @@ export const Expenses = ({
       {/* Desktop header */}
       <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 mb-1">
         <span className="col-span-2 label-caps">Categoria</span>
+        <span className="col-span-2 label-caps">Título</span>
         <span className="col-span-2 label-caps">Data / Dia Venc.</span>
         <span className="col-span-2 label-caps text-right">Valor</span>
         <span className="col-span-2 label-caps">Status</span>
-        <span className="col-span-2 label-caps">Tipo</span>
-        <span className="col-span-2 label-caps text-right"></span>
+        <span className="col-span-2 label-caps text-right">Tipo</span>
       </div>
 
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 divide-y divide-border-subtle/40">
@@ -222,6 +231,7 @@ export const Expenses = ({
             {/* Desktop */}
             <div className="hidden sm:grid grid-cols-12 gap-2 items-center">
               <div className="col-span-2 text-sm font-semibold text-foreground truncate">{row.category}</div>
+              <div className="col-span-2 text-sm text-text-muted truncate">{row.description !== row.category ? row.description : "—"}</div>
               <div className="col-span-2 text-sm text-text-secondary">
                 {row.kind === "fixed" ? `Dia ${row.dueDay}` : new Date(row.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" })}
               </div>
@@ -232,12 +242,10 @@ export const Expenses = ({
                   <span className="text-xs text-text-muted group-hover:text-foreground transition-colors capitalize">{row.status}</span>
                 </button>
               </div>
-              <div className="col-span-2">
+              <div className="col-span-2 flex items-center justify-end gap-2">
                 <span className={`text-xs px-2 py-0.5 rounded-full ${row.type === "Fixo" ? "bg-blue-500/10 text-blue-600" : "bg-amber-500/10 text-amber-600"}`}>
                   {row.type}
                 </span>
-              </div>
-              <div className="col-span-2 text-right">
                 <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -247,9 +255,9 @@ export const Expenses = ({
             {/* Mobile */}
             <div className="sm:hidden space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">{row.category}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${row.type === "Fixo" ? "bg-blue-500/10 text-blue-600" : "bg-amber-500/10 text-amber-600"}`}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm font-semibold text-foreground truncate">{row.category}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${row.type === "Fixo" ? "bg-blue-500/10 text-blue-600" : "bg-amber-500/10 text-amber-600"}`}>
                     {row.type}
                   </span>
                 </div>
@@ -257,6 +265,9 @@ export const Expenses = ({
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
+              {row.description !== row.category && (
+                <p className="text-xs text-text-muted truncate">{row.description}</p>
+              )}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-text-muted">

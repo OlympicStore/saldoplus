@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Plus, Trash2, TrendingUp } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type { Investment } from "@/types/investment";
 import { INVESTMENT_TYPE_LABELS } from "@/types/investment";
 import type { Account } from "@/types/account";
@@ -19,25 +19,24 @@ const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDig
 export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpdate, onDelete }: InvestmentsProps) => {
   const [showForm, setShowForm] = useState(false);
   const [newInv, setNewInv] = useState({
-    type: "poupanca" as Investment["type"], account: "", value: "", date: "", returns: "", description: "",
+    type: "" as string, account: "", value: "", date: "", returns: "", description: "",
   });
 
   const monthInvestments = investments.filter(i => new Date(i.date).getMonth() === selectedMonth);
   const totalInvested = monthInvestments.reduce((s, i) => s + i.value, 0);
-  const totalReturns = monthInvestments.reduce((s, i) => s + (i.returns ?? 0), 0);
 
   const handleAdd = () => {
     const val = parseFloat(newInv.value.replace(",", "."));
-    if (isNaN(val)) return;
+    if (isNaN(val) || !newInv.type) return;
     const ret = newInv.returns ? parseFloat(newInv.returns.replace(",", ".")) : null;
     const year = new Date().getFullYear();
     const date = newInv.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
     onAdd({
-      type: newInv.type, account: newInv.account, value: val,
+      type: newInv.type as Investment["type"], account: newInv.account, value: val,
       date, returns: isNaN(ret as number) ? null : ret,
-      description: newInv.description || INVESTMENT_TYPE_LABELS[newInv.type],
+      description: newInv.description || INVESTMENT_TYPE_LABELS[newInv.type] || newInv.type,
     });
-    setNewInv({ type: "poupanca", account: "", value: "", date: "", returns: "", description: "" });
+    setNewInv({ type: "", account: "", value: "", date: "", returns: "", description: "" });
     setShowForm(false);
   };
 
@@ -84,12 +83,19 @@ export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpd
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Tipo</label>
-              <select value={newInv.type} onChange={(e) => setNewInv({ ...newInv, type: e.target.value as Investment["type"] })}
+              <select value={newInv.type} onChange={(e) => setNewInv({ ...newInv, type: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
+                <option value="">Selecionar</option>
                 <option value="acoes">Ações</option>
                 <option value="poupanca">Poupança</option>
                 <option value="cripto">Cripto</option>
               </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label-caps mb-1.5 block">Descrição</label>
+              <input value={newInv.description} onChange={(e) => setNewInv({ ...newInv, description: e.target.value })}
+                placeholder="Ex: Compra Bitcoin"
+                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Conta</label>
@@ -110,15 +116,17 @@ export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpd
               <input type="date" value={newInv.date} onChange={(e) => setNewInv({ ...newInv, date: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
+            <div className="sm:col-span-2 flex gap-2">
+              <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
+              <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end mt-3">
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Rentabilidade (€)</label>
               <input value={newInv.returns} onChange={(e) => setNewInv({ ...newInv, returns: e.target.value })}
                 placeholder="Opcional"
                 className="w-full text-sm font-mono bg-background border border-border-subtle rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-1 focus:ring-primary" />
-            </div>
-            <div className="sm:col-span-2 flex gap-2">
-              <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
-              <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
             </div>
           </div>
         </motion.div>
@@ -127,11 +135,11 @@ export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpd
       {/* Desktop header */}
       <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 mb-1">
         <span className="col-span-2 label-caps">Tipo</span>
+        <span className="col-span-2 label-caps">Descrição</span>
         <span className="col-span-2 label-caps">Conta</span>
         <span className="col-span-2 label-caps text-right">Valor</span>
         <span className="col-span-2 label-caps">Data</span>
         <span className="col-span-2 label-caps text-right">Rentabilidade</span>
-        <span className="col-span-2"></span>
       </div>
 
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 divide-y divide-border-subtle/40">
@@ -147,21 +155,20 @@ export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpd
                   inv.type === "acoes" ? "bg-blue-500/10 text-blue-600" :
                   inv.type === "cripto" ? "bg-purple-500/10 text-purple-600" :
                   "bg-emerald-500/10 text-emerald-600"
-                }`}>{INVESTMENT_TYPE_LABELS[inv.type]}</span>
+                }`}>{INVESTMENT_TYPE_LABELS[inv.type] || inv.type}</span>
               </div>
+              <div className="col-span-2 text-sm text-text-muted truncate">{inv.description || "—"}</div>
               <div className="col-span-2 text-sm text-text-muted">{inv.account || "—"}</div>
               <div className="col-span-2 text-right font-mono text-sm text-foreground tabular-nums font-semibold">{fmt(inv.value)}</div>
               <div className="col-span-2 text-sm text-text-muted">
                 {new Date(inv.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" })}
               </div>
-              <div className="col-span-2 text-right">
+              <div className="col-span-2 flex items-center justify-end gap-2">
                 {inv.returns != null ? (
                   <span className={`font-mono text-sm tabular-nums ${inv.returns >= 0 ? "text-status-paid" : "text-status-negative"}`}>
                     {inv.returns >= 0 ? "+" : ""}{fmt(inv.returns)}
                   </span>
                 ) : <span className="text-xs text-text-muted">—</span>}
-              </div>
-              <div className="col-span-2 text-right">
                 <button onClick={() => onDelete(inv.id)} className="text-text-muted hover:text-status-negative transition-colors">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -176,8 +183,8 @@ export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpd
                     inv.type === "acoes" ? "bg-blue-500/10 text-blue-600" :
                     inv.type === "cripto" ? "bg-purple-500/10 text-purple-600" :
                     "bg-emerald-500/10 text-emerald-600"
-                  }`}>{INVESTMENT_TYPE_LABELS[inv.type]}</span>
-                  <span className="text-sm font-semibold text-foreground">{inv.description}</span>
+                  }`}>{INVESTMENT_TYPE_LABELS[inv.type] || inv.type}</span>
+                  <span className="text-sm font-semibold text-foreground">{inv.description || "—"}</span>
                 </div>
                 <button onClick={() => onDelete(inv.id)} className="text-text-muted hover:text-status-negative transition-colors">
                   <Trash2 className="h-3.5 w-3.5" />
