@@ -158,7 +158,7 @@ export const FixedExpenses = ({ expenses, people, selectedMonth, onUpdate, onUpd
 
       {/* Add new fixed expense */}
       <button
-        onClick={() => onAdd({ id: crypto.randomUUID(), item: "Novo Gasto", dueDay: 1, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} })}
+        onClick={() => onAdd({ id: crypto.randomUUID(), item: "Novo Gasto", dueDay: 1, account: "", monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} })}
         className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-text-muted hover:text-foreground border border-dashed border-border-subtle rounded-xl hover:bg-surface-hover transition-colors"
       >
         <Plus className="h-4 w-4" />

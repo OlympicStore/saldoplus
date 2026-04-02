@@ -36,7 +36,7 @@ export const Income = ({
     if (!newIncome.description || isNaN(val)) return;
     const year = new Date().getFullYear();
     const date = newIncome.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
-    onAddIncome({ date, description: newIncome.description, value: val, person: newIncome.person, type: "other" });
+    onAddIncome({ date, description: newIncome.description, value: val, person: newIncome.person, type: "other", account: "" });
     setNewIncome({ description: "", value: "", person: null, date: "" });
     setShowForm(false);
   };

@@ -65,7 +65,7 @@ export const Entries = ({
       const date = newEntry.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
       onAddIncome({
         date, description: newEntry.description || "Outro rendimento",
-        value: val, person: null, type: "other",
+        value: val, person: null, type: "other", account: newEntry.account,
       });
     }
     setNewEntry({ category: "Outros", account: "", value: "", date: "", description: "" });
