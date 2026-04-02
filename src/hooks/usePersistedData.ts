@@ -50,7 +50,7 @@ export function usePersistedData() {
 
       if (fe.data?.length) {
         setFixedExpenses(fe.data.map((r: any) => ({
-          id: r.id, item: r.item, dueDay: r.due_day,
+          id: r.id, item: r.item, dueDay: r.due_day, account: r.account || "",
           monthlyValues: r.monthly_values || {},
           monthlyResponsible: r.monthly_responsible || {},
           monthlyPaid: r.monthly_paid || {},
@@ -61,6 +61,7 @@ export function usePersistedData() {
         setVariableExpenses(ve.data.map((r: any) => ({
           id: r.id, date: r.date, description: r.description,
           category: r.category, value: Number(r.value), responsible: r.responsible,
+          account: r.account || "",
         })));
       }
 
