@@ -84,7 +84,7 @@ const PaymentSuccess = () => {
               Houve um problema ao verificar o pagamento. Se o valor foi cobrado, contacte o suporte.
             </p>
             <button
-              onClick={() => navigate("/pricing")}
+              onClick={() => navigate("/")}
               className="mt-4 px-6 py-2.5 rounded-lg border border-border-subtle text-foreground text-sm font-medium hover:bg-surface-hover transition-colors"
             >
               Voltar aos planos
