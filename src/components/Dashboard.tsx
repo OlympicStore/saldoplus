@@ -70,15 +70,16 @@ export const Dashboard = ({
   const monthBalance = current.totalIncome - current.totalExpenses;
   const prevBalance = prev.totalIncome - prev.totalExpenses;
 
-  // Auto-calculated balance (cumulative from month 0)
+  // Auto-calculated balance: account balances + cumulative paid transactions
   const autoBalance = useMemo(() => {
+    const accountTotal = accounts.reduce((s, a) => s + a.balance, 0);
     let cumulative = 0;
     for (let m = 0; m <= selectedMonth; m++) {
       const d = getMonthData(m);
-      cumulative += d.totalIncome - d.totalExpenses;
+      cumulative += d.totalIncome - d.totalExpensesPaid;
     }
-    return cumulative;
-  }, [selectedMonth, fixedExpenses, variableExpenses, incomes, salaryConfigs]);
+    return accountTotal + cumulative;
+  }, [selectedMonth, fixedExpenses, variableExpenses, incomes, salaryConfigs, accounts]);
 
   // Use manual override if set, otherwise auto-calculated
   const displayBalance = currentBalance !== 0 ? currentBalance : autoBalance;
