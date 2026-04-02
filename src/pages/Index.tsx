@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Dashboard } from "@/components/Dashboard";
-import { FixedExpenses } from "@/components/FixedExpenses";
-import { VariableExpenses } from "@/components/VariableExpenses";
+import { Expenses } from "@/components/Expenses";
+import { Entries } from "@/components/Entries";
+import { Investments } from "@/components/Investments";
 import { AnnualOverview } from "@/components/AnnualOverview";
-import { Income } from "@/components/Income";
-import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { FinancialGoals } from "@/components/FinancialGoals";
+import { CategoryBudgets } from "@/components/CategoryBudgets";
+import { InitialBalance } from "@/components/InitialBalance";
+import { CategoriesManager } from "@/components/CategoriesManager";
 import { SuggestionsDialog } from "@/components/SuggestionsDialog";
-import { Settings, ChevronDown, LogOut, Shield } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
@@ -18,22 +20,23 @@ const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julh
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
-type Tab = "dashboard" | "fixed" | "variable" | "income" | "annual" | "goals" | "budgets";
+type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets";
 
 const allTabs: { key: Tab; label: string }[] = [
   { key: "dashboard", label: "Home" },
-  { key: "fixed", label: "Fixos" },
-  { key: "variable", label: "Variáveis" },
-  { key: "income", label: "Rendimentos" },
+  { key: "balance", label: "Saldo" },
+  { key: "entries", label: "Entradas" },
+  { key: "expenses", label: "Despesas" },
+  { key: "investments", label: "Investimentos" },
   { key: "annual", label: "Anual" },
   { key: "goals", label: "Metas" },
   { key: "budgets", label: "Orçamentos" },
 ];
 
 const planTabs: Record<string, Tab[]> = {
-  essencial: ["dashboard", "fixed", "variable", "annual"],
-  casa: ["dashboard", "fixed", "variable", "income", "annual", "goals"],
-  pro: ["dashboard", "fixed", "variable", "income", "annual", "goals", "budgets"],
+  essencial: ["dashboard", "balance", "entries", "expenses", "annual"],
+  casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals"],
+  pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets"],
 };
 
 const Index = () => {
@@ -49,9 +52,9 @@ const Index = () => {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [showPeopleEditor, setShowPeopleEditor] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [showCategoriesPanel, setShowCategoriesPanel] = useState(false);
   const [editingPeople, setEditingPeople] = useState("");
 
-  // Bill attachments remain local (file blobs)
   const [billAttachments, setBillAttachments] = useState<BillAttachment[]>([]);
   const addAttachment = (bill: string, month: number, file: File) => {
     const fileUrl = URL.createObjectURL(file);
@@ -74,6 +77,14 @@ const Index = () => {
     ...data.fixedExpenses.map((e) => e.item),
     ...data.variableCategories,
   ];
+
+  // Get display name: first + last name only
+  const getDisplayName = (fullName: string | null | undefined) => {
+    if (!fullName) return "";
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length <= 2) return fullName;
+    return `${parts[0]} ${parts[parts.length - 1]}`;
+  };
 
   const openPeopleEditor = () => {
     setEditingPeople(data.people.join(", "));
@@ -106,10 +117,15 @@ const Index = () => {
           <div className="flex items-center gap-3">
             {profile && (
               <span className="text-xs text-text-muted hidden sm:inline">
-                {profile.full_name || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
+                {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
             <SuggestionsDialog />
+            <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
+              className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
+              <Tag className="h-4 w-4" />
+              <span className="hidden sm:inline">Categorias</span>
+            </button>
             {isAdmin && (
               <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors text-sm">
                 <Shield className="h-4 w-4" />
@@ -127,6 +143,20 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* Categories panel */}
+      {showCategoriesPanel && (
+        <div className="border-b border-border-subtle/60 bg-surface">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+            <CategoriesManager
+              categories={data.categories}
+              onAdd={data.addCategoryItem}
+              onUpdate={data.updateCategoryItem}
+              onDelete={data.deleteCategoryItem}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-center">
@@ -216,20 +246,43 @@ const Index = () => {
             currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
             financialGoals={data.financialGoals}
             userPlan={userPlan}
+            accounts={data.accounts}
           />
         )}
-        {activeTab === "fixed" && (
-          <FixedExpenses expenses={data.fixedExpenses} onUpdate={data.updateFixed} onUpdateMonthly={data.updateFixedMonthly}
-            onAdd={data.addFixed} onDelete={data.deleteFixed} people={data.people} selectedMonth={selectedMonth} />
+        {activeTab === "balance" && (
+          <InitialBalance
+            accounts={data.accounts}
+            onAdd={data.addAccount}
+            onUpdate={data.updateAccount}
+            onDelete={data.deleteAccount}
+          />
         )}
-        {activeTab === "variable" && (
-          <VariableExpenses expenses={data.variableExpenses} onAdd={data.addVariable} onUpdate={data.updateVariable}
-            onDelete={data.deleteVariable} people={data.people} selectedMonth={selectedMonth}
-            categories={data.variableCategories} onAddCategory={data.addCategory} onDeleteCategory={data.deleteCategory} />
+        {activeTab === "entries" && (
+          <Entries
+            incomes={data.incomes} salaryConfigs={data.salaryConfigs}
+            accounts={data.accounts} people={data.people} selectedMonth={selectedMonth}
+            onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
+            onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
+          />
         )}
-        {activeTab === "income" && (
-          <Income incomes={data.incomes} salaryConfigs={data.salaryConfigs} people={data.people} selectedMonth={selectedMonth}
-            onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome} onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary} />
+        {activeTab === "expenses" && (
+          <Expenses
+            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
+            categories={data.categories} accounts={data.accounts}
+            people={data.people} selectedMonth={selectedMonth}
+            onAddFixed={data.addFixed} onUpdateFixed={data.updateFixed}
+            onUpdateFixedMonthly={data.updateFixedMonthly} onDeleteFixed={data.deleteFixed}
+            onAddVariable={data.addVariable} onUpdateVariable={data.updateVariable}
+            onDeleteVariable={data.deleteVariable}
+          />
+        )}
+        {activeTab === "investments" && (
+          <Investments
+            investments={data.investments} accounts={data.accounts}
+            selectedMonth={selectedMonth}
+            onAdd={data.addInvestment} onUpdate={data.updateInvestment}
+            onDelete={data.deleteInvestment}
+          />
         )}
         {activeTab === "annual" && (
           <AnnualOverview records={data.billRecords} attachments={billAttachments} billNames={allBillNames}
