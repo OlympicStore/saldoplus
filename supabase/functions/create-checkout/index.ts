@@ -51,7 +51,7 @@ serve(async (req) => {
       line_items: [{ price: PLAN_PRICES[plan], quantity: 1 }],
       mode: "payment",
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
-      cancel_url: `${req.headers.get("origin")}/pricing`,
+      cancel_url: `${req.headers.get("origin")}/`,
       metadata: { user_id: user.id, plan },
     });
 

@@ -98,7 +98,7 @@ const Pricing = () => {
           <div className="flex items-center gap-3">
             {user ? (
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/app")}
                 className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
               >
                 Ir para o App
