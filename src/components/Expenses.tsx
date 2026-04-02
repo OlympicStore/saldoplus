@@ -93,6 +93,7 @@ export const Expenses = ({
         id: crypto.randomUUID(),
         item: newExpense.category,
         dueDay: parseInt(newExpense.dueDay) || 1,
+        account: newExpense.account || "",
         monthlyValues: { [selectedMonth]: val },
         monthlyResponsible: { [selectedMonth]: newExpense.responsible },
         monthlyPaid: { [selectedMonth]: false },
