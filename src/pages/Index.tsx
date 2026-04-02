@@ -6,27 +6,17 @@ import { VariableExpenses } from "@/components/VariableExpenses";
 import { AnnualOverview } from "@/components/AnnualOverview";
 import { Income } from "@/components/Income";
 import { CategoryBudgets } from "@/components/CategoryBudgets";
+import { FinancialGoals } from "@/components/FinancialGoals";
+import { SuggestionsDialog } from "@/components/SuggestionsDialog";
 import { Settings, ChevronDown, LogOut, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus, BillAttachment } from "@/types/expense";
-import type { FinancialGoal } from "@/types/goal";
-import type { Income as IncomeType, SalaryConfig } from "@/types/income";
-import { FinancialGoals, defaultGoals } from "@/components/FinancialGoals";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePersistedData } from "@/hooks/usePersistedData";
+import type { BillAttachment } from "@/types/expense";
 
 const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
-
-const initialFixedExpenses: FixedExpense[] = [
-  { id: "1", item: "Água", dueDay: 10, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
-  { id: "2", item: "Gás/Eletricidade", dueDay: 15, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
-  { id: "3", item: "Internet", dueDay: 20, monthlyValues: {}, monthlyResponsible: {}, monthlyPaid: {} },
-];
-
-const defaultPeople = ["João", "Maria"];
-const defaultCategories = ["Supermercado"];
 
 type Tab = "dashboard" | "fixed" | "variable" | "income" | "annual" | "goals" | "budgets";
 
@@ -53,73 +43,16 @@ const Index = () => {
   const userPlan = profile?.plan || "essencial";
   const allowedTabs = planTabs[userPlan] || planTabs.essencial;
   const tabs = allTabs.filter((t) => allowedTabs.includes(t.key));
+
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [selectedYear, setSelectedYear] = useState(Math.max(MIN_YEAR, Math.min(MAX_YEAR, now.getFullYear())));
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
-  const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>(initialFixedExpenses);
-  const [variableExpenses, setVariableExpenses] = useState<VariableExpense[]>([]);
-  const [billRecords, setBillRecords] = useState<MonthlyBillRecord[]>([]);
-  const [billAttachments, setBillAttachments] = useState<BillAttachment[]>([]);
-  const [people, setPeople] = useState<string[]>(defaultPeople);
-  const [financialGoals, setFinancialGoals] = useState<FinancialGoal[]>(defaultGoals);
   const [showPeopleEditor, setShowPeopleEditor] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [editingPeople, setEditingPeople] = useState("");
-  const [currentBalance, setCurrentBalance] = useState(0);
-  const [incomes, setIncomes] = useState<IncomeType[]>([]);
-  const [salaryConfigs, setSalaryConfigs] = useState<SalaryConfig[]>(
-    defaultPeople.map((p) => ({ person: p, monthlyValues: {}, active: true }))
-  );
-  const [variableCategories, setVariableCategories] = useState<string[]>(defaultCategories);
 
-  const allBillNames = [
-    ...fixedExpenses.map((e) => e.item),
-    ...variableCategories,
-  ];
-
-  // Fixed expenses handlers
-  const addFixed = (expense: FixedExpense) => setFixedExpenses((prev) => [...prev, expense]);
-  const deleteFixed = (id: string) => setFixedExpenses((prev) => prev.filter((e) => e.id !== id));
-  const updateFixed = (id: string, updates: Partial<FixedExpense>) =>
-    setFixedExpenses((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
-  const updateFixedMonthly = (id: string, month: number, field: "value" | "responsible" | "paid", val: number | string | null | boolean) => {
-    setFixedExpenses((prev) => prev.map((e) => {
-      if (e.id !== id) return e;
-      if (field === "value") return { ...e, monthlyValues: { ...e.monthlyValues, [month]: val as number } };
-      if (field === "responsible") return { ...e, monthlyResponsible: { ...e.monthlyResponsible, [month]: val as string | null } };
-      return { ...e, monthlyPaid: { ...e.monthlyPaid, [month]: val as boolean } };
-    }));
-  };
-
-  // Variable expenses handlers
-  const addVariable = (expense: Omit<VariableExpense, "id">) =>
-    setVariableExpenses((prev) => [{ ...expense, id: crypto.randomUUID() }, ...prev]);
-  const updateVariable = (id: string, updates: Partial<VariableExpense>) =>
-    setVariableExpenses((prev) => prev.map((e) => (e.id === id ? { ...e, ...updates } : e)));
-  const deleteVariable = (id: string) => setVariableExpenses((prev) => prev.filter((e) => e.id !== id));
-
-  // Income handlers
-  const addIncome = (income: Omit<IncomeType, "id">) =>
-    setIncomes((prev) => [{ ...income, id: crypto.randomUUID() }, ...prev]);
-  const updateIncome = (id: string, updates: Partial<IncomeType>) =>
-    setIncomes((prev) => prev.map((i) => (i.id === id ? { ...i, ...updates } : i)));
-  const deleteIncome = (id: string) => setIncomes((prev) => prev.filter((i) => i.id !== id));
-  const updateSalary = (person: string, updates: Partial<SalaryConfig>) => {
-    setSalaryConfigs((prev) => {
-      const existing = prev.find((s) => s.person === person);
-      if (existing) return prev.map((s) => (s.person === person ? { ...s, ...updates } : s));
-      return [...prev, { person, monthlyValues: {}, active: true, ...updates }];
-    });
-  };
-
-  // Bill records
-  const updateBillRecord = (bill: string, month: number, status: BillStatus) => {
-    setBillRecords((prev) => {
-      const existing = prev.findIndex((r) => r.bill === bill && r.month === month);
-      if (existing >= 0) return prev.map((r, i) => (i === existing ? { ...r, status } : r));
-      return [...prev, { bill, month, status }];
-    });
-  };
+  // Bill attachments remain local (file blobs)
+  const [billAttachments, setBillAttachments] = useState<BillAttachment[]>([]);
   const addAttachment = (bill: string, month: number, file: File) => {
     const fileUrl = URL.createObjectURL(file);
     setBillAttachments((prev) => {
@@ -135,34 +68,32 @@ const Index = () => {
     });
   };
 
-  // Category handlers
-  const addCategory = (cat: string) => setVariableCategories((prev) => [...prev, cat]);
-  const deleteCategory = (cat: string) => setVariableCategories((prev) => prev.filter((c) => c !== cat));
+  const data = usePersistedData();
 
-  // People editor
+  const allBillNames = [
+    ...data.fixedExpenses.map((e) => e.item),
+    ...data.variableCategories,
+  ];
+
   const openPeopleEditor = () => {
-    setEditingPeople(people.join(", "));
+    setEditingPeople(data.people.join(", "));
     setShowPeopleEditor(true);
   };
   const savePeople = () => {
     const newPeople = editingPeople.split(",").map((s) => s.trim()).filter(Boolean);
     if (newPeople.length > 0) {
-      setPeople(newPeople);
-      // Ensure salary configs exist for new people
-      setSalaryConfigs((prev) => {
-        const updated = [...prev];
-        newPeople.forEach((p) => {
-          if (!updated.find((s) => s.person === p)) {
-            updated.push({ person: p, monthlyValues: {}, active: true });
-          }
-        });
-        return updated;
-      });
+      data.updatePeople(newPeople);
     }
     setShowPeopleEditor(false);
   };
 
-
+  if (!data.loaded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -178,6 +109,7 @@ const Index = () => {
                 {profile.full_name || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
+            <SuggestionsDialog />
             {isAdmin && (
               <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors text-sm">
                 <Shield className="h-4 w-4" />
@@ -210,7 +142,6 @@ const Index = () => {
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
                 <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 z-50 bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 w-[280px]">
-                  {/* Year selector */}
                   <div className="flex items-center justify-center gap-2 mb-3">
                     {[MIN_YEAR, MIN_YEAR + 1, MAX_YEAR].map((y) => (
                       <button key={y} onClick={() => setSelectedYear(y)}
@@ -221,13 +152,12 @@ const Index = () => {
                       </button>
                     ))}
                   </div>
-                  {/* Month grid */}
                   <div className="grid grid-cols-3 gap-1.5">
                     {MONTH_NAMES.map((name, i) => (
                       <button key={i}
                         onClick={() => { setSelectedMonth(i); setShowMonthPicker(false); }}
                         className={`px-2 py-2 rounded-lg text-xs font-medium transition-colors ${
-                          selectedMonth === i && selectedYear === selectedYear
+                          selectedMonth === i
                             ? "bg-primary text-primary-foreground"
                             : "text-text-secondary hover:bg-surface-hover"
                         }`}>
@@ -280,42 +210,42 @@ const Index = () => {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === "dashboard" && (
           <Dashboard
-            fixedExpenses={fixedExpenses} variableExpenses={variableExpenses}
-            incomes={incomes} salaryConfigs={salaryConfigs}
-            people={people} selectedMonth={selectedMonth}
-            currentBalance={currentBalance} onUpdateBalance={setCurrentBalance}
-            financialGoals={financialGoals}
+            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
+            incomes={data.incomes} salaryConfigs={data.salaryConfigs}
+            people={data.people} selectedMonth={selectedMonth}
+            currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
+            financialGoals={data.financialGoals}
             userPlan={userPlan}
           />
         )}
         {activeTab === "fixed" && (
-          <FixedExpenses expenses={fixedExpenses} onUpdate={updateFixed} onUpdateMonthly={updateFixedMonthly}
-            onAdd={addFixed} onDelete={deleteFixed} people={people} selectedMonth={selectedMonth} />
+          <FixedExpenses expenses={data.fixedExpenses} onUpdate={data.updateFixed} onUpdateMonthly={data.updateFixedMonthly}
+            onAdd={data.addFixed} onDelete={data.deleteFixed} people={data.people} selectedMonth={selectedMonth} />
         )}
         {activeTab === "variable" && (
-          <VariableExpenses expenses={variableExpenses} onAdd={addVariable} onUpdate={updateVariable}
-            onDelete={deleteVariable} people={people} selectedMonth={selectedMonth}
-            categories={variableCategories} onAddCategory={addCategory} onDeleteCategory={deleteCategory} />
+          <VariableExpenses expenses={data.variableExpenses} onAdd={data.addVariable} onUpdate={data.updateVariable}
+            onDelete={data.deleteVariable} people={data.people} selectedMonth={selectedMonth}
+            categories={data.variableCategories} onAddCategory={data.addCategory} onDeleteCategory={data.deleteCategory} />
         )}
         {activeTab === "income" && (
-          <Income incomes={incomes} salaryConfigs={salaryConfigs} people={people} selectedMonth={selectedMonth}
-            onAddIncome={addIncome} onUpdateIncome={updateIncome} onDeleteIncome={deleteIncome} onUpdateSalary={updateSalary} />
+          <Income incomes={data.incomes} salaryConfigs={data.salaryConfigs} people={data.people} selectedMonth={selectedMonth}
+            onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome} onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary} />
         )}
         {activeTab === "annual" && (
-          <AnnualOverview records={billRecords} attachments={billAttachments} billNames={allBillNames}
-            onUpdate={updateBillRecord} onAttach={addAttachment} onRemoveAttachment={removeAttachment}
-            fixedExpenses={fixedExpenses} variableExpenses={variableExpenses} goals={financialGoals} people={people} />
+          <AnnualOverview records={data.billRecords} attachments={billAttachments} billNames={allBillNames}
+            onUpdate={data.updateBillRecord} onAttach={addAttachment} onRemoveAttachment={removeAttachment}
+            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses} goals={data.financialGoals} people={data.people} />
         )}
         {activeTab === "goals" && (
-          <FinancialGoals goals={financialGoals}
-            onAdd={(g) => setFinancialGoals((prev) => [...prev, g])}
-            onUpdate={(id, u) => setFinancialGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...u } : g)))}
-            onDelete={(id) => setFinancialGoals((prev) => prev.filter((g) => g.id !== id))} />
+          <FinancialGoals goals={data.financialGoals}
+            onAdd={data.addGoal}
+            onUpdate={data.updateGoal}
+            onDelete={data.deleteGoal} />
         )}
         {activeTab === "budgets" && (
           <CategoryBudgets
-            categories={variableCategories}
-            variableExpenses={variableExpenses}
+            categories={data.variableCategories}
+            variableExpenses={data.variableExpenses}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />

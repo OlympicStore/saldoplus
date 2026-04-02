@@ -14,6 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
+      bill_records: {
+        Row: {
+          bill: string
+          created_at: string
+          id: string
+          month: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bill: string
+          created_at?: string
+          id?: string
+          month: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bill?: string
+          created_at?: string
+          id?: string
+          month?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      financial_goals: {
+        Row: {
+          account: string | null
+          created_at: string
+          current_value: number
+          deadline_months: number
+          id: string
+          monthly_savings: number
+          name: string
+          term: string
+          total_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account?: string | null
+          created_at?: string
+          current_value?: number
+          deadline_months?: number
+          id?: string
+          monthly_savings?: number
+          name: string
+          term?: string
+          total_value?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account?: string | null
+          created_at?: string
+          current_value?: number
+          deadline_months?: number
+          id?: string
+          monthly_savings?: number
+          name?: string
+          term?: string
+          total_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fixed_expenses: {
+        Row: {
+          created_at: string
+          due_day: number
+          id: string
+          item: string
+          monthly_paid: Json
+          monthly_responsible: Json
+          monthly_values: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_day?: number
+          id?: string
+          item: string
+          monthly_paid?: Json
+          monthly_responsible?: Json
+          monthly_values?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          due_day?: number
+          id?: string
+          item?: string
+          monthly_paid?: Json
+          monthly_responsible?: Json
+          monthly_values?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           group_id: string
@@ -70,6 +178,42 @@ export type Database = {
         }
         Relationships: []
       }
+      incomes: {
+        Row: {
+          created_at: string
+          date: string
+          description: string
+          id: string
+          person: string | null
+          type: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string
+          id?: string
+          person?: string | null
+          type?: string
+          updated_at?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          person?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -103,6 +247,63 @@ export type Database = {
         }
         Relationships: []
       }
+      salary_configs: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          monthly_values: Json
+          person: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          monthly_values?: Json
+          person: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          monthly_values?: Json
+          person?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      suggestions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -118,6 +319,72 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          current_balance: number
+          id: string
+          people: string[]
+          updated_at: string
+          user_id: string
+          variable_categories: string[]
+        }
+        Insert: {
+          created_at?: string
+          current_balance?: number
+          id?: string
+          people?: string[]
+          updated_at?: string
+          user_id: string
+          variable_categories?: string[]
+        }
+        Update: {
+          created_at?: string
+          current_balance?: number
+          id?: string
+          people?: string[]
+          updated_at?: string
+          user_id?: string
+          variable_categories?: string[]
+        }
+        Relationships: []
+      }
+      variable_expenses: {
+        Row: {
+          category: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          responsible: string | null
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          date: string
+          description?: string
+          id?: string
+          responsible?: string | null
+          updated_at?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          responsible?: string | null
+          updated_at?: string
+          user_id?: string
+          value?: number
         }
         Relationships: []
       }
