@@ -4,6 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus } from "@/types/expense";
 import type { FinancialGoal } from "@/types/goal";
 import type { Income, SalaryConfig } from "@/types/income";
+import type { Account } from "@/types/account";
+import type { Investment } from "@/types/investment";
+import type { Category } from "@/types/category";
 import { defaultGoals } from "@/components/FinancialGoals";
 
 const debounce = (fn: (...args: any[]) => void, ms: number) => {
@@ -21,16 +24,18 @@ export function usePersistedData() {
   const [salaryConfigs, setSalaryConfigs] = useState<SalaryConfig[]>([]);
   const [financialGoals, setFinancialGoals] = useState<FinancialGoal[]>([]);
   const [billRecords, setBillRecords] = useState<MonthlyBillRecord[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [people, setPeople] = useState<string[]>(["João", "Maria"]);
   const [variableCategories, setVariableCategories] = useState<string[]>(["Supermercado"]);
   const [currentBalance, setCurrentBalance] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
-  // Load all data on mount
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
-      const [fe, ve, inc, sc, fg, br, us] = await Promise.all([
+      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat] = await Promise.all([
         supabase.from("fixed_expenses").select("*").eq("user_id", userId),
         supabase.from("variable_expenses").select("*").eq("user_id", userId),
         supabase.from("incomes").select("*").eq("user_id", userId),
@@ -38,6 +43,9 @@ export function usePersistedData() {
         supabase.from("financial_goals").select("*").eq("user_id", userId),
         supabase.from("bill_records").select("*").eq("user_id", userId),
         supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("accounts").select("*").eq("user_id", userId).order("sort_order"),
+        supabase.from("investments").select("*").eq("user_id", userId),
+        supabase.from("categories").select("*").eq("user_id", userId),
       ]);
 
       if (fe.data?.length) {
@@ -84,6 +92,42 @@ export function usePersistedData() {
         setBillRecords(br.data.map((r: any) => ({
           bill: r.bill, month: r.month, status: r.status as BillStatus,
         })));
+      }
+
+      if (ac.data?.length) {
+        setAccounts(ac.data.map((r: any) => ({
+          id: r.id, name: r.name, balance: Number(r.balance),
+          type: r.type as Account["type"], sort_order: r.sort_order,
+        })));
+      }
+
+      if (inv.data?.length) {
+        setInvestments(inv.data.map((r: any) => ({
+          id: r.id, type: r.type as Investment["type"], account: r.account,
+          value: Number(r.value), date: r.date, returns: r.returns != null ? Number(r.returns) : null,
+          description: r.description,
+        })));
+      }
+
+      if (cat.data?.length) {
+        setCategories(cat.data.map((r: any) => ({
+          id: r.id, name: r.name, type: r.type as Category["type"],
+        })));
+      } else {
+        // Default categories with "Outros"
+        const defaults: Omit<Category, "id">[] = [
+          { name: "Água", type: "fixo" },
+          { name: "Gás", type: "fixo" },
+          { name: "Internet", type: "fixo" },
+          { name: "Supermercado", type: "variavel" },
+          { name: "Outros", type: "variavel" },
+        ];
+        const inserted: Category[] = [];
+        for (const d of defaults) {
+          const { data } = await supabase.from("categories").insert({ user_id: userId, name: d.name, type: d.type }).select().single();
+          if (data) inserted.push({ id: data.id, name: data.name, type: data.type as Category["type"] });
+        }
+        setCategories(inserted);
       }
 
       if (us.data) {
@@ -150,6 +194,31 @@ export function usePersistedData() {
     }, { onConflict: "user_id,bill,month" });
   }, [userId]);
 
+  const syncAccount = useCallback(async (account: Account) => {
+    if (!userId) return;
+    await supabase.from("accounts").upsert({
+      id: account.id, user_id: userId, name: account.name,
+      balance: account.balance, type: account.type, sort_order: account.sort_order,
+    }, { onConflict: "id" });
+  }, [userId]);
+
+  const syncInvestment = useCallback(async (investment: Investment) => {
+    if (!userId) return;
+    await supabase.from("investments").upsert({
+      id: investment.id, user_id: userId, type: investment.type,
+      account: investment.account, value: investment.value,
+      date: investment.date, returns: investment.returns,
+      description: investment.description,
+    }, { onConflict: "id" });
+  }, [userId]);
+
+  const syncCategory = useCallback(async (category: Category) => {
+    if (!userId) return;
+    await supabase.from("categories").upsert({
+      id: category.id, user_id: userId, name: category.name, type: category.type,
+    }, { onConflict: "id" });
+  }, [userId]);
+
   const debouncedSyncSettings = useRef(
     debounce(async (uid: string, p: string[], cats: string[], bal: number) => {
       await supabase.from("user_settings").upsert({
@@ -163,7 +232,7 @@ export function usePersistedData() {
     debouncedSyncSettings(userId, p, cats, bal);
   }, [userId, debouncedSyncSettings]);
 
-  // --- Handlers that update state + sync ---
+  // --- Handlers ---
   const addFixed = useCallback((expense: FixedExpense) => {
     setFixedExpenses(prev => [...prev, expense]);
     syncFixedExpense(expense);
@@ -280,7 +349,76 @@ export function usePersistedData() {
     if (userId) await supabase.from("financial_goals").delete().eq("id", id);
   }, [userId]);
 
-  // Settings sync on change
+  // Accounts
+  const addAccount = useCallback((account: Omit<Account, "id">) => {
+    const full = { ...account, id: crypto.randomUUID() };
+    setAccounts(prev => [...prev, full]);
+    syncAccount(full);
+  }, [syncAccount]);
+
+  const updateAccount = useCallback((id: string, updates: Partial<Account>) => {
+    setAccounts(prev => {
+      const updated = prev.map(a => a.id === id ? { ...a, ...updates } : a);
+      const acc = updated.find(a => a.id === id);
+      if (acc) syncAccount(acc);
+      return updated;
+    });
+  }, [syncAccount]);
+
+  const deleteAccount = useCallback(async (id: string) => {
+    setAccounts(prev => prev.filter(a => a.id !== id));
+    if (userId) await supabase.from("accounts").delete().eq("id", id);
+  }, [userId]);
+
+  // Investments
+  const addInvestment = useCallback((investment: Omit<Investment, "id">) => {
+    const full = { ...investment, id: crypto.randomUUID() };
+    setInvestments(prev => [full, ...prev]);
+    syncInvestment(full);
+  }, [syncInvestment]);
+
+  const updateInvestment = useCallback((id: string, updates: Partial<Investment>) => {
+    setInvestments(prev => {
+      const updated = prev.map(i => i.id === id ? { ...i, ...updates } : i);
+      const inv = updated.find(i => i.id === id);
+      if (inv) syncInvestment(inv);
+      return updated;
+    });
+  }, [syncInvestment]);
+
+  const deleteInvestment = useCallback(async (id: string) => {
+    setInvestments(prev => prev.filter(i => i.id !== id));
+    if (userId) await supabase.from("investments").delete().eq("id", id);
+  }, [userId]);
+
+  // Categories
+  const addCategoryItem = useCallback(async (category: Omit<Category, "id">) => {
+    if (!userId) return;
+    const { data } = await supabase.from("categories").insert({ user_id: userId, name: category.name, type: category.type }).select().single();
+    if (data) {
+      setCategories(prev => [...prev, { id: data.id, name: data.name, type: data.type as Category["type"] }]);
+    }
+  }, [userId]);
+
+  const updateCategoryItem = useCallback(async (id: string, updates: Partial<Category>) => {
+    setCategories(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, ...updates } : c);
+      return updated;
+    });
+    if (userId) {
+      const updateData: any = {};
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.type !== undefined) updateData.type = updates.type;
+      await supabase.from("categories").update(updateData).eq("id", id);
+    }
+  }, [userId]);
+
+  const deleteCategoryItem = useCallback(async (id: string) => {
+    setCategories(prev => prev.filter(c => c.id !== id));
+    if (userId) await supabase.from("categories").delete().eq("id", id);
+  }, [userId]);
+
+  // Settings sync
   const updatePeople = useCallback((newPeople: string[]) => {
     setPeople(newPeople);
     setSalaryConfigs(prev => {
@@ -322,11 +460,15 @@ export function usePersistedData() {
     loaded,
     fixedExpenses, variableExpenses, incomes, salaryConfigs,
     financialGoals, billRecords, people, variableCategories, currentBalance,
+    accounts, investments, categories,
     addFixed, deleteFixed, updateFixed, updateFixedMonthly,
     addVariable, updateVariable, deleteVariable,
     addIncome, updateIncome, deleteIncome, updateSalary,
     updateBillRecord,
     addGoal, updateGoal, deleteGoal,
     updatePeople, addCategory, deleteCategory, updateBalance,
+    addAccount, updateAccount, deleteAccount,
+    addInvestment, updateInvestment, deleteInvestment,
+    addCategoryItem, updateCategoryItem, deleteCategoryItem,
   };
 }

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bill_records: {
         Row: {
           bill: string
@@ -40,6 +73,30 @@ export type Database = {
           month?: number
           status?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
           user_id?: string
         }
         Relationships: []
@@ -214,6 +271,45 @@ export type Database = {
         }
         Relationships: []
       }
+      investments: {
+        Row: {
+          account: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          returns: number | null
+          type: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          account?: string
+          created_at?: string
+          date: string
+          description?: string
+          id?: string
+          returns?: number | null
+          type?: string
+          updated_at?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          account?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          returns?: number | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -284,7 +380,7 @@ export type Database = {
           id: string
           message: string
           name: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -292,7 +388,7 @@ export type Database = {
           id?: string
           message?: string
           name?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -300,7 +396,7 @@ export type Database = {
           id?: string
           message?: string
           name?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }

@@ -6,6 +6,7 @@ import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Income, SalaryConfig } from "@/types/income";
 import type { FinancialGoal } from "@/types/goal";
 import { TERM_LABELS, TERM_COLORS } from "@/types/goal";
+import type { Account } from "@/types/account";
 
 const personColors = [
   { bar: "bg-person-claudia", bg: "bg-person-claudia-bg", text: "text-person-claudia" },
@@ -33,12 +34,13 @@ interface DashboardProps {
   onUpdateBalance: (v: number) => void;
   financialGoals?: FinancialGoal[];
   userPlan?: string;
+  accounts?: Account[];
 }
 
 export const Dashboard = ({
   fixedExpenses, variableExpenses, incomes, salaryConfigs,
   people, selectedMonth, currentBalance, onUpdateBalance,
-  financialGoals = [], userPlan = "essencial",
+  financialGoals = [], userPlan = "essencial", accounts = [],
 }: DashboardProps) => {
   const [editingBalance, setEditingBalance] = useState(false);
   const [editBalanceVal, setEditBalanceVal] = useState("");
@@ -46,14 +48,19 @@ export const Dashboard = ({
   // === CALCULATIONS ===
   const getMonthData = (month: number) => {
     const monthVars = variableExpenses.filter((e) => new Date(e.date).getMonth() === month);
-    const totalFixed = fixedExpenses.reduce((s, e) => s + (e.monthlyValues[month] ?? 0), 0);
+    // Only count PAID fixed expenses in the auto balance
+    const totalFixedPaid = fixedExpenses
+      .filter(e => e.monthlyPaid[month])
+      .reduce((s, e) => s + (e.monthlyValues[month] ?? 0), 0);
+    const totalFixedAll = fixedExpenses.reduce((s, e) => s + (e.monthlyValues[month] ?? 0), 0);
     const totalVariable = monthVars.reduce((s, e) => s + e.value, 0);
-    const totalExpenses = totalFixed + totalVariable;
+    const totalExpenses = totalFixedAll;
+    const totalExpensesPaid = totalFixedPaid + totalVariable;
     const activeSalaries = salaryConfigs.filter((s) => s.active);
     const totalSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[month] ?? 0), 0);
     const monthOtherIncome = incomes.filter((i) => new Date(i.date).getMonth() === month && i.type === "other").reduce((s, i) => s + i.value, 0);
     const totalIncome = totalSalary + monthOtherIncome;
-    return { totalFixed, totalVariable, totalExpenses, totalIncome, totalSalary, monthOtherIncome, monthVars };
+    return { totalFixed: totalFixedAll, totalFixedPaid, totalVariable, totalExpenses: totalExpenses + totalVariable, totalExpensesPaid, totalIncome, totalSalary, monthOtherIncome, monthVars };
   };
 
   const current = getMonthData(selectedMonth);
@@ -63,15 +70,16 @@ export const Dashboard = ({
   const monthBalance = current.totalIncome - current.totalExpenses;
   const prevBalance = prev.totalIncome - prev.totalExpenses;
 
-  // Auto-calculated balance (cumulative from month 0)
+  // Auto-calculated balance: account balances + cumulative paid transactions
   const autoBalance = useMemo(() => {
+    const accountTotal = accounts.reduce((s, a) => s + a.balance, 0);
     let cumulative = 0;
     for (let m = 0; m <= selectedMonth; m++) {
       const d = getMonthData(m);
-      cumulative += d.totalIncome - d.totalExpenses;
+      cumulative += d.totalIncome - d.totalExpensesPaid;
     }
-    return cumulative;
-  }, [selectedMonth, fixedExpenses, variableExpenses, incomes, salaryConfigs]);
+    return accountTotal + cumulative;
+  }, [selectedMonth, fixedExpenses, variableExpenses, incomes, salaryConfigs, accounts]);
 
   // Use manual override if set, otherwise auto-calculated
   const displayBalance = currentBalance !== 0 ? currentBalance : autoBalance;
