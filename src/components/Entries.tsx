@@ -18,57 +18,27 @@ interface EntriesProps {
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
-const ENTRY_CATEGORIES = ["Salário 1", "Salário 2", "Outros"];
-
 export const Entries = ({
   incomes, salaryConfigs, accounts, people, selectedMonth,
   onAddIncome, onUpdateIncome, onDeleteIncome, onUpdateSalary,
 }: EntriesProps) => {
   const [showForm, setShowForm] = useState(false);
-  const [newEntry, setNewEntry] = useState({ category: "Outros", account: "", value: "", date: "", description: "" });
+  const [newEntry, setNewEntry] = useState({ category: "Salário", account: "", value: "", date: "", description: "" });
 
   const monthIncomes = incomes.filter(i => new Date(i.date).getMonth() === selectedMonth);
-  const activeSalaries = salaryConfigs.filter(s => s.active);
-  const totalSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[selectedMonth] ?? 0), 0);
-  const totalOther = monthIncomes.filter(i => i.type === "other").reduce((s, i) => s + i.value, 0);
-  const totalEntries = totalSalary + totalOther;
-
-  // Build rows: salaries + other incomes
-  const rows = [
-    ...activeSalaries.map(s => ({
-      id: `salary-${s.person}`, type: "salary" as const,
-      category: `Salário - ${s.person}`, account: "",
-      value: s.monthlyValues[selectedMonth] ?? 0,
-      date: "", person: s.person,
-    })),
-    ...monthIncomes.filter(i => i.type === "other").map(i => ({
-      id: i.id, type: "other" as const,
-      category: "Outros", account: "",
-      value: i.value, date: i.date, person: i.person,
-    })),
-  ];
+  const totalEntries = monthIncomes.reduce((s, i) => s + i.value, 0);
 
   const handleAdd = () => {
     const val = parseFloat(newEntry.value.replace(",", "."));
     if (isNaN(val)) return;
-
-    if (newEntry.category.startsWith("Salário")) {
-      // Update salary config for first person
-      const person = people[parseInt(newEntry.category.replace("Salário ", "")) - 1] || people[0];
-      if (person) {
-        const config = salaryConfigs.find(s => s.person === person);
-        const currentValues = config?.monthlyValues ?? {};
-        onUpdateSalary(person, { monthlyValues: { ...currentValues, [selectedMonth]: val }, active: true });
-      }
-    } else {
-      const year = new Date().getFullYear();
-      const date = newEntry.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
-      onAddIncome({
-        date, description: newEntry.description || "Outro rendimento",
-        value: val, person: null, type: "other", account: newEntry.account,
-      });
-    }
-    setNewEntry({ category: "Outros", account: "", value: "", date: "", description: "" });
+    const year = new Date().getFullYear();
+    const date = newEntry.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
+    const type = newEntry.category === "Salário" ? "salary" as const : "other" as const;
+    onAddIncome({
+      date, description: newEntry.description || newEntry.category,
+      value: val, person: null, type, account: newEntry.account,
+    });
+    setNewEntry({ category: "Salário", account: "", value: "", date: "", description: "" });
     setShowForm(false);
   };
 
@@ -77,7 +47,7 @@ export const Entries = ({
       <div className="flex items-center justify-between mb-6 gap-3">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Entradas</h2>
-          <p className="text-sm text-text-muted mt-0.5">{rows.length} registros este mês</p>
+          <p className="text-sm text-text-muted mt-0.5">{monthIncomes.length} registros este mês</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <div className="text-right hidden sm:block">
@@ -104,8 +74,15 @@ export const Entries = ({
               <label className="label-caps mb-1.5 block">Categoria</label>
               <select value={newEntry.category} onChange={(e) => setNewEntry({ ...newEntry, category: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
-                {ENTRY_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="Salário">Salário</option>
+                <option value="Outros">Outros</option>
               </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label-caps mb-1.5 block">Descrição</label>
+              <input value={newEntry.description} onChange={(e) => setNewEntry({ ...newEntry, description: e.target.value })}
+                placeholder="Ex: Freelance"
+                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Conta</label>
@@ -126,12 +103,6 @@ export const Entries = ({
               <input type="date" value={newEntry.date} onChange={(e) => setNewEntry({ ...newEntry, date: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <div className="sm:col-span-2">
-              <label className="label-caps mb-1.5 block">Descrição</label>
-              <input value={newEntry.description} onChange={(e) => setNewEntry({ ...newEntry, description: e.target.value })}
-                placeholder="Ex: Freelance"
-                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
-            </div>
             <div className="sm:col-span-2 flex gap-2">
               <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
               <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
@@ -142,47 +113,50 @@ export const Entries = ({
 
       {/* Desktop header */}
       <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 mb-1">
-        <span className="col-span-3 label-caps">Categoria</span>
-        <span className="col-span-3 label-caps">Conta</span>
-        <span className="col-span-3 label-caps text-right">Valor</span>
+        <span className="col-span-2 label-caps">Categoria</span>
+        <span className="col-span-3 label-caps">Descrição</span>
+        <span className="col-span-2 label-caps">Conta</span>
+        <span className="col-span-2 label-caps text-right">Valor</span>
         <span className="col-span-2 label-caps">Data</span>
         <span className="col-span-1"></span>
       </div>
 
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 divide-y divide-border-subtle/40">
-        {rows.length === 0 ? (
+        {monthIncomes.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-text-muted">
             Nenhuma entrada neste mês. Clique em "Nova Entrada" para adicionar.
           </div>
-        ) : rows.map(row => (
+        ) : monthIncomes.map(row => (
           <div key={row.id} className="px-4 py-3 hover:bg-surface-hover transition-colors">
             <div className="hidden sm:grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-3 text-sm font-semibold text-foreground">{row.category}</div>
-              <div className="col-span-3 text-sm text-text-muted">{row.account || "—"}</div>
-              <div className="col-span-3 text-right font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</div>
+              <div className="col-span-2 text-sm font-semibold text-foreground">
+                {row.type === "salary" ? "Salário" : "Outros"}
+              </div>
+              <div className="col-span-3 text-sm text-text-muted truncate">{row.description || "—"}</div>
+              <div className="col-span-2 text-sm text-text-muted">{row.account || "—"}</div>
+              <div className="col-span-2 text-right font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</div>
               <div className="col-span-2 text-sm text-text-muted">
                 {row.date ? new Date(row.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }) : "—"}
               </div>
               <div className="col-span-1 text-right">
-                {row.type === "other" && (
-                  <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                )}
+                <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
 
             {/* Mobile */}
             <div className="sm:hidden">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-foreground">{row.category}</span>
+                <div className="min-w-0">
+                  <span className="text-sm font-semibold text-foreground">{row.type === "salary" ? "Salário" : "Outros"}</span>
+                  {row.description && <p className="text-xs text-text-muted truncate">{row.description}</p>}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</span>
-                  {row.type === "other" && (
-                    <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
+                  <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
               {row.date && <p className="text-xs text-text-muted mt-0.5">{new Date(row.date).toLocaleDateString("pt-PT")}</p>}

@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import type { VariableExpense } from "@/types/expense";
 
 interface CategoryBudget {
@@ -18,9 +20,50 @@ interface CategoryBudgetsProps {
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
 export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, selectedYear }: CategoryBudgetsProps) => {
+  const { user } = useAuth();
+  const userId = user?.id;
   const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [editVal, setEditVal] = useState("");
+  const [loaded, setLoaded] = useState(false);
+
+  // Load budgets from DB for current month/year
+  useEffect(() => {
+    if (!userId) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("category_budgets")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("month", selectedMonth)
+        .eq("year", selectedYear);
+      if (data) {
+        setBudgets(data.map((r: any) => ({ category: r.category, limit: Number(r.limit_value) })));
+      } else {
+        setBudgets([]);
+      }
+      setLoaded(true);
+    };
+    load();
+  }, [userId, selectedMonth, selectedYear]);
+
+  const syncBudget = useCallback(async (cat: string, limitValue: number) => {
+    if (!userId) return;
+    await supabase.from("category_budgets").upsert({
+      user_id: userId, category: cat, limit_value: limitValue,
+      month: selectedMonth, year: selectedYear,
+    }, { onConflict: "user_id,category,month,year" });
+  }, [userId, selectedMonth, selectedYear]);
+
+  const deleteBudgetFromDB = useCallback(async (cat: string) => {
+    if (!userId) return;
+    await supabase.from("category_budgets")
+      .delete()
+      .eq("user_id", userId)
+      .eq("category", cat)
+      .eq("month", selectedMonth)
+      .eq("year", selectedYear);
+  }, [userId, selectedMonth, selectedYear]);
 
   const monthExpenses = variableExpenses.filter((e) => {
     const d = new Date(e.date);
@@ -32,15 +75,19 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
 
   const getBudget = (cat: string) => budgets.find((b) => b.category === cat);
 
-  const setBudget = (cat: string, limit: number) => {
+  const setBudgetValue = (cat: string, limit: number) => {
     setBudgets((prev) => {
       const existing = prev.findIndex((b) => b.category === cat);
       if (existing >= 0) return prev.map((b, i) => (i === existing ? { ...b, limit } : b));
       return [...prev, { category: cat, limit }];
     });
+    syncBudget(cat, limit);
   };
 
-  const removeBudget = (cat: string) => setBudgets((prev) => prev.filter((b) => b.category !== cat));
+  const removeBudget = (cat: string) => {
+    setBudgets((prev) => prev.filter((b) => b.category !== cat));
+    deleteBudgetFromDB(cat);
+  };
 
   const startEdit = (cat: string) => {
     const budget = getBudget(cat);
@@ -50,7 +97,7 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
 
   const saveEdit = (cat: string) => {
     const num = parseFloat(editVal.replace(",", "."));
-    if (!isNaN(num) && num > 0) setBudget(cat, num);
+    if (!isNaN(num) && num > 0) setBudgetValue(cat, num);
     setEditingCat(null);
   };
 
@@ -64,6 +111,8 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
     })
     .filter((a): a is NonNullable<typeof a> => a !== null && a.pct >= 80);
 
+  if (!loaded) return null;
+
   return (
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
       <div className="flex items-center justify-between mb-6">
@@ -74,7 +123,6 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
         <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[hsl(var(--status-paid)/0.15)] text-status-paid">PRO</span>
       </div>
 
-      {/* Alerts */}
       {alerts.length > 0 && (
         <div className="mb-6 space-y-2">
           {alerts.map((a) => (
@@ -98,7 +146,6 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
         </div>
       )}
 
-      {/* Category list */}
       <div className="space-y-3">
         {categories.map((cat) => {
           const budget = getBudget(cat);
