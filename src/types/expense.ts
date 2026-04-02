@@ -21,6 +21,7 @@ export interface VariableExpense {
   category: VariableCategory;
   value: number;
   responsible: string | null;
+  account: string;
 }
 
 export interface MonthlyBillRecord {
