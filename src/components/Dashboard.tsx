@@ -34,6 +34,7 @@ interface DashboardProps {
   onUpdateBalance: (v: number) => void;
   financialGoals?: FinancialGoal[];
   userPlan?: string;
+  accounts?: Account[];
 }
 
 export const Dashboard = ({
