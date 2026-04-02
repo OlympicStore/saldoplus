@@ -252,6 +252,10 @@ const Index = () => {
         {activeTab === "balance" && (
           <InitialBalance
             accounts={data.accounts}
+            incomes={data.incomes}
+            fixedExpenses={data.fixedExpenses}
+            variableExpenses={data.variableExpenses}
+            investments={data.investments}
             onAdd={data.addAccount}
             onUpdate={data.updateAccount}
             onDelete={data.deleteAccount}
