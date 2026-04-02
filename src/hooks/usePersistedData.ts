@@ -159,6 +159,7 @@ export function usePersistedData() {
       id: expense.id, user_id: userId, date: expense.date,
       description: expense.description, category: expense.category,
       value: expense.value, responsible: expense.responsible,
+      account: expense.account || "",
     }, { onConflict: "id" });
   }, [userId]);
 
