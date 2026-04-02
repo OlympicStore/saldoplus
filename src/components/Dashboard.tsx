@@ -6,6 +6,7 @@ import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Income, SalaryConfig } from "@/types/income";
 import type { FinancialGoal } from "@/types/goal";
 import { TERM_LABELS, TERM_COLORS } from "@/types/goal";
+import type { Account } from "@/types/account";
 
 const personColors = [
   { bar: "bg-person-claudia", bg: "bg-person-claudia-bg", text: "text-person-claudia" },
