@@ -148,6 +148,7 @@ export function usePersistedData() {
     if (!userId) return;
     await supabase.from("fixed_expenses").upsert({
       id: expense.id, user_id: userId, item: expense.item, due_day: expense.dueDay,
+      account: expense.account || "",
       monthly_values: expense.monthlyValues, monthly_responsible: expense.monthlyResponsible,
       monthly_paid: expense.monthlyPaid,
     }, { onConflict: "id" });
