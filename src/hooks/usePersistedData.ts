@@ -169,6 +169,7 @@ export function usePersistedData() {
       id: income.id, user_id: userId, date: income.date,
       description: income.description, value: income.value,
       person: income.person, type: income.type,
+      account: income.account || "",
     }, { onConflict: "id" });
   }, [userId]);
 
