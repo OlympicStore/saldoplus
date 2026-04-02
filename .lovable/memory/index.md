@@ -5,7 +5,8 @@ Dark theme, Apple-like minimal. Primary hsl(160,84%,39%), bg hsl(210,40%,98%).
 IBM Plex Sans headings/body, IBM Plex Mono numbers. Never serif.
 Moeda: Euro (€), locale pt-PT. Idioma da app: Português.
 Lovable Cloud (Supabase) for auth + DB. Email + Google login.
-Planos: Essencial, Casa, Pro com feature gating. Expiram após 1 ano.
+Planos: Essencial, Casa, Pro com feature gating.
+Tabs: Home, Saldo, Entradas, Despesas, Investimentos, Anual, Metas, Orçamentos.
 
 ## Memories
 - [Currency & locale](mem://style/currency-locale) — Euro €, pt-PT formatting
@@ -19,6 +20,7 @@ Planos: Essencial, Casa, Pro com feature gating. Expiram após 1 ano.
 - [Divisão despesas](mem://features/divisao-despesas) — Fair share calculation (no settlements section)
 - [Resumo anual](mem://features/resumo-anual) — Annual bill tracking
 - [Metas financeiras](mem://features/metas-financeiras) — Goals with accounts
-- [Project identity](mem://project/identity) — App name: Dashboard Financeiro
+- [Project identity](mem://project/identity) — App name: Saldo+
 - [Auth & Plans](mem://features/auth-plans) — Email+Google auth, 3 plans, groups, feature gating
-- [Feature gating](mem://features/feature-gating) — Tabs por plano, expiração 1 ano, meses Jan2026-Dez2028
+- [Feature gating](mem://features/feature-gating) — Tabs por plano, expiração 1 ano
+- [App restructure](mem://features/app-restructure) — Merged expenses, entries, investments, categories, multi-account balance
