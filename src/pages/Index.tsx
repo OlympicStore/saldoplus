@@ -10,6 +10,7 @@ import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { InitialBalance } from "@/components/InitialBalance";
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { SuggestionsDialog } from "@/components/SuggestionsDialog";
+import { AISuggestions } from "@/components/AISuggestions";
 import AccountPanel from "@/components/AccountPanel";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
