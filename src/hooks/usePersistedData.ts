@@ -34,11 +34,14 @@ export function usePersistedData(subAccountId?: string | null) {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
-  // Helper to add sub_account_id filter
+  // Helper to add sub_account_id filter to queries
   const withSub = (query: any) => {
     if (subAccountId) return query.eq("sub_account_id", subAccountId);
     return query.is("sub_account_id", null);
   };
+
+  // Helper to add sub_account_id to insert payloads
+  const subField = subAccountId ? { sub_account_id: subAccountId } : {};
 
   useEffect(() => {
     if (!userId) return;
