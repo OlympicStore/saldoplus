@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search,
-  ChevronUp, ChevronDown, Shield, Calendar, Mail,
+  ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Plan = "essencial" | "casa" | "pro";
 
@@ -46,6 +47,9 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [updatingUser, setUpdatingUser] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newUser, setNewUser] = useState({ full_name: "", email: "", password: "", plan: "essencial" as Plan });
 
   useEffect(() => {
     if (!isAdmin) {
@@ -97,6 +101,33 @@ const AdminDashboard = () => {
     setUpdatingUser(null);
   };
 
+  const createUser = async () => {
+    if (!newUser.email || !newUser.password) {
+      toast.error("Email e password são obrigatórios");
+      return;
+    }
+    if (newUser.password.length < 6) {
+      toast.error("Password deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: newUser,
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Utilizador ${newUser.email} criado com sucesso`);
+      setShowCreateModal(false);
+      setNewUser({ full_name: "", email: "", password: "", plan: "essencial" });
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar utilizador");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const filteredUsers = useMemo(() => {
     if (!search.trim()) return users;
     const q = search.toLowerCase();
@@ -133,6 +164,10 @@ const AdminDashboard = () => {
               <h1 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">Painel Administrativo</h1>
             </div>
           </div>
+          <button onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
+            <Plus className="h-4 w-4" /> Adicionar
+          </button>
         </div>
       </header>
 
@@ -323,6 +358,45 @@ const AdminDashboard = () => {
           )}
         </motion.div>
       </main>
+
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Utilizador</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Nome</label>
+              <input value={newUser.full_name} onChange={(e) => setNewUser(p => ({ ...p, full_name: e.target.value }))}
+                placeholder="Nome completo"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Email *</label>
+              <input type="email" value={newUser.email} onChange={(e) => setNewUser(p => ({ ...p, email: e.target.value }))}
+                placeholder="email@exemplo.com"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Password *</label>
+              <input type="password" value={newUser.password} onChange={(e) => setNewUser(p => ({ ...p, password: e.target.value }))}
+                placeholder="Mínimo 6 caracteres"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Plano</label>
+              <select value={newUser.plan} onChange={(e) => setNewUser(p => ({ ...p, plan: e.target.value as Plan }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary">
+                {PLAN_ORDER.map(p => <option key={p} value={p} className="capitalize">{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+              </select>
+            </div>
+            <button onClick={createUser} disabled={creating}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
+              {creating ? "A criar..." : "Criar Utilizador"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

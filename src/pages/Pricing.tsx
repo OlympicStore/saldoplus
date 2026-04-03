@@ -102,7 +102,6 @@ const Pricing = () => {
       return;
     }
 
-    const checkoutWindow = window.open("", "_blank", "noopener,noreferrer");
     setLoadingPlan(planId);
 
     try {
@@ -115,13 +114,8 @@ const Pricing = () => {
         throw new Error("Não foi possível abrir o checkout.");
       }
 
-      if (checkoutWindow) {
-        checkoutWindow.location.href = data.url;
-      } else {
-        window.location.assign(data.url);
-      }
+      window.location.href = data.url;
     } catch (err: any) {
-      checkoutWindow?.close();
       toast.error(err.message || "Erro ao processar pagamento");
     } finally {
       setLoadingPlan(null);
