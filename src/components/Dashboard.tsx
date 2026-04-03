@@ -378,19 +378,8 @@ export const Dashboard = ({
           )}
         </div>
 
-        {/* Line Chart - Evolução do saldo */}
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-3 block">Evolução do Saldo</span>
-          <ResponsiveContainer width="100%" height={230}>
-            <LineChart data={lineData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} />
-              <YAxis tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} tickFormatter={(v) => `€${v}`} width={60} />
-              <Tooltip formatter={(value: number) => fmt(value)} labelStyle={{ fontWeight: 600 }} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid hsl(214, 32%, 91%)" }} />
-              <Line type="monotone" dataKey="saldo" stroke="hsl(160, 84%, 39%)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(160, 84%, 39%)" }} activeDot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        {/* Placeholder for grid balance */}
+        <div />
       </div>
 
       {/* Comparação com mês anterior - formato compacto */}
