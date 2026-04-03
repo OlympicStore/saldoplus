@@ -23,13 +23,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     </div>
   );
   if (!user) return <Navigate to="/auth" replace />;
+  if (!profile) return <Navigate to="/" replace />;
   // Check if user has an active paid plan
-  if (profile) {
-    const now = new Date();
-    const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
-    if (!expires || expires < now) {
-      return <Navigate to="/pricing" replace />;
-    }
+  const now = new Date();
+  const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
+  if (!expires || expires < now) {
+    return <Navigate to="/pricing" replace />;
   }
   return <>{children}</>;
 };

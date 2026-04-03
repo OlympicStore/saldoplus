@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -37,53 +37,65 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
-    if (data) setProfile(data as Profile);
-  };
+  const fetchProfile = useCallback(async (userId: string) => {
+    const { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+    return (data as Profile | null) ?? null;
+  }, []);
 
-  const checkAdmin = async (userId: string) => {
+  const checkAdmin = useCallback(async (userId: string) => {
     const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-    setIsAdmin(data === true);
-  };
+    return data === true;
+  }, []);
 
-  const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
-      await checkAdmin(user.id);
+  const syncAuthState = useCallback(async (nextSession: Session | null) => {
+    setSession(nextSession);
+
+    const nextUser = nextSession?.user ?? null;
+    setUser(nextUser);
+
+    if (!nextUser) {
+      setProfile(null);
+      setIsAdmin(false);
+      setLoading(false);
+      return;
     }
-  };
+
+    setLoading(true);
+    const [nextProfile, nextIsAdmin] = await Promise.all([
+      fetchProfile(nextUser.id),
+      checkAdmin(nextUser.id),
+    ]);
+
+    setProfile(nextProfile);
+    setIsAdmin(nextIsAdmin);
+    setLoading(false);
+  }, [checkAdmin, fetchProfile]);
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+
+    setLoading(true);
+    const [nextProfile, nextIsAdmin] = await Promise.all([
+      fetchProfile(user.id),
+      checkAdmin(user.id),
+    ]);
+
+    setProfile(nextProfile);
+    setIsAdmin(nextIsAdmin);
+    setLoading(false);
+  }, [checkAdmin, fetchProfile, user]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            checkAdmin(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-          setIsAdmin(false);
-        }
-        setLoading(false);
+      (_event, session) => {
+        void syncAuthState(session);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-        checkAdmin(session.user.id);
-      }
-      setLoading(false);
-    });
+    void supabase.auth.getSession().then(({ data: { session } }) => syncAuthState(session));
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [syncAuthState]);
 
   const signOut = async () => {
     await supabase.auth.signOut();

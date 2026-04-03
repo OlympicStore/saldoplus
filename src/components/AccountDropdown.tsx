@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { User, LogOut, Key, CreditCard, ChevronDown } from "lucide-react";
-import { toast } from "sonner";
+import { User, LogOut, ChevronDown } from "lucide-react";
 
 const PLAN_LABELS: Record<string, string> = {
   essencial: "Essencial",
@@ -15,7 +13,6 @@ const AccountDropdown = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
 
   if (!user) return null;
 
@@ -25,19 +22,9 @@ const AccountDropdown = () => {
     : "—";
   const isActive = profile?.plan_expires_at && new Date(profile.plan_expires_at) > new Date();
 
-  const handleChangePassword = async () => {
-    setChangingPassword(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(user.email!, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) throw error;
-      toast.success("Email enviado! Verifique a sua caixa de entrada.");
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao enviar email");
-    } finally {
-      setChangingPassword(false);
-    }
+  const handleOpenAccount = () => {
+    navigate("/app?tab=account");
+    setOpen(false);
   };
 
   const handleLogout = async () => {
@@ -100,12 +87,11 @@ const AccountDropdown = () => {
             {/* Actions */}
             <div className="p-2">
               <button
-                onClick={handleChangePassword}
-                disabled={changingPassword}
+                onClick={handleOpenAccount}
                 className="w-full flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:bg-surface-hover rounded-lg transition-colors text-left"
               >
-                <Key className="h-4 w-4 text-text-muted" />
-                {changingPassword ? "A enviar..." : "Alterar password"}
+                <User className="h-4 w-4 text-text-muted" />
+                Conta e segurança
               </button>
               <button
                 onClick={handleLogout}
