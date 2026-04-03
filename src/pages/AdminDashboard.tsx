@@ -243,6 +243,37 @@ const AdminDashboard = () => {
           </div>
         </motion.div>
 
+        {/* Payment Links */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
+          className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Crown className="h-4 w-4 text-primary" />
+              <span className="label-caps">Links de Pagamento (Stripe)</span>
+            </div>
+            <button onClick={savePaymentLinks} disabled={savingLinks}
+              className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+              {savingLinks ? "A guardar..." : "Guardar"}
+            </button>
+          </div>
+          <div className="space-y-3">
+            {PLAN_ORDER.map((plan) => (
+              <div key={plan} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <label className="text-sm font-medium text-foreground capitalize w-20 shrink-0">{plan}</label>
+                <input
+                  value={paymentLinks[plan] || ""}
+                  onChange={(e) => setPaymentLinks(prev => ({ ...prev, [plan]: e.target.value }))}
+                  placeholder="https://buy.stripe.com/..."
+                  className="flex-1 px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-text-muted mt-3">
+            Cole aqui os links de pagamento do Stripe para cada plano. Quando o utilizador pagar, o acesso é ativado automaticamente.
+          </p>
+        </motion.div>
+
         {/* Users Table */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
           className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
