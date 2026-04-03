@@ -47,6 +47,9 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [updatingUser, setUpdatingUser] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newUser, setNewUser] = useState({ full_name: "", email: "", password: "", plan: "essencial" as Plan });
 
   useEffect(() => {
     if (!isAdmin) {
