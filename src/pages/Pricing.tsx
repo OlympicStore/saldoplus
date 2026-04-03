@@ -128,10 +128,13 @@ const Pricing = () => {
             <a href="#precos" className="text-sm text-text-muted hover:text-foreground transition-colors hidden sm:inline">Preços</a>
             <a href="#como-funciona" className="text-sm text-text-muted hover:text-foreground transition-colors hidden sm:inline">Como funciona</a>
             {user ? (
-              <button onClick={() => navigate("/app")}
-                className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
-                Ir para o App
-              </button>
+              <>
+                <button onClick={() => navigate("/app")}
+                  className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
+                  Ir para o App
+                </button>
+                <AccountDropdown />
+              </>
             ) : (
               <button onClick={() => navigate("/auth")}
                 className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
