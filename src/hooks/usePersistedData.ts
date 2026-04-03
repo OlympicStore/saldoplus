@@ -415,6 +415,18 @@ export function usePersistedData() {
     if (userId) await supabase.from("investments").delete().eq("id", id);
   }, [userId]);
 
+  // Transfers
+  const addTransfer = useCallback((transfer: Omit<Transfer, "id">) => {
+    const full = { ...transfer, id: crypto.randomUUID() };
+    setTransfers(prev => [full, ...prev]);
+    syncTransfer(full);
+  }, [syncTransfer]);
+
+  const deleteTransfer = useCallback(async (id: string) => {
+    setTransfers(prev => prev.filter(t => t.id !== id));
+    if (userId) await supabase.from("transfers").delete().eq("id", id);
+  }, [userId]);
+
   // Categories
   const addCategoryItem = useCallback(async (category: Omit<Category, "id">) => {
     if (!userId) return;
