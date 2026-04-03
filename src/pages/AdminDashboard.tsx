@@ -164,6 +164,10 @@ const AdminDashboard = () => {
               <h1 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">Painel Administrativo</h1>
             </div>
           </div>
+          <button onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
+            <Plus className="h-4 w-4" /> Adicionar
+          </button>
         </div>
       </header>
 
