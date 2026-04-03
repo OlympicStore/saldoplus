@@ -10,6 +10,9 @@ import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { InitialBalance } from "@/components/InitialBalance";
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { SuggestionsDialog } from "@/components/SuggestionsDialog";
+import { AISuggestions } from "@/components/AISuggestions";
+import { SubAccountSwitcher } from "@/components/SubAccountSwitcher";
+import { useSubAccount } from "@/contexts/SubAccountContext";
 import AccountPanel from "@/components/AccountPanel";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
@@ -46,6 +49,7 @@ const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.
 
 const Index = () => {
   const { profile, isAdmin, signOut } = useAuth();
+  const { currentSubAccountId } = useSubAccount();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date();
@@ -83,7 +87,7 @@ const Index = () => {
     });
   };
 
-  const data = usePersistedData();
+  const data = usePersistedData(currentSubAccountId);
 
   const allBillNames = [
     ...data.fixedExpenses.map((e) => e.item),
@@ -145,6 +149,7 @@ const Index = () => {
                 {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
+            {userPlan === "pro" && <SubAccountSwitcher />}
             <SuggestionsDialog />
             <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
               className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
@@ -264,15 +269,30 @@ const Index = () => {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === "dashboard" && (
-          <Dashboard
-            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
-            incomes={data.incomes} salaryConfigs={data.salaryConfigs}
-            people={data.people} selectedMonth={selectedMonth}
-            currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
-            financialGoals={data.financialGoals}
-            userPlan={userPlan}
-            accounts={data.accounts}
-          />
+          <>
+            {userPlan === "pro" && (
+              <div className="mb-6 flex justify-end">
+                <AISuggestions
+                  fixedExpenses={data.fixedExpenses}
+                  variableExpenses={data.variableExpenses}
+                  incomes={data.incomes}
+                  salaryConfigs={data.salaryConfigs}
+                  financialGoals={data.financialGoals}
+                  selectedMonth={selectedMonth}
+                  currentBalance={data.currentBalance}
+                />
+              </div>
+            )}
+            <Dashboard
+              fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
+              incomes={data.incomes} salaryConfigs={data.salaryConfigs}
+              people={data.people} selectedMonth={selectedMonth}
+              currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
+              financialGoals={data.financialGoals}
+              userPlan={userPlan}
+              accounts={data.accounts}
+            />
+          </>
         )}
         {activeTab === "balance" && (
           <InitialBalance
