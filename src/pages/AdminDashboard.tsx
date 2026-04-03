@@ -50,6 +50,8 @@ const AdminDashboard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newUser, setNewUser] = useState({ full_name: "", email: "", password: "", plan: "essencial" as Plan });
+  const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({ essencial: "", casa: "", pro: "" });
+  const [savingLinks, setSavingLinks] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -61,12 +63,21 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [statsRes, usersRes] = await Promise.all([
+    const [statsRes, usersRes, linksRes] = await Promise.all([
       supabase.rpc("get_admin_stats"),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("site_settings").select("key, value").like("key", "payment_link_%"),
     ]);
     if (statsRes.data) setStats(statsRes.data as unknown as Stats);
     if (usersRes.data) setUsers(usersRes.data as UserProfile[]);
+    if (linksRes.data) {
+      const links: Record<string, string> = { essencial: "", casa: "", pro: "" };
+      linksRes.data.forEach((s: any) => {
+        const plan = s.key.replace("payment_link_", "");
+        links[plan] = s.value || "";
+      });
+      setPaymentLinks(links);
+    }
     setLoading(false);
   };
 
@@ -125,6 +136,23 @@ const AdminDashboard = () => {
       toast.error(err.message || "Erro ao criar utilizador");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const savePaymentLinks = async () => {
+    setSavingLinks(true);
+    try {
+      for (const plan of PLAN_ORDER) {
+        await supabase
+          .from("site_settings")
+          .update({ value: paymentLinks[plan] || "" })
+          .eq("key", `payment_link_${plan}`);
+      }
+      toast.success("Links de pagamento guardados");
+    } catch {
+      toast.error("Erro ao guardar links");
+    } finally {
+      setSavingLinks(false);
     }
   };
 
@@ -213,6 +241,37 @@ const AdminDashboard = () => {
               ))}
             </div>
           </div>
+        </motion.div>
+
+        {/* Payment Links */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
+          className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Crown className="h-4 w-4 text-primary" />
+              <span className="label-caps">Links de Pagamento (Stripe)</span>
+            </div>
+            <button onClick={savePaymentLinks} disabled={savingLinks}
+              className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+              {savingLinks ? "A guardar..." : "Guardar"}
+            </button>
+          </div>
+          <div className="space-y-3">
+            {PLAN_ORDER.map((plan) => (
+              <div key={plan} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <label className="text-sm font-medium text-foreground capitalize w-20 shrink-0">{plan}</label>
+                <input
+                  value={paymentLinks[plan] || ""}
+                  onChange={(e) => setPaymentLinks(prev => ({ ...prev, [plan]: e.target.value }))}
+                  placeholder="https://buy.stripe.com/..."
+                  className="flex-1 px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-text-muted mt-3">
+            Cole aqui os links de pagamento do Stripe para cada plano. Quando o utilizador pagar, o acesso é ativado automaticamente.
+          </p>
         </motion.div>
 
         {/* Users Table */}
