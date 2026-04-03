@@ -439,6 +439,42 @@ export type Database = {
         }
         Relationships: []
       }
+      transfers: {
+        Row: {
+          created_at: string
+          date: string
+          description: string
+          from_account: string
+          id: string
+          to_account: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string
+          from_account?: string
+          id?: string
+          to_account?: string
+          updated_at?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string
+          from_account?: string
+          id?: string
+          to_account?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -495,6 +531,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          recurring: boolean
           responsible: string | null
           updated_at: string
           user_id: string
@@ -507,6 +544,7 @@ export type Database = {
           date: string
           description?: string
           id?: string
+          recurring?: boolean
           responsible?: string | null
           updated_at?: string
           user_id: string
@@ -519,6 +557,7 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          recurring?: boolean
           responsible?: string | null
           updated_at?: string
           user_id?: string
