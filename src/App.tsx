@@ -79,6 +79,8 @@ const App = () => (
               <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
               <Route path="/pricing" element={<Navigate to="/" replace />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/termos" element={<Terms />} />
+              <Route path="/privacidade" element={<Privacy />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SubAccountProvider>
