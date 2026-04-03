@@ -87,7 +87,7 @@ const Index = () => {
     });
   };
 
-  const data = usePersistedData();
+  const data = usePersistedData(currentSubAccountId);
 
   const allBillNames = [
     ...data.fixedExpenses.map((e) => e.item),
