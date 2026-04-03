@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search,
-  ChevronUp, ChevronDown, Shield, Calendar, Mail,
+  ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Plan = "essencial" | "casa" | "pro";
 
