@@ -469,10 +469,17 @@ const Pricing = () => {
 
       {/* Footer */}
       <footer className="border-t border-border-subtle/60 bg-surface py-8">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-sm text-text-muted">
-            © {new Date().getFullYear()} Saldo+. Todos os direitos reservados.
-          </p>
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-text-muted">
+              © {new Date().getFullYear()} Saldo+. Todos os direitos reservados.
+            </p>
+            <div className="flex items-center gap-4">
+              <a href="/termos" className="text-sm text-text-muted hover:text-foreground transition-colors">Termos de Serviço</a>
+              <a href="/privacidade" className="text-sm text-text-muted hover:text-foreground transition-colors">Privacidade</a>
+              <a href="mailto:suporte@saldoplus.pt" className="text-sm text-text-muted hover:text-foreground transition-colors">Contacto</a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
