@@ -5,7 +5,6 @@ import type { Income as IncomeType, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
 import type { Transfer } from "@/types/transfer";
 import { TransfersBetweenAccounts } from "./TransfersBetweenAccounts";
-import type { Account } from "@/types/account";
 
 interface EntriesProps {
   incomes: IncomeType[];
