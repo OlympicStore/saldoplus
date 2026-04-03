@@ -94,6 +94,25 @@ const Pricing = () => {
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({});
+
+  // Load payment links on mount
+  useState(() => {
+    supabase
+      .from("site_settings")
+      .select("key, value")
+      .like("key", "payment_link_%")
+      .then(({ data }) => {
+        if (data) {
+          const links: Record<string, string> = {};
+          data.forEach((s: any) => {
+            const plan = s.key.replace("payment_link_", "");
+            if (s.value) links[plan] = s.value;
+          });
+          setPaymentLinks(links);
+        }
+      });
+  });
 
   const handleSelectPlan = async (planId: string) => {
     if (!user) {
@@ -102,6 +121,17 @@ const Pricing = () => {
       return;
     }
 
+    // If there's a payment link configured, use it directly
+    const paymentLink = paymentLinks[planId];
+    if (paymentLink) {
+      // Append prefilled email for Stripe to pre-fill
+      const separator = paymentLink.includes("?") ? "&" : "?";
+      const url = `${paymentLink}${separator}prefilled_email=${encodeURIComponent(user.email || "")}`;
+      window.location.href = url;
+      return;
+    }
+
+    // Fallback: use create-checkout edge function
     setLoadingPlan(planId);
 
     try {
