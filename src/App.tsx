@@ -56,9 +56,6 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const LandingRoute = () => {
-  const { user, loading } = useAuth();
-  if (loading) return null;
-  if (user) return <Navigate to="/app" replace />;
   return <Pricing />;
 };
 
