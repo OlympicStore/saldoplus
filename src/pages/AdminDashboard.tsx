@@ -432,6 +432,13 @@ const AdminDashboard = () => {
                     >
                       <ChevronDown className="h-4 w-4" />
                     </button>
+                    <button
+                      disabled={updatingUser === u.id}
+                      onClick={() => deleteUser(u.id, u.email)}
+                      className="p-1.5 rounded-lg text-text-muted hover:text-status-negative transition-colors disabled:opacity-30"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </div>
