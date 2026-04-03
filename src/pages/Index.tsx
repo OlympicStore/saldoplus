@@ -122,12 +122,6 @@ const Index = () => {
               </span>
             )}
             <SuggestionsDialog />
-            <MonthlyReport
-              selectedMonth={selectedMonth} selectedYear={selectedYear}
-              incomes={data.incomes} fixedExpenses={data.fixedExpenses}
-              variableExpenses={data.variableExpenses} investments={data.investments}
-              accounts={data.accounts} transfers={data.transfers}
-            />
             <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
               className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
               <Tag className="h-4 w-4" />
