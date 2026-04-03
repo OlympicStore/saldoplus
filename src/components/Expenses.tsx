@@ -64,7 +64,7 @@ export const Expenses = ({
       account: "", date: "", value: e.monthlyValues[selectedMonth] ?? 0,
       status: e.monthlyPaid[selectedMonth] ? "pago" : "pendente",
       dueDay: e.dueDay, type: "Fixo", description: e.item,
-      responsible: e.monthlyResponsible[selectedMonth] ?? null,
+      responsible: e.monthlyResponsible[selectedMonth] ?? null, recurring: false,
     })),
     ...variableExpenses
       .filter(e => new Date(e.date).getMonth() === selectedMonth)
