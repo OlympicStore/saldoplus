@@ -9,14 +9,43 @@ const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
-      setReady(true);
-    }
+    let active = true;
+
+    const prepareRecovery = async () => {
+      try {
+        const currentUrl = new URL(window.location.href);
+        const hash = currentUrl.hash.startsWith("#") ? currentUrl.hash.slice(1) : currentUrl.hash;
+        const hashParams = new URLSearchParams(hash);
+        const searchParams = currentUrl.searchParams;
+
+        const code = searchParams.get("code");
+        const flowType = hashParams.get("type") ?? searchParams.get("type");
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!active) return;
+        setReady(flowType === "recovery" || Boolean(session));
+      } catch (err: any) {
+        if (!active) return;
+        setReady(false);
+        toast.error(err.message || "Link inválido ou expirado.");
+      }
+    };
+
+    void prepareRecovery();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,14 +54,23 @@ const ResetPassword = () => {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
+      await supabase.auth.signOut();
       toast.success("Password atualizada com sucesso!");
-      navigate("/");
+      navigate("/auth");
     } catch (err: any) {
       toast.error(err.message || "Erro ao atualizar password");
     } finally {
       setLoading(false);
     }
   };
+
+  if (ready === null) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   if (!ready) {
     return (

@@ -1,0 +1,216 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { CalendarClock, KeyRound, LogOut, Mail, Shield, UserRound } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+const PLAN_LABELS: Record<string, string> = {
+  essencial: "Essencial",
+  casa: "Casa",
+  pro: "Pro",
+};
+
+const AccountPanel = () => {
+  const { user, profile, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+
+  if (!user || !profile) return null;
+
+  const startedAt = profile.plan_started_at
+    ? new Date(profile.plan_started_at).toLocaleDateString("pt-PT")
+    : "—";
+  const expiresAt = profile.plan_expires_at
+    ? new Date(profile.plan_expires_at).toLocaleDateString("pt-PT")
+    : "—";
+  const expiryDate = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
+  const isActive = Boolean(expiryDate && expiryDate.getTime() > Date.now());
+  const daysRemaining = expiryDate
+    ? Math.max(Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)), 0)
+    : null;
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (password.length < 6) {
+      toast.error("A password deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("As passwords não coincidem.");
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+
+      setPassword("");
+      setConfirmPassword("");
+      toast.success("Password atualizada com sucesso.");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao atualizar password.");
+    } finally {
+      setUpdatingPassword(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <span className="label-caps mb-2 block">Plano atual</span>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-foreground">{PLAN_LABELS[profile.plan] || profile.plan}</p>
+              <p className="text-sm text-text-muted">
+                {isActive && daysRemaining !== null ? `${daysRemaining} dias restantes` : "Plano sem acesso ativo"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <span className="label-caps mb-2 block">Datas do plano</span>
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <CalendarClock className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 text-sm">
+              <p className="text-foreground"><span className="text-text-muted">Início:</span> {startedAt}</p>
+              <p className="text-foreground"><span className="text-text-muted">Válido até:</span> {expiresAt}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <span className="label-caps mb-2 block">Estado da conta</span>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <UserRound className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-foreground">{profile.full_name || "Utilizador"}</p>
+              <p className="text-sm text-text-muted">{isAdmin ? "Administrador" : "Conta standard"}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Dados da conta</h2>
+
+          <div className="space-y-4">
+            <div className="rounded-xl bg-background border border-border-subtle/60 p-4">
+              <div className="flex items-center gap-2 mb-2 text-sm font-medium text-foreground">
+                <UserRound className="h-4 w-4 text-primary" />
+                Nome
+              </div>
+              <p className="text-sm text-text-muted">{profile.full_name || "Sem nome definido"}</p>
+            </div>
+
+            <div className="rounded-xl bg-background border border-border-subtle/60 p-4">
+              <div className="flex items-center gap-2 mb-2 text-sm font-medium text-foreground">
+                <Mail className="h-4 w-4 text-primary" />
+                Email de acesso
+              </div>
+              <p className="text-sm text-text-muted break-all">{user.email}</p>
+            </div>
+
+            <div className="rounded-xl bg-background border border-border-subtle/60 p-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Estado do plano</p>
+                  <p className="text-sm text-text-muted">{isActive ? "Acesso ativo" : "Acesso expirado"}</p>
+                </div>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                  isActive ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"
+                }`}>
+                  {PLAN_LABELS[profile.plan] || profile.plan}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Segurança</h2>
+
+          <form onSubmit={handleUpdatePassword} className="space-y-3">
+            <div>
+              <label className="text-sm font-medium text-foreground block mb-1.5">Nova password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                required
+                className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground block mb-1.5">Confirmar password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={6}
+                required
+                className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={updatingPassword}
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              <KeyRound className="h-4 w-4" />
+              {updatingPassword ? "A atualizar..." : "Atualizar password"}
+            </button>
+          </form>
+
+          <p className="text-xs text-text-muted mt-3">
+            Esta alteração é imediata e fica disponível no próximo login.
+          </p>
+        </section>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        {!isActive && (
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Renovar plano
+          </button>
+        )}
+
+        <button
+          onClick={handleSignOut}
+          className="px-4 py-2.5 rounded-lg border border-border-subtle text-foreground text-sm font-medium hover:bg-surface-hover transition-colors inline-flex items-center gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Terminar sessão
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AccountPanel;

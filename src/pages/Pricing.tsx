@@ -101,14 +101,27 @@ const Pricing = () => {
       navigate("/auth");
       return;
     }
+
+    const checkoutWindow = window.open("", "_blank", "noopener,noreferrer");
     setLoadingPlan(planId);
+
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { plan: planId },
       });
       if (error) throw error;
-      if (data?.url) window.location.href = data.url;
+
+      if (!data?.url) {
+        throw new Error("Não foi possível abrir o checkout.");
+      }
+
+      if (checkoutWindow) {
+        checkoutWindow.location.href = data.url;
+      } else {
+        window.location.assign(data.url);
+      }
     } catch (err: any) {
+      checkoutWindow?.close();
       toast.error(err.message || "Erro ao processar pagamento");
     } finally {
       setLoadingPlan(null);

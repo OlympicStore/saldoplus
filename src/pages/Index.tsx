@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Dashboard } from "@/components/Dashboard";
 import { Expenses } from "@/components/Expenses";
@@ -10,9 +10,10 @@ import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { InitialBalance } from "@/components/InitialBalance";
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { SuggestionsDialog } from "@/components/SuggestionsDialog";
+import AccountPanel from "@/components/AccountPanel";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
 import type { BillAttachment } from "@/types/expense";
@@ -21,7 +22,7 @@ const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julh
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
-type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets";
+type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "account";
 
 const allTabs: { key: Tab; label: string }[] = [
   { key: "dashboard", label: "Home" },
@@ -32,29 +33,39 @@ const allTabs: { key: Tab; label: string }[] = [
   { key: "annual", label: "Anual" },
   { key: "goals", label: "Metas" },
   { key: "budgets", label: "Orçamentos" },
+  { key: "account", label: "Conta" },
 ];
 
 const planTabs: Record<string, Tab[]> = {
-  essencial: ["dashboard", "balance", "entries", "expenses", "annual"],
-  casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals"],
-  pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets"],
+  essencial: ["dashboard", "balance", "entries", "expenses", "annual", "account"],
+  casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
+  pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
 };
+
+const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
 
 const Index = () => {
   const { profile, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date();
   const userPlan = profile?.plan || "essencial";
   const allowedTabs = planTabs[userPlan] || planTabs.essencial;
   const tabs = allTabs.filter((t) => allowedTabs.includes(t.key));
+  const requestedTab = searchParams.get("tab");
 
-  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [activeTab, setActiveTab] = useState<Tab>(isTab(requestedTab) ? requestedTab : "dashboard");
   const [selectedYear, setSelectedYear] = useState(Math.max(MIN_YEAR, Math.min(MAX_YEAR, now.getFullYear())));
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [showPeopleEditor, setShowPeopleEditor] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showCategoriesPanel, setShowCategoriesPanel] = useState(false);
   const [editingPeople, setEditingPeople] = useState("");
+
+  useEffect(() => {
+    const nextTab = isTab(requestedTab) && allowedTabs.includes(requestedTab as Tab) ? (requestedTab as Tab) : "dashboard";
+    setActiveTab(nextTab);
+  }, [requestedTab, userPlan]);
 
   const [billAttachments, setBillAttachments] = useState<BillAttachment[]>([]);
   const addAttachment = (bill: string, month: number, file: File) => {
@@ -97,6 +108,19 @@ const Index = () => {
       data.updatePeople(newPeople);
     }
     setShowPeopleEditor(false);
+  };
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (tab === "dashboard") {
+      nextParams.delete("tab");
+    } else {
+      nextParams.set("tab", tab);
+    }
+
+    setSearchParams(nextParams, { replace: true });
   };
 
   if (!data.loaded) {
@@ -224,7 +248,7 @@ const Index = () => {
       <nav className="border-b border-border-subtle/60 bg-surface overflow-x-auto">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex gap-0">
           {tabs.map((tab) => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+            <button key={tab.key} onClick={() => handleTabChange(tab.key)}
               className={`relative px-3 sm:px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.key ? "text-foreground" : "text-text-muted hover:text-text-secondary"
               }`}>
@@ -309,6 +333,7 @@ const Index = () => {
             selectedYear={selectedYear}
           />
         )}
+        {activeTab === "account" && <AccountPanel />}
       </main>
     </div>
   );
