@@ -170,6 +170,14 @@ export const Entries = ({
           </div>
         ))}
       </div>
+
+      <TransfersBetweenAccounts
+        transfers={transfers}
+        accounts={accounts}
+        selectedMonth={selectedMonth}
+        onAdd={onAddTransfer}
+        onDelete={onDeleteTransfer}
+      />
     </motion.div>
   );
 };
