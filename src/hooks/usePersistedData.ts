@@ -114,7 +114,13 @@ export function usePersistedData() {
         })));
       }
 
-      if (cat.data?.length) {
+      if (tr.data?.length) {
+        setTransfers(tr.data.map((r: any) => ({
+          id: r.id, from_account: r.from_account, to_account: r.to_account,
+          value: Number(r.value), date: r.date, description: r.description,
+        })));
+      }
+
         setCategories(cat.data.map((r: any) => ({
           id: r.id, name: r.name, type: r.type as Category["type"],
         })));
