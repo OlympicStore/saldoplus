@@ -18,8 +18,8 @@ const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDig
 
 export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpdate, onDelete }: InvestmentsProps) => {
   const [showForm, setShowForm] = useState(false);
-  const [newInv, setNewInv] = useState({
-    type: "" as string, account: "", value: "", date: "", returns: "", description: "",
+const [newInv, setNewInv] = useState({
+    type: "" as string, customType: "", account: "", value: "", date: "", returns: "", description: "",
   });
 
   const monthInvestments = investments.filter(i => new Date(i.date).getMonth() === selectedMonth);
@@ -27,18 +27,22 @@ export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpd
 
   const handleAdd = () => {
     const val = parseFloat(newInv.value.replace(",", "."));
-    if (isNaN(val) || !newInv.type) return;
+    const finalType = newInv.type === "__custom" ? newInv.customType.trim() : newInv.type;
+    if (isNaN(val) || !finalType) return;
     const ret = newInv.returns ? parseFloat(newInv.returns.replace(",", ".")) : null;
     const year = new Date().getFullYear();
     const date = newInv.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
     onAdd({
-      type: newInv.type as Investment["type"], account: newInv.account, value: val,
+      type: finalType as Investment["type"], account: newInv.account, value: val,
       date, returns: isNaN(ret as number) ? null : ret,
-      description: newInv.description || INVESTMENT_TYPE_LABELS[newInv.type] || newInv.type,
+      description: newInv.description || INVESTMENT_TYPE_LABELS[finalType] || finalType,
     });
-    setNewInv({ type: "", account: "", value: "", date: "", returns: "", description: "" });
+    setNewInv({ type: "", customType: "", account: "", value: "", date: "", returns: "", description: "" });
     setShowForm(false);
   };
+
+  const allTypes = new Set<string>(["acoes", "poupanca", "cripto"]);
+  investments.forEach(i => { if (!allTypes.has(i.type)) allTypes.add(i.type); });
 
   return (
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
@@ -65,12 +69,13 @@ export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpd
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        {(["acoes", "poupanca", "cripto"] as const).map(type => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        {Array.from(allTypes).map(type => {
           const typeTotal = monthInvestments.filter(i => i.type === type).reduce((s, i) => s + i.value, 0);
+          if (typeTotal === 0 && !["acoes", "poupanca", "cripto"].includes(type)) return null;
           return (
             <div key={type} className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
-              <span className="label-caps">{INVESTMENT_TYPE_LABELS[type]}</span>
+              <span className="label-caps">{INVESTMENT_TYPE_LABELS[type] || type}</span>
               <p className="text-lg font-semibold text-foreground font-mono tabular-nums mt-1">{fmt(typeTotal)}</p>
             </div>
           );
@@ -83,13 +88,22 @@ export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpd
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Tipo</label>
-              <select value={newInv.type} onChange={(e) => setNewInv({ ...newInv, type: e.target.value })}
+              <select value={newInv.type} onChange={(e) => setNewInv({ ...newInv, type: e.target.value, customType: e.target.value === "__custom" ? newInv.customType : "" })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
                 <option value="">Selecionar</option>
                 <option value="acoes">Ações</option>
                 <option value="poupanca">Poupança</option>
                 <option value="cripto">Cripto</option>
+                {Array.from(allTypes).filter(t => !["acoes", "poupanca", "cripto"].includes(t)).map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+                <option value="__custom">+ Novo tipo...</option>
               </select>
+              {newInv.type === "__custom" && (
+                <input value={newInv.customType} onChange={(e) => setNewInv({ ...newInv, customType: e.target.value })}
+                  placeholder="Ex: ETFs, Obrigações..."
+                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+              )}
             </div>
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Descrição</label>
