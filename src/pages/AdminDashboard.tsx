@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search,
-  ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X,
+  ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -136,6 +136,26 @@ const AdminDashboard = () => {
       toast.error(err.message || "Erro ao criar utilizador");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const deleteUser = async (userId: string, email: string) => {
+    if (!confirm(`Tem a certeza que quer remover o utilizador ${email}? Esta ação é irreversível.`)) return;
+    setUpdatingUser(userId);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Utilizador ${email} removido com sucesso`);
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      const { data: statsData } = await supabase.rpc("get_admin_stats");
+      if (statsData) setStats(statsData as unknown as Stats);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao remover utilizador");
+    } finally {
+      setUpdatingUser(null);
     }
   };
 
@@ -355,6 +375,14 @@ const AdminDashboard = () => {
                         >
                           <ChevronDown className="h-4 w-4" />
                         </button>
+                        <button
+                          disabled={updatingUser === u.id}
+                          onClick={() => deleteUser(u.id, u.email)}
+                          className="p-1.5 rounded-lg text-text-muted hover:text-status-negative hover:bg-[hsl(var(--status-negative)/0.1)] transition-colors disabled:opacity-30"
+                          title="Remover utilizador"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -403,6 +431,13 @@ const AdminDashboard = () => {
                       className="p-1.5 rounded-lg text-text-muted hover:text-status-negative transition-colors disabled:opacity-30"
                     >
                       <ChevronDown className="h-4 w-4" />
+                    </button>
+                    <button
+                      disabled={updatingUser === u.id}
+                      onClick={() => deleteUser(u.id, u.email)}
+                      className="p-1.5 rounded-lg text-text-muted hover:text-status-negative transition-colors disabled:opacity-30"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
