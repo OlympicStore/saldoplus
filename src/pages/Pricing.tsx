@@ -255,7 +255,7 @@ const Pricing = () => {
               Dashboard intuitivo, gráficos automáticos e controlo total — sem complicações.
             </p>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: PieChart, title: "Visão clara dos gastos", desc: "Gráficos que mostram exatamente para onde vai cada euro." },
               { icon: TrendingUp, title: "Evolução do saldo", desc: "Acompanhe a evolução do seu saldo mês a mês com gráficos." },
