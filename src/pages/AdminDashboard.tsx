@@ -101,6 +101,33 @@ const AdminDashboard = () => {
     setUpdatingUser(null);
   };
 
+  const createUser = async () => {
+    if (!newUser.email || !newUser.password) {
+      toast.error("Email e password são obrigatórios");
+      return;
+    }
+    if (newUser.password.length < 6) {
+      toast.error("Password deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: newUser,
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Utilizador ${newUser.email} criado com sucesso`);
+      setShowCreateModal(false);
+      setNewUser({ full_name: "", email: "", password: "", plan: "essencial" });
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar utilizador");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const filteredUsers = useMemo(() => {
     if (!search.trim()) return users;
     const q = search.toLowerCase();
