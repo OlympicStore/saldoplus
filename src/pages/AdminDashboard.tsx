@@ -139,6 +139,23 @@ const AdminDashboard = () => {
     }
   };
 
+  const savePaymentLinks = async () => {
+    setSavingLinks(true);
+    try {
+      for (const plan of PLAN_ORDER) {
+        await supabase
+          .from("site_settings")
+          .update({ value: paymentLinks[plan] || "" })
+          .eq("key", `payment_link_${plan}`);
+      }
+      toast.success("Links de pagamento guardados");
+    } catch {
+      toast.error("Erro ao guardar links");
+    } finally {
+      setSavingLinks(false);
+    }
+  };
+
   const filteredUsers = useMemo(() => {
     if (!search.trim()) return users;
     const q = search.toLowerCase();
