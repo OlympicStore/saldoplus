@@ -132,7 +132,7 @@ const Pricing = () => {
       // Append prefilled email for Stripe to pre-fill
       const separator = paymentLink.includes("?") ? "&" : "?";
       const url = `${paymentLink}${separator}prefilled_email=${encodeURIComponent(user.email || "")}`;
-      window.location.href = url;
+      window.open(url, "_blank");
       return;
     }
 
