@@ -260,6 +260,7 @@ const Pricing = () => {
               { icon: PieChart, title: "Visão clara dos gastos", desc: "Gráficos que mostram exatamente para onde vai cada euro." },
               { icon: TrendingUp, title: "Evolução do saldo", desc: "Acompanhe a evolução do seu saldo mês a mês com gráficos." },
               { icon: Target, title: "Metas de poupança", desc: "Defina objetivos e veja o progresso em tempo real." },
+              { icon: ClipboardCheck, title: "Controlo de contas", desc: "Saiba o estado de cada conta: paga, pendente ou em dívida." },
             ].map((f, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
