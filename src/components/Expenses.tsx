@@ -36,6 +36,7 @@ type ExpenseRow = {
   type: "Fixo" | "Variável";
   description: string;
   responsible: string | null;
+  recurring: boolean;
 };
 
 export const Expenses = ({
@@ -47,7 +48,7 @@ export const Expenses = ({
   const [filter, setFilter] = useState<"all" | "fixo" | "variavel">("all");
   const [newExpense, setNewExpense] = useState({
     category: "", account: "", date: "", value: "", dueDay: "1", description: "",
-    responsible: null as string | null,
+    responsible: null as string | null, recurring: false,
   });
 
   const getCategoryType = (catName: string): "Fixo" | "Variável" => {
@@ -63,7 +64,7 @@ export const Expenses = ({
       account: "", date: "", value: e.monthlyValues[selectedMonth] ?? 0,
       status: e.monthlyPaid[selectedMonth] ? "pago" : "pendente",
       dueDay: e.dueDay, type: "Fixo", description: e.item,
-      responsible: e.monthlyResponsible[selectedMonth] ?? null,
+      responsible: e.monthlyResponsible[selectedMonth] ?? null, recurring: false,
     })),
     ...variableExpenses
       .filter(e => new Date(e.date).getMonth() === selectedMonth)
@@ -72,6 +73,7 @@ export const Expenses = ({
         account: "", date: e.date, value: e.value,
         status: "pago", dueDay: 0, type: getCategoryType(e.category),
         description: e.description, responsible: e.responsible,
+        recurring: e.recurring ?? false,
       })),
   ];
 
@@ -104,10 +106,10 @@ export const Expenses = ({
       onAddVariable({
         date, description: newExpense.description || newExpense.category,
         category: newExpense.category as any, value: val, responsible: newExpense.responsible,
-        account: newExpense.account || "",
+        account: newExpense.account || "", recurring: newExpense.recurring,
       });
     }
-    setNewExpense({ category: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null });
+    setNewExpense({ category: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null, recurring: false });
     setShowForm(false);
   };
 
@@ -203,7 +205,17 @@ export const Expenses = ({
               <label className="label-caps mb-1.5 block">Quem</label>
               <PersonSelector value={newExpense.responsible} onChange={(p) => setNewExpense({ ...newExpense, responsible: p })} people={people} />
             </div>
-            <div className="sm:col-span-3 flex gap-2">
+            {selectedCatType === "Variável" && (
+              <div className="sm:col-span-1 flex items-end pb-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={newExpense.recurring}
+                    onChange={(e) => setNewExpense({ ...newExpense, recurring: e.target.checked })}
+                    className="rounded border-border-subtle text-primary focus:ring-primary h-4 w-4" />
+                  <span className="text-xs text-text-muted">Recorrente</span>
+                </label>
+              </div>
+            )}
+            <div className="sm:col-span-2 flex gap-2">
               <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
               <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
             </div>
@@ -246,6 +258,9 @@ export const Expenses = ({
                 <span className={`text-xs px-2 py-0.5 rounded-full ${row.type === "Fixo" ? "bg-blue-500/10 text-blue-600" : "bg-amber-500/10 text-amber-600"}`}>
                   {row.type}
                 </span>
+                {row.recurring && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Recorrente</span>
+                )}
                 <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>

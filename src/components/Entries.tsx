@@ -3,24 +3,29 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { Income as IncomeType, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
+import type { Transfer } from "@/types/transfer";
+import { TransfersBetweenAccounts } from "./TransfersBetweenAccounts";
 
 interface EntriesProps {
   incomes: IncomeType[];
   salaryConfigs: SalaryConfig[];
   accounts: Account[];
+  transfers: Transfer[];
   people: string[];
   selectedMonth: number;
   onAddIncome: (income: Omit<IncomeType, "id">) => void;
   onUpdateIncome: (id: string, updates: Partial<IncomeType>) => void;
   onDeleteIncome: (id: string) => void;
   onUpdateSalary: (person: string, updates: Partial<SalaryConfig>) => void;
+  onAddTransfer: (transfer: Omit<Transfer, "id">) => void;
+  onDeleteTransfer: (id: string) => void;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
 export const Entries = ({
-  incomes, salaryConfigs, accounts, people, selectedMonth,
-  onAddIncome, onUpdateIncome, onDeleteIncome, onUpdateSalary,
+  incomes, salaryConfigs, accounts, transfers, people, selectedMonth,
+  onAddIncome, onUpdateIncome, onDeleteIncome, onUpdateSalary, onAddTransfer, onDeleteTransfer,
 }: EntriesProps) => {
   const [showForm, setShowForm] = useState(false);
   const [newEntry, setNewEntry] = useState({ category: "Salário", account: "", value: "", date: "", description: "" });
@@ -164,6 +169,14 @@ export const Entries = ({
           </div>
         ))}
       </div>
+
+      <TransfersBetweenAccounts
+        transfers={transfers}
+        accounts={accounts}
+        selectedMonth={selectedMonth}
+        onAdd={onAddTransfer}
+        onDelete={onDeleteTransfer}
+      />
     </motion.div>
   );
 };

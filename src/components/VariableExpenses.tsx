@@ -71,6 +71,7 @@ export const VariableExpenses = ({
       value: val,
       responsible: newExpense.responsible,
       account: "",
+      recurring: false,
     });
     setNewExpense({ description: "", category: categories[0] || "", value: "", responsible: null, date: "" });
     setShowForm(false);

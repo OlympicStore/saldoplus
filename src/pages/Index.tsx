@@ -10,6 +10,7 @@ import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { InitialBalance } from "@/components/InitialBalance";
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { SuggestionsDialog } from "@/components/SuggestionsDialog";
+import { MonthlyReport } from "@/components/MonthlyReport";
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -121,6 +122,12 @@ const Index = () => {
               </span>
             )}
             <SuggestionsDialog />
+            <MonthlyReport
+              selectedMonth={selectedMonth} selectedYear={selectedYear}
+              incomes={data.incomes} fixedExpenses={data.fixedExpenses}
+              variableExpenses={data.variableExpenses} investments={data.investments}
+              accounts={data.accounts} transfers={data.transfers}
+            />
             <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
               className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
               <Tag className="h-4 w-4" />
@@ -264,9 +271,10 @@ const Index = () => {
         {activeTab === "entries" && (
           <Entries
             incomes={data.incomes} salaryConfigs={data.salaryConfigs}
-            accounts={data.accounts} people={data.people} selectedMonth={selectedMonth}
+            accounts={data.accounts} transfers={data.transfers} people={data.people} selectedMonth={selectedMonth}
             onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
             onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
+            onAddTransfer={data.addTransfer} onDeleteTransfer={data.deleteTransfer}
           />
         )}
         {activeTab === "expenses" && (

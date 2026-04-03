@@ -6,6 +6,7 @@ import type { FinancialGoal } from "@/types/goal";
 import type { Income, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
 import type { Investment } from "@/types/investment";
+import type { Transfer } from "@/types/transfer";
 import type { Category } from "@/types/category";
 import { defaultGoals } from "@/components/FinancialGoals";
 
@@ -26,6 +27,7 @@ export function usePersistedData() {
   const [billRecords, setBillRecords] = useState<MonthlyBillRecord[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [people, setPeople] = useState<string[]>(["João", "Maria"]);
   const [variableCategories, setVariableCategories] = useState<string[]>(["Supermercado"]);
@@ -35,7 +37,7 @@ export function usePersistedData() {
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
-      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat] = await Promise.all([
+      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr] = await Promise.all([
         supabase.from("fixed_expenses").select("*").eq("user_id", userId),
         supabase.from("variable_expenses").select("*").eq("user_id", userId),
         supabase.from("incomes").select("*").eq("user_id", userId),
@@ -46,6 +48,7 @@ export function usePersistedData() {
         supabase.from("accounts").select("*").eq("user_id", userId).order("sort_order"),
         supabase.from("investments").select("*").eq("user_id", userId),
         supabase.from("categories").select("*").eq("user_id", userId),
+        supabase.from("transfers").select("*").eq("user_id", userId),
       ]);
 
       if (fe.data?.length) {
@@ -61,7 +64,7 @@ export function usePersistedData() {
         setVariableExpenses(ve.data.map((r: any) => ({
           id: r.id, date: r.date, description: r.description,
           category: r.category, value: Number(r.value), responsible: r.responsible,
-          account: r.account || "",
+          account: r.account || "", recurring: r.recurring ?? false,
         })));
       }
 
@@ -108,6 +111,13 @@ export function usePersistedData() {
           id: r.id, type: r.type as Investment["type"], account: r.account,
           value: Number(r.value), date: r.date, returns: r.returns != null ? Number(r.returns) : null,
           description: r.description,
+        })));
+      }
+
+      if (tr.data?.length) {
+        setTransfers(tr.data.map((r: any) => ({
+          id: r.id, from_account: r.from_account, to_account: r.to_account,
+          value: Number(r.value), date: r.date, description: r.description,
         })));
       }
 
@@ -160,7 +170,7 @@ export function usePersistedData() {
       id: expense.id, user_id: userId, date: expense.date,
       description: expense.description, category: expense.category,
       value: expense.value, responsible: expense.responsible,
-      account: expense.account || "",
+      account: expense.account || "", recurring: expense.recurring ?? false,
     }, { onConflict: "id" });
   }, [userId]);
 
@@ -214,6 +224,15 @@ export function usePersistedData() {
       account: investment.account, value: investment.value,
       date: investment.date, returns: investment.returns,
       description: investment.description,
+    }, { onConflict: "id" });
+  }, [userId]);
+
+  const syncTransfer = useCallback(async (transfer: Transfer) => {
+    if (!userId) return;
+    await supabase.from("transfers").upsert({
+      id: transfer.id, user_id: userId, from_account: transfer.from_account,
+      to_account: transfer.to_account, value: transfer.value,
+      date: transfer.date, description: transfer.description,
     }, { onConflict: "id" });
   }, [userId]);
 
@@ -396,6 +415,18 @@ export function usePersistedData() {
     if (userId) await supabase.from("investments").delete().eq("id", id);
   }, [userId]);
 
+  // Transfers
+  const addTransfer = useCallback((transfer: Omit<Transfer, "id">) => {
+    const full = { ...transfer, id: crypto.randomUUID() };
+    setTransfers(prev => [full, ...prev]);
+    syncTransfer(full);
+  }, [syncTransfer]);
+
+  const deleteTransfer = useCallback(async (id: string) => {
+    setTransfers(prev => prev.filter(t => t.id !== id));
+    if (userId) await supabase.from("transfers").delete().eq("id", id);
+  }, [userId]);
+
   // Categories
   const addCategoryItem = useCallback(async (category: Omit<Category, "id">) => {
     if (!userId) return;
@@ -465,7 +496,7 @@ export function usePersistedData() {
     loaded,
     fixedExpenses, variableExpenses, incomes, salaryConfigs,
     financialGoals, billRecords, people, variableCategories, currentBalance,
-    accounts, investments, categories,
+    accounts, investments, categories, transfers,
     addFixed, deleteFixed, updateFixed, updateFixedMonthly,
     addVariable, updateVariable, deleteVariable,
     addIncome, updateIncome, deleteIncome, updateSalary,
@@ -475,5 +506,6 @@ export function usePersistedData() {
     addAccount, updateAccount, deleteAccount,
     addInvestment, updateInvestment, deleteInvestment,
     addCategoryItem, updateCategoryItem, deleteCategoryItem,
+    addTransfer, deleteTransfer,
   };
 }
