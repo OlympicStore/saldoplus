@@ -171,7 +171,7 @@ export function usePersistedData(subAccountId?: string | null) {
       monthly_values: expense.monthlyValues, monthly_responsible: expense.monthlyResponsible,
       monthly_paid: expense.monthlyPaid,
     }, { onConflict: "id" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncVariableExpense = useCallback(async (expense: VariableExpense) => {
     if (!userId) return;
@@ -181,7 +181,7 @@ export function usePersistedData(subAccountId?: string | null) {
       value: expense.value, responsible: expense.responsible,
       account: expense.account || "", recurring: expense.recurring ?? false,
     }, { onConflict: "id" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncIncome = useCallback(async (income: Income) => {
     if (!userId) return;
@@ -191,7 +191,7 @@ export function usePersistedData(subAccountId?: string | null) {
       person: income.person, type: income.type,
       account: income.account || "",
     }, { onConflict: "id" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncSalaryConfig = useCallback(async (config: SalaryConfig) => {
     if (!userId) return;
@@ -199,7 +199,7 @@ export function usePersistedData(subAccountId?: string | null) {
       user_id: userId, person: config.person,
       monthly_values: config.monthlyValues, active: config.active,
     }, { onConflict: "user_id,person" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncGoal = useCallback(async (goal: FinancialGoal) => {
     if (!userId) return;
@@ -209,14 +209,14 @@ export function usePersistedData(subAccountId?: string | null) {
       current_value: goal.currentValue, monthly_savings: goal.monthlySavings,
       account: goal.account,
     }, { onConflict: "id" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncBillRecord = useCallback(async (bill: string, month: number, status: BillStatus) => {
     if (!userId) return;
     await supabase.from("bill_records").upsert({ ...subField,
       user_id: userId, bill, month, status,
     }, { onConflict: "user_id,bill,month" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncAccount = useCallback(async (account: Account) => {
     if (!userId) return;
@@ -224,7 +224,7 @@ export function usePersistedData(subAccountId?: string | null) {
       id: account.id, user_id: userId, name: account.name,
       balance: account.balance, type: account.type, sort_order: account.sort_order,
     }, { onConflict: "id" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncInvestment = useCallback(async (investment: Investment) => {
     if (!userId) return;
@@ -234,7 +234,7 @@ export function usePersistedData(subAccountId?: string | null) {
       date: investment.date, returns: investment.returns,
       description: investment.description,
     }, { onConflict: "id" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncTransfer = useCallback(async (transfer: Transfer) => {
     if (!userId) return;
@@ -243,14 +243,14 @@ export function usePersistedData(subAccountId?: string | null) {
       to_account: transfer.to_account, value: transfer.value,
       date: transfer.date, description: transfer.description,
     }, { onConflict: "id" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const syncCategory = useCallback(async (category: Category) => {
     if (!userId) return;
     await supabase.from("categories").upsert({ ...subField,
       id: category.id, user_id: userId, name: category.name, type: category.type,
     }, { onConflict: "id" });
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const debouncedSyncSettings = useRef(
     debounce(async (uid: string, p: string[], cats: string[], bal: number) => {
@@ -274,7 +274,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const deleteFixed = useCallback(async (id: string) => {
     setFixedExpenses(prev => prev.filter(e => e.id !== id));
     if (userId) await supabase.from("fixed_expenses").delete().eq("id", id);
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const updateFixed = useCallback((id: string, updates: Partial<FixedExpense>) => {
     setFixedExpenses(prev => {
@@ -317,7 +317,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const deleteVariable = useCallback(async (id: string) => {
     setVariableExpenses(prev => prev.filter(e => e.id !== id));
     if (userId) await supabase.from("variable_expenses").delete().eq("id", id);
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const addIncome = useCallback((income: Omit<Income, "id">) => {
     const full = { ...income, id: crypto.randomUUID() } as Income;
@@ -337,7 +337,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const deleteIncome = useCallback(async (id: string) => {
     setIncomes(prev => prev.filter(i => i.id !== id));
     if (userId) await supabase.from("incomes").delete().eq("id", id);
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const updateSalary = useCallback((person: string, updates: Partial<SalaryConfig>) => {
     setSalaryConfigs(prev => {
@@ -380,7 +380,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const deleteGoal = useCallback(async (id: string) => {
     setFinancialGoals(prev => prev.filter(g => g.id !== id));
     if (userId) await supabase.from("financial_goals").delete().eq("id", id);
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   // Accounts
   const addAccount = useCallback((account: Omit<Account, "id">) => {
@@ -401,7 +401,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const deleteAccount = useCallback(async (id: string) => {
     setAccounts(prev => prev.filter(a => a.id !== id));
     if (userId) await supabase.from("accounts").delete().eq("id", id);
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   // Investments
   const addInvestment = useCallback((investment: Omit<Investment, "id">) => {
@@ -422,7 +422,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const deleteInvestment = useCallback(async (id: string) => {
     setInvestments(prev => prev.filter(i => i.id !== id));
     if (userId) await supabase.from("investments").delete().eq("id", id);
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   // Transfers
   const addTransfer = useCallback((transfer: Omit<Transfer, "id">) => {
@@ -434,7 +434,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const deleteTransfer = useCallback(async (id: string) => {
     setTransfers(prev => prev.filter(t => t.id !== id));
     if (userId) await supabase.from("transfers").delete().eq("id", id);
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   // Categories
   const addCategoryItem = useCallback(async (category: Omit<Category, "id">) => {
@@ -443,7 +443,7 @@ export function usePersistedData(subAccountId?: string | null) {
     if (data) {
       setCategories(prev => [...prev, { id: data.id, name: data.name, type: data.type as Category["type"] }]);
     }
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const updateCategoryItem = useCallback(async (id: string, updates: Partial<Category>) => {
     setCategories(prev => {
@@ -456,12 +456,12 @@ export function usePersistedData(subAccountId?: string | null) {
       if (updates.type !== undefined) updateData.type = updates.type;
       await supabase.from("categories").update(updateData).eq("id", id);
     }
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   const deleteCategoryItem = useCallback(async (id: string) => {
     setCategories(prev => prev.filter(c => c.id !== id));
     if (userId) await supabase.from("categories").delete().eq("id", id);
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   // Settings sync
   const updatePeople = useCallback((newPeople: string[]) => {
