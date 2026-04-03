@@ -496,7 +496,7 @@ export function usePersistedData() {
     loaded,
     fixedExpenses, variableExpenses, incomes, salaryConfigs,
     financialGoals, billRecords, people, variableCategories, currentBalance,
-    accounts, investments, categories,
+    accounts, investments, categories, transfers,
     addFixed, deleteFixed, updateFixed, updateFixedMonthly,
     addVariable, updateVariable, deleteVariable,
     addIncome, updateIncome, deleteIncome, updateSalary,
@@ -506,5 +506,6 @@ export function usePersistedData() {
     addAccount, updateAccount, deleteAccount,
     addInvestment, updateInvestment, deleteInvestment,
     addCategoryItem, updateCategoryItem, deleteCategoryItem,
+    addTransfer, deleteTransfer,
   };
 }
