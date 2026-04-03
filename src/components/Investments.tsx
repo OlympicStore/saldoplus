@@ -88,13 +88,22 @@ const [newInv, setNewInv] = useState({
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Tipo</label>
-              <select value={newInv.type} onChange={(e) => setNewInv({ ...newInv, type: e.target.value })}
+              <select value={newInv.type} onChange={(e) => setNewInv({ ...newInv, type: e.target.value, customType: e.target.value === "__custom" ? newInv.customType : "" })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
                 <option value="">Selecionar</option>
                 <option value="acoes">Ações</option>
                 <option value="poupanca">Poupança</option>
                 <option value="cripto">Cripto</option>
+                {Array.from(allTypes).filter(t => !["acoes", "poupanca", "cripto"].includes(t)).map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+                <option value="__custom">+ Novo tipo...</option>
               </select>
+              {newInv.type === "__custom" && (
+                <input value={newInv.customType} onChange={(e) => setNewInv({ ...newInv, customType: e.target.value })}
+                  placeholder="Ex: ETFs, Obrigações..."
+                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+              )}
             </div>
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Descrição</label>
