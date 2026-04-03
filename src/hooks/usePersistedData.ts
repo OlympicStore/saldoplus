@@ -37,7 +37,7 @@ export function usePersistedData() {
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
-      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat] = await Promise.all([
+      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr] = await Promise.all([
         supabase.from("fixed_expenses").select("*").eq("user_id", userId),
         supabase.from("variable_expenses").select("*").eq("user_id", userId),
         supabase.from("incomes").select("*").eq("user_id", userId),
@@ -48,6 +48,7 @@ export function usePersistedData() {
         supabase.from("accounts").select("*").eq("user_id", userId).order("sort_order"),
         supabase.from("investments").select("*").eq("user_id", userId),
         supabase.from("categories").select("*").eq("user_id", userId),
+        supabase.from("transfers").select("*").eq("user_id", userId),
       ]);
 
       if (fe.data?.length) {
