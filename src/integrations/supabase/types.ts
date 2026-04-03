@@ -245,6 +245,13 @@ export type Database = {
             referencedRelation: "groups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       groups: {
@@ -567,7 +574,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      groups_safe: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          invite_code: string | null
+          name: string | null
+          owner_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          invite_code?: never
+          name?: string | null
+          owner_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          invite_code?: never
+          name?: string | null
+          owner_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_admin_stats: { Args: never; Returns: Json }

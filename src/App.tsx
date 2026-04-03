@@ -16,7 +16,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, isAdmin, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
@@ -24,11 +24,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   );
   if (!user) return <Navigate to="/auth" replace />;
   if (!profile) return <Navigate to="/" replace />;
-  // Check if user has an active paid plan
-  const now = new Date();
-  const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
-  if (!expires || expires < now) {
-    return <Navigate to="/pricing" replace />;
+  // Admins always have access; others need an active paid plan
+  if (!isAdmin) {
+    const now = new Date();
+    const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
+    if (!expires || expires < now) {
+      return <Navigate to="/pricing" replace />;
+    }
   }
   return <>{children}</>;
 };
