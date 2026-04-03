@@ -15,7 +15,7 @@ const debounce = (fn: (...args: any[]) => void, ms: number) => {
   return (...args: any[]) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
 };
 
-export function usePersistedData() {
+export function usePersistedData(subAccountId?: string | null) {
   const { user } = useAuth();
   const userId = user?.id;
 
@@ -34,21 +34,27 @@ export function usePersistedData() {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
+  // Helper to add sub_account_id filter
+  const withSub = (query: any) => {
+    if (subAccountId) return query.eq("sub_account_id", subAccountId);
+    return query.is("sub_account_id", null);
+  };
+
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
       const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr] = await Promise.all([
-        supabase.from("fixed_expenses").select("*").eq("user_id", userId),
-        supabase.from("variable_expenses").select("*").eq("user_id", userId),
-        supabase.from("incomes").select("*").eq("user_id", userId),
-        supabase.from("salary_configs").select("*").eq("user_id", userId),
-        supabase.from("financial_goals").select("*").eq("user_id", userId),
-        supabase.from("bill_records").select("*").eq("user_id", userId),
-        supabase.from("user_settings").select("*").eq("user_id", userId).maybeSingle(),
-        supabase.from("accounts").select("*").eq("user_id", userId).order("sort_order"),
-        supabase.from("investments").select("*").eq("user_id", userId),
-        supabase.from("categories").select("*").eq("user_id", userId),
-        supabase.from("transfers").select("*").eq("user_id", userId),
+        withSub(supabase.from("fixed_expenses").select("*").eq("user_id", userId)),
+        withSub(supabase.from("variable_expenses").select("*").eq("user_id", userId)),
+        withSub(supabase.from("incomes").select("*").eq("user_id", userId)),
+        withSub(supabase.from("salary_configs").select("*").eq("user_id", userId)),
+        withSub(supabase.from("financial_goals").select("*").eq("user_id", userId)),
+        withSub(supabase.from("bill_records").select("*").eq("user_id", userId)),
+        withSub(supabase.from("user_settings").select("*").eq("user_id", userId)).maybeSingle(),
+        withSub(supabase.from("accounts").select("*").eq("user_id", userId)).order("sort_order"),
+        withSub(supabase.from("investments").select("*").eq("user_id", userId)),
+        withSub(supabase.from("categories").select("*").eq("user_id", userId)),
+        withSub(supabase.from("transfers").select("*").eq("user_id", userId)),
       ]);
 
       if (fe.data?.length) {
