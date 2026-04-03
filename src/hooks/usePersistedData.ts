@@ -227,7 +227,15 @@ export function usePersistedData() {
     }, { onConflict: "id" });
   }, [userId]);
 
-  const syncCategory = useCallback(async (category: Category) => {
+  const syncTransfer = useCallback(async (transfer: Transfer) => {
+    if (!userId) return;
+    await supabase.from("transfers").upsert({
+      id: transfer.id, user_id: userId, from_account: transfer.from_account,
+      to_account: transfer.to_account, value: transfer.value,
+      date: transfer.date, description: transfer.description,
+    }, { onConflict: "id" });
+  }, [userId]);
+
     if (!userId) return;
     await supabase.from("categories").upsert({
       id: category.id, user_id: userId, name: category.name, type: category.type,
