@@ -160,7 +160,7 @@ export function usePersistedData(subAccountId?: string | null) {
       setLoaded(true);
     };
     load();
-  }, [userId]);
+  }, [userId, subAccountId]);
 
   // --- Sync helpers ---
   const syncFixedExpense = useCallback(async (expense: FixedExpense) => {
