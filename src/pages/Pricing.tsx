@@ -181,22 +181,30 @@ const Pricing = () => {
 
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }}
             className="space-y-8">
-            <div>
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
                 <img src={dashboardPreview} alt="Painel principal do Saldo+ com saldo acumulado, gráfico de evolução mensal, entradas, saídas e balanço do mês" width={1280} height={720} className="w-full h-auto" />
               </div>
               <p className="text-sm text-text-muted mt-3 text-center">
                 Visão geral das suas finanças: saldo acumulado, evolução mensal e balanço entre entradas e saídas — tudo num só ecrã.
               </p>
-            </div>
-            <div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
                 <img src={dashboardGoals} alt="Metas financeiras do Saldo+ com progresso por objetivo, distribuição por prazo e valores poupados" loading="lazy" width={1280} height={720} className="w-full h-auto" />
               </div>
               <p className="text-sm text-text-muted mt-3 text-center">
                 Acompanhe as suas metas financeiras: veja o progresso de cada objetivo, distribuição por prazo e quanto falta poupar.
               </p>
-            </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
+                <img src={dashboardBills} alt="Controlo de contas do Saldo+ com estado de pagamento mensal (Paga, Pendente, Dívida) e opção de anexar comprovativos" loading="lazy" width={1280} height={720} className="w-full h-auto" />
+              </div>
+              <p className="text-sm text-text-muted mt-3 text-center">
+                Controle todas as suas contas: acompanhe o estado de pagamento mês a mês (Paga, Pendente, Dívida) e anexe comprovativos.
+              </p>
+            </motion.div>
           </motion.div>
         </div>
       </section>
