@@ -358,6 +358,45 @@ const AdminDashboard = () => {
           )}
         </motion.div>
       </main>
+
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Utilizador</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Nome</label>
+              <input value={newUser.full_name} onChange={(e) => setNewUser(p => ({ ...p, full_name: e.target.value }))}
+                placeholder="Nome completo"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Email *</label>
+              <input type="email" value={newUser.email} onChange={(e) => setNewUser(p => ({ ...p, email: e.target.value }))}
+                placeholder="email@exemplo.com"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Password *</label>
+              <input type="password" value={newUser.password} onChange={(e) => setNewUser(p => ({ ...p, password: e.target.value }))}
+                placeholder="Mínimo 6 caracteres"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Plano</label>
+              <select value={newUser.plan} onChange={(e) => setNewUser(p => ({ ...p, plan: e.target.value as Plan }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary">
+                {PLAN_ORDER.map(p => <option key={p} value={p} className="capitalize">{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+              </select>
+            </div>
+            <button onClick={createUser} disabled={creating}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
+              {creating ? "A criar..." : "Criar Utilizador"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
