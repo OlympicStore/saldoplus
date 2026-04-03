@@ -25,8 +25,8 @@ interface EntriesProps {
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
 export const Entries = ({
-  incomes, salaryConfigs, accounts, people, selectedMonth,
-  onAddIncome, onUpdateIncome, onDeleteIncome, onUpdateSalary,
+  incomes, salaryConfigs, accounts, transfers, people, selectedMonth,
+  onAddIncome, onUpdateIncome, onDeleteIncome, onUpdateSalary, onAddTransfer, onDeleteTransfer,
 }: EntriesProps) => {
   const [showForm, setShowForm] = useState(false);
   const [newEntry, setNewEntry] = useState({ category: "Salário", account: "", value: "", date: "", description: "" });
