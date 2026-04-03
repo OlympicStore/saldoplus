@@ -203,7 +203,17 @@ export const Expenses = ({
               <label className="label-caps mb-1.5 block">Quem</label>
               <PersonSelector value={newExpense.responsible} onChange={(p) => setNewExpense({ ...newExpense, responsible: p })} people={people} />
             </div>
-            <div className="sm:col-span-3 flex gap-2">
+            {selectedCatType === "Variável" && (
+              <div className="sm:col-span-1 flex items-end pb-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={newExpense.recurring}
+                    onChange={(e) => setNewExpense({ ...newExpense, recurring: e.target.checked })}
+                    className="rounded border-border-subtle text-primary focus:ring-primary h-4 w-4" />
+                  <span className="text-xs text-text-muted">Recorrente</span>
+                </label>
+              </div>
+            )}
+            <div className="sm:col-span-2 flex gap-2">
               <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
               <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
             </div>
