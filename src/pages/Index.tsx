@@ -11,6 +11,8 @@ import { InitialBalance } from "@/components/InitialBalance";
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { SuggestionsDialog } from "@/components/SuggestionsDialog";
 import { AISuggestions } from "@/components/AISuggestions";
+import { SubAccountSwitcher } from "@/components/SubAccountSwitcher";
+import { useSubAccount } from "@/contexts/SubAccountContext";
 import AccountPanel from "@/components/AccountPanel";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
