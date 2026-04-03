@@ -104,7 +104,7 @@ export const Expenses = ({
       onAddVariable({
         date, description: newExpense.description || newExpense.category,
         category: newExpense.category as any, value: val, responsible: newExpense.responsible,
-        account: newExpense.account || "", recurring: false,
+        account: newExpense.account || "", recurring: newExpense.recurring,
       });
     }
     setNewExpense({ category: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null, recurring: false });
