@@ -36,6 +36,7 @@ type ExpenseRow = {
   type: "Fixo" | "Variável";
   description: string;
   responsible: string | null;
+  recurring: boolean;
 };
 
 export const Expenses = ({
