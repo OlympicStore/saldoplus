@@ -258,6 +258,9 @@ export const Expenses = ({
                 <span className={`text-xs px-2 py-0.5 rounded-full ${row.type === "Fixo" ? "bg-blue-500/10 text-blue-600" : "bg-amber-500/10 text-amber-600"}`}>
                   {row.type}
                 </span>
+                {row.recurring && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Recorrente</span>
+                )}
                 <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
