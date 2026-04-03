@@ -18,8 +18,8 @@ const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDig
 
 export const Investments = ({ investments, accounts, selectedMonth, onAdd, onUpdate, onDelete }: InvestmentsProps) => {
   const [showForm, setShowForm] = useState(false);
-  const [newInv, setNewInv] = useState({
-    type: "" as string, account: "", value: "", date: "", returns: "", description: "",
+const [newInv, setNewInv] = useState({
+    type: "" as string, customType: "", account: "", value: "", date: "", returns: "", description: "",
   });
 
   const monthInvestments = investments.filter(i => new Date(i.date).getMonth() === selectedMonth);
