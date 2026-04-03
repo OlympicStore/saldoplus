@@ -265,9 +265,10 @@ const Index = () => {
         {activeTab === "entries" && (
           <Entries
             incomes={data.incomes} salaryConfigs={data.salaryConfigs}
-            accounts={data.accounts} people={data.people} selectedMonth={selectedMonth}
+            accounts={data.accounts} transfers={data.transfers} people={data.people} selectedMonth={selectedMonth}
             onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
             onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
+            onAddTransfer={data.addTransfer} onDeleteTransfer={data.deleteTransfer}
           />
         )}
         {activeTab === "expenses" && (
