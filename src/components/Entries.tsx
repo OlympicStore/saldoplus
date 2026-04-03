@@ -11,12 +11,15 @@ interface EntriesProps {
   incomes: IncomeType[];
   salaryConfigs: SalaryConfig[];
   accounts: Account[];
+  transfers: Transfer[];
   people: string[];
   selectedMonth: number;
   onAddIncome: (income: Omit<IncomeType, "id">) => void;
   onUpdateIncome: (id: string, updates: Partial<IncomeType>) => void;
   onDeleteIncome: (id: string) => void;
   onUpdateSalary: (person: string, updates: Partial<SalaryConfig>) => void;
+  onAddTransfer: (transfer: Omit<Transfer, "id">) => void;
+  onDeleteTransfer: (id: string) => void;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
