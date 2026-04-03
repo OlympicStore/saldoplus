@@ -49,6 +49,7 @@ const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.
 
 const Index = () => {
   const { profile, isAdmin, signOut } = useAuth();
+  const { currentSubAccountId } = useSubAccount();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date();
