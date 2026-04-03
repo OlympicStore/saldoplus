@@ -63,12 +63,21 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [statsRes, usersRes] = await Promise.all([
+    const [statsRes, usersRes, linksRes] = await Promise.all([
       supabase.rpc("get_admin_stats"),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("site_settings").select("key, value").like("key", "payment_link_%"),
     ]);
     if (statsRes.data) setStats(statsRes.data as unknown as Stats);
     if (usersRes.data) setUsers(usersRes.data as UserProfile[]);
+    if (linksRes.data) {
+      const links: Record<string, string> = { essencial: "", casa: "", pro: "" };
+      linksRes.data.forEach((s: any) => {
+        const plan = s.key.replace("payment_link_", "");
+        links[plan] = s.value || "";
+      });
+      setPaymentLinks(links);
+    }
     setLoading(false);
   };
 
