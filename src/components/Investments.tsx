@@ -27,18 +27,22 @@ const [newInv, setNewInv] = useState({
 
   const handleAdd = () => {
     const val = parseFloat(newInv.value.replace(",", "."));
-    if (isNaN(val) || !newInv.type) return;
+    const finalType = newInv.type === "__custom" ? newInv.customType.trim() : newInv.type;
+    if (isNaN(val) || !finalType) return;
     const ret = newInv.returns ? parseFloat(newInv.returns.replace(",", ".")) : null;
     const year = new Date().getFullYear();
     const date = newInv.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
     onAdd({
-      type: newInv.type as Investment["type"], account: newInv.account, value: val,
+      type: finalType as Investment["type"], account: newInv.account, value: val,
       date, returns: isNaN(ret as number) ? null : ret,
-      description: newInv.description || INVESTMENT_TYPE_LABELS[newInv.type] || newInv.type,
+      description: newInv.description || INVESTMENT_TYPE_LABELS[finalType] || finalType,
     });
-    setNewInv({ type: "", account: "", value: "", date: "", returns: "", description: "" });
+    setNewInv({ type: "", customType: "", account: "", value: "", date: "", returns: "", description: "" });
     setShowForm(false);
   };
+
+  const allTypes = new Set<string>(["acoes", "poupanca", "cripto"]);
+  investments.forEach(i => { if (!allTypes.has(i.type)) allTypes.add(i.type); });
 
   return (
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
