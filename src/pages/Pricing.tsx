@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck } from "lucide-react";
