@@ -62,7 +62,7 @@ export function usePersistedData() {
         setVariableExpenses(ve.data.map((r: any) => ({
           id: r.id, date: r.date, description: r.description,
           category: r.category, value: Number(r.value), responsible: r.responsible,
-          account: r.account || "",
+          account: r.account || "", recurring: r.recurring ?? false,
         })));
       }
 
