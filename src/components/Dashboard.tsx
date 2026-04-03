@@ -435,8 +435,8 @@ export const Dashboard = ({
         </div>
       </div>
 
-      {/* Metas financeiras - resumo (read-only) */}
-      {financialGoals.length > 0 && (
+      {/* Metas financeiras - resumo (read-only) - hidden for essencial */}
+      {financialGoals.length > 0 && userPlan !== "essencial" && (
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
           <span className="label-caps mb-3 block">Metas Financeiras</span>
           <div className="space-y-3">

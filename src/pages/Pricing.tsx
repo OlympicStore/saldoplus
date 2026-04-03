@@ -98,20 +98,25 @@ const Pricing = () => {
 
   // Load payment links on mount
   useEffect(() => {
-    supabase
-      .from("site_settings")
-      .select("key, value")
-      .like("key", "payment_link_%")
-      .then(({ data }) => {
-        if (data) {
+    const loadLinks = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("site_settings" as any)
+          .select("key, value")
+          .like("key", "payment_link_%");
+        if (data && !error) {
           const links: Record<string, string> = {};
-          data.forEach((s: any) => {
+          (data as any[]).forEach((s) => {
             const plan = s.key.replace("payment_link_", "");
             if (s.value) links[plan] = s.value;
           });
           setPaymentLinks(links);
         }
-      });
+      } catch (e) {
+        console.error("Failed to load payment links", e);
+      }
+    };
+    loadLinks();
   }, []);
 
   const handleSelectPlan = async (planId: string) => {
