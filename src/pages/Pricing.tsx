@@ -97,7 +97,7 @@ const Pricing = () => {
   const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({});
 
   // Load payment links on mount
-  useState(() => {
+  useEffect(() => {
     supabase
       .from("site_settings")
       .select("key, value")
@@ -112,7 +112,7 @@ const Pricing = () => {
           setPaymentLinks(links);
         }
       });
-  });
+  }, []);
 
   const handleSelectPlan = async (planId: string) => {
     if (!user) {
