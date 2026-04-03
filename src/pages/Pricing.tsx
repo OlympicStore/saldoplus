@@ -5,8 +5,8 @@ import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronD
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import dashboardPreview from "@/assets/dashboard-preview.jpg";
-import dashboardMobile from "@/assets/dashboard-mobile.jpg";
+import dashboardPreview from "@/assets/dashboard-preview.png";
+import dashboardGoals from "@/assets/dashboard-goals.png";
 
 const PLANS = [
   {
