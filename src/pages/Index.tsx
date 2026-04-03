@@ -10,7 +10,7 @@ import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { InitialBalance } from "@/components/InitialBalance";
 import { CategoriesManager } from "@/components/CategoriesManager";
 import { SuggestionsDialog } from "@/components/SuggestionsDialog";
-import { MonthlyReport } from "@/components/MonthlyReport";
+
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
