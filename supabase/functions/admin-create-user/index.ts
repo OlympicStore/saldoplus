@@ -53,8 +53,8 @@ serve(async (req) => {
 
     if (createError) throw new Error(`Failed to create user: ${createError.message}`);
 
-    // Update profile with plan if not essencial
-    if (selectedPlan !== "essencial" && newUser.user) {
+    // Always set plan dates
+    if (newUser.user) {
       const now = new Date();
       const expiresAt = new Date(now);
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
