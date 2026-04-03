@@ -145,7 +145,7 @@ export function usePersistedData(subAccountId?: string | null) {
         ];
         const inserted: Category[] = [];
         for (const d of defaults) {
-          const { data } = await supabase.from("categories").insert({ user_id: userId, name: d.name, type: d.type }).select().single();
+          const { data } = await supabase.from("categories").insert({ ...subField, user_id: userId, name: d.name, type: d.type }).select().single();
           if (data) inserted.push({ id: data.id, name: data.name, type: data.type as Category["type"] });
         }
         setCategories(inserted);
@@ -165,7 +165,7 @@ export function usePersistedData(subAccountId?: string | null) {
   // --- Sync helpers ---
   const syncFixedExpense = useCallback(async (expense: FixedExpense) => {
     if (!userId) return;
-    await supabase.from("fixed_expenses").upsert({
+    await supabase.from("fixed_expenses").upsert({ ...subField,
       id: expense.id, user_id: userId, item: expense.item, due_day: expense.dueDay,
       account: expense.account || "",
       monthly_values: expense.monthlyValues, monthly_responsible: expense.monthlyResponsible,
@@ -175,7 +175,7 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncVariableExpense = useCallback(async (expense: VariableExpense) => {
     if (!userId) return;
-    await supabase.from("variable_expenses").upsert({
+    await supabase.from("variable_expenses").upsert({ ...subField,
       id: expense.id, user_id: userId, date: expense.date,
       description: expense.description, category: expense.category,
       value: expense.value, responsible: expense.responsible,
@@ -185,7 +185,7 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncIncome = useCallback(async (income: Income) => {
     if (!userId) return;
-    await supabase.from("incomes").upsert({
+    await supabase.from("incomes").upsert({ ...subField,
       id: income.id, user_id: userId, date: income.date,
       description: income.description, value: income.value,
       person: income.person, type: income.type,
@@ -195,7 +195,7 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncSalaryConfig = useCallback(async (config: SalaryConfig) => {
     if (!userId) return;
-    await supabase.from("salary_configs").upsert({
+    await supabase.from("salary_configs").upsert({ ...subField,
       user_id: userId, person: config.person,
       monthly_values: config.monthlyValues, active: config.active,
     }, { onConflict: "user_id,person" });
@@ -203,7 +203,7 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncGoal = useCallback(async (goal: FinancialGoal) => {
     if (!userId) return;
-    await supabase.from("financial_goals").upsert({
+    await supabase.from("financial_goals").upsert({ ...subField,
       id: goal.id, user_id: userId, name: goal.name, term: goal.term,
       total_value: goal.totalValue, deadline_months: goal.deadlineMonths,
       current_value: goal.currentValue, monthly_savings: goal.monthlySavings,
@@ -213,14 +213,14 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncBillRecord = useCallback(async (bill: string, month: number, status: BillStatus) => {
     if (!userId) return;
-    await supabase.from("bill_records").upsert({
+    await supabase.from("bill_records").upsert({ ...subField,
       user_id: userId, bill, month, status,
     }, { onConflict: "user_id,bill,month" });
   }, [userId]);
 
   const syncAccount = useCallback(async (account: Account) => {
     if (!userId) return;
-    await supabase.from("accounts").upsert({
+    await supabase.from("accounts").upsert({ ...subField,
       id: account.id, user_id: userId, name: account.name,
       balance: account.balance, type: account.type, sort_order: account.sort_order,
     }, { onConflict: "id" });
@@ -228,7 +228,7 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncInvestment = useCallback(async (investment: Investment) => {
     if (!userId) return;
-    await supabase.from("investments").upsert({
+    await supabase.from("investments").upsert({ ...subField,
       id: investment.id, user_id: userId, type: investment.type,
       account: investment.account, value: investment.value,
       date: investment.date, returns: investment.returns,
@@ -238,7 +238,7 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncTransfer = useCallback(async (transfer: Transfer) => {
     if (!userId) return;
-    await supabase.from("transfers").upsert({
+    await supabase.from("transfers").upsert({ ...subField,
       id: transfer.id, user_id: userId, from_account: transfer.from_account,
       to_account: transfer.to_account, value: transfer.value,
       date: transfer.date, description: transfer.description,
@@ -247,14 +247,14 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncCategory = useCallback(async (category: Category) => {
     if (!userId) return;
-    await supabase.from("categories").upsert({
+    await supabase.from("categories").upsert({ ...subField,
       id: category.id, user_id: userId, name: category.name, type: category.type,
     }, { onConflict: "id" });
   }, [userId]);
 
   const debouncedSyncSettings = useRef(
     debounce(async (uid: string, p: string[], cats: string[], bal: number) => {
-      await supabase.from("user_settings").upsert({
+      await supabase.from("user_settings").upsert({ ...subField,
         user_id: uid, people: p, variable_categories: cats, current_balance: bal,
       }, { onConflict: "user_id" });
     }, 500)
@@ -439,7 +439,7 @@ export function usePersistedData(subAccountId?: string | null) {
   // Categories
   const addCategoryItem = useCallback(async (category: Omit<Category, "id">) => {
     if (!userId) return;
-    const { data } = await supabase.from("categories").insert({ user_id: userId, name: category.name, type: category.type }).select().single();
+    const { data } = await supabase.from("categories").insert({ ...subField, user_id: userId, name: category.name, type: category.type }).select().single();
     if (data) {
       setCategories(prev => [...prev, { id: data.id, name: data.name, type: data.type as Category["type"] }]);
     }
