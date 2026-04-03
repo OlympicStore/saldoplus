@@ -265,15 +265,30 @@ const Index = () => {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === "dashboard" && (
-          <Dashboard
-            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
-            incomes={data.incomes} salaryConfigs={data.salaryConfigs}
-            people={data.people} selectedMonth={selectedMonth}
-            currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
-            financialGoals={data.financialGoals}
-            userPlan={userPlan}
-            accounts={data.accounts}
-          />
+          <>
+            {userPlan === "pro" && (
+              <div className="mb-6 flex justify-end">
+                <AISuggestions
+                  fixedExpenses={data.fixedExpenses}
+                  variableExpenses={data.variableExpenses}
+                  incomes={data.incomes}
+                  salaryConfigs={data.salaryConfigs}
+                  financialGoals={data.financialGoals}
+                  selectedMonth={selectedMonth}
+                  currentBalance={data.currentBalance}
+                />
+              </div>
+            )}
+            <Dashboard
+              fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
+              incomes={data.incomes} salaryConfigs={data.salaryConfigs}
+              people={data.people} selectedMonth={selectedMonth}
+              currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
+              financialGoals={data.financialGoals}
+              userPlan={userPlan}
+              accounts={data.accounts}
+            />
+          </>
         )}
         {activeTab === "balance" && (
           <InitialBalance
