@@ -175,12 +175,22 @@ const Pricing = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative">
-            <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
-              <img src={dashboardPreview} alt="Dashboard do Saldo+ mostrando saldo, gráficos e despesas" width={1280} height={720} className="w-full h-auto" />
+            className="space-y-8">
+            <div>
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
+                <img src={dashboardPreview} alt="Painel principal do Saldo+ com saldo acumulado, gráfico de evolução mensal, entradas, saídas e balanço do mês" width={1280} height={720} className="w-full h-auto" />
+              </div>
+              <p className="text-sm text-text-muted mt-3 text-center">
+                Visão geral das suas finanças: saldo acumulado, evolução mensal e balanço entre entradas e saídas — tudo num só ecrã.
+              </p>
             </div>
-            <div className="absolute -bottom-6 -left-6 w-40 sm:w-52 rounded-xl overflow-hidden shadow-xl border border-border-subtle/60 hidden sm:block">
-              <img src={dashboardMobile} alt="Saldo+ no telemóvel" loading="lazy" width={640} height={800} className="w-full h-auto" />
+            <div>
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
+                <img src={dashboardGoals} alt="Metas financeiras do Saldo+ com progresso por objetivo, distribuição por prazo e valores poupados" loading="lazy" width={1280} height={720} className="w-full h-auto" />
+              </div>
+              <p className="text-sm text-text-muted mt-3 text-center">
+                Acompanhe as suas metas financeiras: veja o progresso de cada objetivo, distribuição por prazo e quanto falta poupar.
+              </p>
             </div>
           </motion.div>
         </div>
