@@ -23,6 +23,7 @@ export interface VariableExpense {
   value: number;
   responsible: string | null;
   account: string;
+  recurring: boolean;
 }
 
 export interface MonthlyBillRecord {

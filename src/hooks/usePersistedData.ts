@@ -6,6 +6,7 @@ import type { FinancialGoal } from "@/types/goal";
 import type { Income, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
 import type { Investment } from "@/types/investment";
+import type { Transfer } from "@/types/transfer";
 import type { Category } from "@/types/category";
 import { defaultGoals } from "@/components/FinancialGoals";
 
