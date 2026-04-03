@@ -40,7 +40,7 @@ const allTabs: { key: Tab; label: string }[] = [
 ];
 
 const planTabs: Record<string, Tab[]> = {
-  essencial: ["dashboard", "balance", "entries", "expenses", "annual", "account"],
+  essencial: ["dashboard", "balance", "entries", "expenses", "account"],
   casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
   pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
 };

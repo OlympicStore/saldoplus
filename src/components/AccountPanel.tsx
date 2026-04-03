@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarClock, KeyRound, LogOut, Mail, Shield, UserRound } from "lucide-react";
+import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,11 +12,14 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 const AccountPanel = () => {
-  const { user, profile, isAdmin, signOut } = useAuth();
+  const { user, profile, isAdmin, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   if (!user || !profile) return null;
 
@@ -31,6 +34,38 @@ const AccountPanel = () => {
   const daysRemaining = expiryDate
     ? Math.max(Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)), 0)
     : null;
+
+  const handleEditName = () => {
+    setNameValue(profile.full_name || "");
+    setEditingName(true);
+  };
+
+  const handleSaveName = async () => {
+    const trimmed = nameValue.trim();
+    if (!trimmed) {
+      toast.error("O nome não pode estar vazio.");
+      return;
+    }
+    if (trimmed.length > 100) {
+      toast.error("O nome deve ter no máximo 100 caracteres.");
+      return;
+    }
+    setSavingName(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ full_name: trimmed })
+        .eq("id", user.id);
+      if (error) throw error;
+      await refreshProfile();
+      setEditingName(false);
+      toast.success("Nome atualizado com sucesso.");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao atualizar nome.");
+    } finally {
+      setSavingName(false);
+    }
+  };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,11 +151,37 @@ const AccountPanel = () => {
 
           <div className="space-y-4">
             <div className="rounded-xl bg-background border border-border-subtle/60 p-4">
-              <div className="flex items-center gap-2 mb-2 text-sm font-medium text-foreground">
-                <UserRound className="h-4 w-4 text-primary" />
-                Nome
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <UserRound className="h-4 w-4 text-primary" />
+                  Nome
+                </div>
+                {!editingName && (
+                  <button onClick={handleEditName} className="text-text-muted hover:text-primary transition-colors">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
-              <p className="text-sm text-text-muted">{profile.full_name || "Sem nome definido"}</p>
+              {editingName ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    autoFocus
+                    value={nameValue}
+                    onChange={(e) => setNameValue(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
+                    maxLength={100}
+                    className="flex-1 text-sm bg-background border border-border-subtle rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button onClick={handleSaveName} disabled={savingName} className="text-primary hover:opacity-80 transition-opacity disabled:opacity-50">
+                    <Check className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => setEditingName(false)} className="text-text-muted hover:text-foreground transition-colors">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm text-text-muted">{profile.full_name || "Sem nome definido"}</p>
+              )}
             </div>
 
             <div className="rounded-xl bg-background border border-border-subtle/60 p-4">
