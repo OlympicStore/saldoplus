@@ -27,6 +27,7 @@ export function usePersistedData() {
   const [billRecords, setBillRecords] = useState<MonthlyBillRecord[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [people, setPeople] = useState<string[]>(["João", "Maria"]);
   const [variableCategories, setVariableCategories] = useState<string[]>(["Supermercado"]);
