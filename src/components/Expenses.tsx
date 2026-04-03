@@ -107,7 +107,7 @@ export const Expenses = ({
         account: newExpense.account || "", recurring: false,
       });
     }
-    setNewExpense({ category: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null });
+    setNewExpense({ category: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null, recurring: false });
     setShowForm(false);
   };
 
