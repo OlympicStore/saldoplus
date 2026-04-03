@@ -73,6 +73,7 @@ export const Expenses = ({
         account: "", date: e.date, value: e.value,
         status: "pago", dueDay: 0, type: getCategoryType(e.category),
         description: e.description, responsible: e.responsible,
+        recurring: e.recurring ?? false,
       })),
   ];
 
