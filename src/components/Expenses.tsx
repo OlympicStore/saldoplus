@@ -47,7 +47,7 @@ export const Expenses = ({
   const [filter, setFilter] = useState<"all" | "fixo" | "variavel">("all");
   const [newExpense, setNewExpense] = useState({
     category: "", account: "", date: "", value: "", dueDay: "1", description: "",
-    responsible: null as string | null,
+    responsible: null as string | null, recurring: false,
   });
 
   const getCategoryType = (catName: string): "Fixo" | "Variável" => {
