@@ -69,12 +69,13 @@ const [newInv, setNewInv] = useState({
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        {(["acoes", "poupanca", "cripto"] as const).map(type => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        {Array.from(allTypes).map(type => {
           const typeTotal = monthInvestments.filter(i => i.type === type).reduce((s, i) => s + i.value, 0);
+          if (typeTotal === 0 && !["acoes", "poupanca", "cripto"].includes(type)) return null;
           return (
             <div key={type} className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
-              <span className="label-caps">{INVESTMENT_TYPE_LABELS[type]}</span>
+              <span className="label-caps">{INVESTMENT_TYPE_LABELS[type] || type}</span>
               <p className="text-lg font-semibold text-foreground font-mono tabular-nums mt-1">{fmt(typeTotal)}</p>
             </div>
           );
