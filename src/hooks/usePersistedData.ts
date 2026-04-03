@@ -121,6 +121,7 @@ export function usePersistedData() {
         })));
       }
 
+      if (cat.data?.length) {
         setCategories(cat.data.map((r: any) => ({
           id: r.id, name: r.name, type: r.type as Category["type"],
         })));
