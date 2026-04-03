@@ -21,6 +21,7 @@ export type Database = {
           id: string
           name: string
           sort_order: number
+          sub_account_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -31,6 +32,7 @@ export type Database = {
           id?: string
           name?: string
           sort_order?: number
+          sub_account_id?: string | null
           type?: string
           updated_at?: string
           user_id: string
@@ -41,11 +43,20 @@ export type Database = {
           id?: string
           name?: string
           sort_order?: number
+          sub_account_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "accounts_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bill_records: {
         Row: {
@@ -54,6 +65,7 @@ export type Database = {
           id: string
           month: number
           status: string
+          sub_account_id: string | null
           updated_at: string
           user_id: string
         }
@@ -63,6 +75,7 @@ export type Database = {
           id?: string
           month: number
           status?: string
+          sub_account_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -72,16 +85,26 @@ export type Database = {
           id?: string
           month?: number
           status?: string
+          sub_account_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "bill_records_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       categories: {
         Row: {
           created_at: string
           id: string
           name: string
+          sub_account_id: string | null
           type: string
           user_id: string
         }
@@ -89,6 +112,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          sub_account_id?: string | null
           type?: string
           user_id: string
         }
@@ -96,10 +120,19 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          sub_account_id?: string | null
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       category_budgets: {
         Row: {
@@ -108,6 +141,7 @@ export type Database = {
           id: string
           limit_value: number
           month: number
+          sub_account_id: string | null
           updated_at: string
           user_id: string
           year: number
@@ -118,6 +152,7 @@ export type Database = {
           id?: string
           limit_value?: number
           month: number
+          sub_account_id?: string | null
           updated_at?: string
           user_id: string
           year: number
@@ -128,11 +163,20 @@ export type Database = {
           id?: string
           limit_value?: number
           month?: number
+          sub_account_id?: string | null
           updated_at?: string
           user_id?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "category_budgets_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_goals: {
         Row: {
@@ -143,6 +187,7 @@ export type Database = {
           id: string
           monthly_savings: number
           name: string
+          sub_account_id: string | null
           term: string
           total_value: number
           updated_at: string
@@ -156,6 +201,7 @@ export type Database = {
           id?: string
           monthly_savings?: number
           name: string
+          sub_account_id?: string | null
           term?: string
           total_value?: number
           updated_at?: string
@@ -169,12 +215,21 @@ export type Database = {
           id?: string
           monthly_savings?: number
           name?: string
+          sub_account_id?: string | null
           term?: string
           total_value?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "financial_goals_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fixed_expenses: {
         Row: {
@@ -186,6 +241,7 @@ export type Database = {
           monthly_paid: Json
           monthly_responsible: Json
           monthly_values: Json
+          sub_account_id: string | null
           updated_at: string
           user_id: string
         }
@@ -198,6 +254,7 @@ export type Database = {
           monthly_paid?: Json
           monthly_responsible?: Json
           monthly_values?: Json
+          sub_account_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -210,10 +267,19 @@ export type Database = {
           monthly_paid?: Json
           monthly_responsible?: Json
           monthly_values?: Json
+          sub_account_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fixed_expenses_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       group_members: {
         Row: {
@@ -286,6 +352,7 @@ export type Database = {
           description: string
           id: string
           person: string | null
+          sub_account_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -298,6 +365,7 @@ export type Database = {
           description?: string
           id?: string
           person?: string | null
+          sub_account_id?: string | null
           type?: string
           updated_at?: string
           user_id: string
@@ -310,12 +378,21 @@ export type Database = {
           description?: string
           id?: string
           person?: string | null
+          sub_account_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
           value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "incomes_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       investments: {
         Row: {
@@ -325,6 +402,7 @@ export type Database = {
           description: string
           id: string
           returns: number | null
+          sub_account_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -337,6 +415,7 @@ export type Database = {
           description?: string
           id?: string
           returns?: number | null
+          sub_account_id?: string | null
           type?: string
           updated_at?: string
           user_id: string
@@ -349,12 +428,21 @@ export type Database = {
           description?: string
           id?: string
           returns?: number | null
+          sub_account_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
           value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "investments_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -396,6 +484,7 @@ export type Database = {
           id: string
           monthly_values: Json
           person: string
+          sub_account_id: string | null
           updated_at: string
           user_id: string
         }
@@ -405,6 +494,7 @@ export type Database = {
           id?: string
           monthly_values?: Json
           person: string
+          sub_account_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -414,10 +504,19 @@ export type Database = {
           id?: string
           monthly_values?: Json
           person?: string
+          sub_account_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "salary_configs_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {
@@ -440,6 +539,36 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      sub_accounts: {
+        Row: {
+          avatar_color: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -477,6 +606,7 @@ export type Database = {
           description: string
           from_account: string
           id: string
+          sub_account_id: string | null
           to_account: string
           updated_at: string
           user_id: string
@@ -488,6 +618,7 @@ export type Database = {
           description?: string
           from_account?: string
           id?: string
+          sub_account_id?: string | null
           to_account?: string
           updated_at?: string
           user_id: string
@@ -499,12 +630,21 @@ export type Database = {
           description?: string
           from_account?: string
           id?: string
+          sub_account_id?: string | null
           to_account?: string
           updated_at?: string
           user_id?: string
           value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transfers_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -530,6 +670,7 @@ export type Database = {
           current_balance: number
           id: string
           people: string[]
+          sub_account_id: string | null
           updated_at: string
           user_id: string
           variable_categories: string[]
@@ -539,6 +680,7 @@ export type Database = {
           current_balance?: number
           id?: string
           people?: string[]
+          sub_account_id?: string | null
           updated_at?: string
           user_id: string
           variable_categories?: string[]
@@ -548,11 +690,20 @@ export type Database = {
           current_balance?: number
           id?: string
           people?: string[]
+          sub_account_id?: string | null
           updated_at?: string
           user_id?: string
           variable_categories?: string[]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       variable_expenses: {
         Row: {
@@ -564,6 +715,7 @@ export type Database = {
           id: string
           recurring: boolean
           responsible: string | null
+          sub_account_id: string | null
           updated_at: string
           user_id: string
           value: number
@@ -577,6 +729,7 @@ export type Database = {
           id?: string
           recurring?: boolean
           responsible?: string | null
+          sub_account_id?: string | null
           updated_at?: string
           user_id: string
           value?: number
@@ -590,11 +743,20 @@ export type Database = {
           id?: string
           recurring?: boolean
           responsible?: string | null
+          sub_account_id?: string | null
           updated_at?: string
           user_id?: string
           value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "variable_expenses_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
