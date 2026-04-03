@@ -236,6 +236,7 @@ export function usePersistedData() {
     }, { onConflict: "id" });
   }, [userId]);
 
+  const syncCategory = useCallback(async (category: Category) => {
     if (!userId) return;
     await supabase.from("categories").upsert({
       id: category.id, user_id: userId, name: category.name, type: category.type,
