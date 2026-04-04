@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
-import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles, Gift, BookOpen, Infinity } from "lucide-react";
+import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
