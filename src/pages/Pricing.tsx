@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
-import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles, Gift, BookOpen, Infinity } from "lucide-react";
+import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -133,76 +133,36 @@ const FEATURES_GRID = [
   { icon: Shield, title: "100% seguro", desc: "Dados encriptados e privados. Só você tem acesso." },
 ];
 
-const ORDER_BUMPS = [
-  {
-    id: "lifetime",
-    name: "Acesso Vitalício",
-    price: 19.99,
-    description: "Pague uma vez, use para sempre. Sem renovação anual — acesso garantido ao Saldo+ por tempo ilimitado.",
-    icon: Infinity,
-  },
-  {
-    id: "ebook",
-    name: "eBook Finanças Pessoais",
-    price: 4.99,
-    description: "Guia prático com dicas de gestão financeira pessoal e familiar. PDF para consultar a qualquer momento.",
-    icon: BookOpen,
-  },
-] as const;
-
 const formatEuro = (value: number) => `${value.toFixed(2).replace(".", ",")}€`;
+
+const PAYMENT_LINKS: Record<string, string> = {
+  essencial: "https://buy.stripe.com/14A8wP6neamK7BFfUgbMQ0j",
+  casa: "https://buy.stripe.com/cNiaEXh1S9iGe030ZmbMQ0k",
+  pro: "https://buy.stripe.com/fZu28r9zqbqO3lpcI4bMQ0l",
+};
 
 const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
-
-  const toggleBump = (bumpId: string) => {
-    setSelectedBumps((prev) =>
-      prev.includes(bumpId) ? prev.filter((item) => item !== bumpId) : [...prev, bumpId]
-    );
-  };
-
-  const selectedBumpsTotal = ORDER_BUMPS
-    .filter((bump) => selectedBumps.includes(bump.id))
-    .reduce((total, bump) => total + bump.price, 0);
 
   const usersCounter = useCounter(500);
   const savingsCounter = useCounter(35);
   const timeCounter = useCounter(5);
 
-  const handleSelectPlan = async (planId: string) => {
+  const handleSelectPlan = (planId: string) => {
     if (!user) {
       toast.info("Crie uma conta ou entre para continuar.");
       navigate("/auth");
       return;
     }
 
-    const checkoutWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
+    const link = PAYMENT_LINKS[planId];
+    if (!link) return;
 
-    setLoadingPlan(planId);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { plan: planId, bumps: selectedBumps },
-      });
-      if (error) throw error;
-      if (!data?.url) throw new Error("Não foi possível abrir o checkout.");
-
-      if (checkoutWindow) {
-        checkoutWindow.location.href = data.url;
-      } else {
-        window.location.href = data.url;
-      }
-    } catch (err: any) {
-      if (checkoutWindow && !checkoutWindow.closed) {
-        checkoutWindow.close();
-      }
-      toast.error(err.message || "Erro ao processar pagamento");
-    } finally {
-      setLoadingPlan(null);
-    }
+    const separator = link.includes("?") ? "&" : "?";
+    const url = `${link}${separator}prefilled_email=${encodeURIComponent(user.email || "")}`;
+    window.open(url, "_blank");
   };
 
   return (
@@ -504,19 +464,12 @@ const Pricing = () => {
                 )}
 
                 <div className="mb-6">
-                  <div className="flex items-baseline gap-1 flex-wrap">
-                    <span className="text-4xl font-bold text-foreground">
-                      {formatEuro(Number(plan.price.replace(",", ".")) + selectedBumpsTotal)}
-                    </span>
-                    <span className="text-sm text-text-muted">/total</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-foreground">{plan.price}€</span>
+                    <span className="text-sm text-text-muted">/ano</span>
                   </div>
-                  {selectedBumpsTotal > 0 && (
-                    <p className="text-xs text-text-muted mt-1">
-                      {plan.price}€ do plano + {formatEuro(selectedBumpsTotal)} em extras
-                    </p>
-                  )}
                   <p className="text-xs text-primary font-medium mt-1">
-                    Apenas {plan.monthlyEquiv}€/mês no plano base
+                    Apenas {plan.monthlyEquiv}€/mês
                   </p>
                 </div>
 
@@ -536,66 +489,16 @@ const Pricing = () => {
                 </ul>
 
                 <button onClick={() => handleSelectPlan(plan.id)}
-                  disabled={loadingPlan !== null}
-                  className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${
+                  className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all ${
                     plan.popular
                       ? "bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20"
                       : "border border-border-subtle text-foreground hover:bg-surface-hover hover:border-primary/30"
                   }`}>
-                  {loadingPlan === plan.id ? "A processar..." : `Continuar por ${formatEuro(Number(plan.price.replace(",", ".")) + selectedBumpsTotal)}`}
+                  Começar agora
                 </button>
               </motion.div>
             ))}
           </div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="max-w-2xl mx-auto mt-10 space-y-3">
-            <p className="text-center text-sm font-medium text-text-muted mb-4">
-              <Gift className="inline h-4 w-4 text-primary mr-1" />
-              Adicione extras ao seu pedido
-            </p>
-
-            {ORDER_BUMPS.map((bump) => {
-              const isSelected = selectedBumps.includes(bump.id);
-              const Icon = bump.icon;
-
-              return (
-                <button
-                  key={bump.id}
-                  type="button"
-                  onClick={() => toggleBump(bump.id)}
-                  className={`w-full flex items-start gap-4 p-4 rounded-xl border transition-all text-left ${
-                    isSelected
-                      ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                      : "border-border-subtle/60 bg-background hover:border-primary/30"
-                  }`}
-                >
-                  <div className={`mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                    isSelected ? "border-primary bg-primary" : "border-border-subtle"
-                  }`}>
-                    {isSelected && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <Icon className="h-4 w-4 text-primary" />
-                      <span className="font-semibold text-foreground text-sm">{bump.name}</span>
-                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                        +{formatEuro(bump.price)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-text-muted leading-relaxed">{bump.description}</p>
-                  </div>
-                </button>
-              );
-            })}
-
-            {selectedBumpsTotal > 0 && (
-              <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground flex items-center justify-between gap-3">
-                <span>Total de extras selecionados</span>
-                <span className="font-semibold text-primary">{formatEuro(selectedBumpsTotal)}</span>
-              </div>
-            )}
-          </motion.div>
         </div>
       </section>
 
