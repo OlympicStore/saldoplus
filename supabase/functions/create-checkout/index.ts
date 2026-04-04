@@ -13,6 +13,11 @@ const PLAN_PRICES: Record<string, string> = {
   pro: "price_1TIIq2ImKoY4gMb7vZjAOsdL",
 };
 
+const BUMP_PRICES: Record<string, string> = {
+  lifetime: "price_1TIJZTImKoY4gMb70G2tP7Gc",
+  ebook: "price_1TIJZpImKoY4gMb7rW65hJo7",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,7 +29,7 @@ serve(async (req) => {
   );
 
   try {
-    const { plan } = await req.json();
+    const { plan, bumps } = await req.json();
     if (!plan || !PLAN_PRICES[plan]) {
       throw new Error("Invalid plan: " + plan);
     }
@@ -45,14 +50,33 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
+    // Build line items: plan + optional bumps
+    const lineItems: Array<{ price: string; quantity: number }> = [
+      { price: PLAN_PRICES[plan], quantity: 1 },
+    ];
+
+    const selectedBumps: string[] = [];
+    if (Array.isArray(bumps)) {
+      for (const bump of bumps) {
+        if (BUMP_PRICES[bump]) {
+          lineItems.push({ price: BUMP_PRICES[bump], quantity: 1 });
+          selectedBumps.push(bump);
+        }
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [{ price: PLAN_PRICES[plan], quantity: 1 }],
+      line_items: lineItems,
       mode: "payment",
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
       cancel_url: `${req.headers.get("origin")}/`,
-      metadata: { user_id: user.id, plan },
+      metadata: {
+        user_id: user.id,
+        plan,
+        bumps: selectedBumps.join(","),
+      },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
