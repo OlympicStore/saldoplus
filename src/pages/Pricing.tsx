@@ -536,6 +536,67 @@ const Pricing = () => {
               </motion.div>
             ))}
           </div>
+
+          {/* Order Bumps */}
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="max-w-2xl mx-auto mt-10 space-y-3">
+            <p className="text-center text-sm font-medium text-text-muted mb-4">
+              <Gift className="inline h-4 w-4 text-primary mr-1" />
+              Adicione extras ao seu pedido
+            </p>
+
+            {/* Lifetime bump */}
+            <button
+              type="button"
+              onClick={() => toggleBump("lifetime")}
+              className={`w-full flex items-start gap-4 p-4 rounded-xl border transition-all text-left ${
+                selectedBumps.includes("lifetime")
+                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                  : "border-border-subtle/60 bg-background hover:border-primary/30"
+              }`}>
+              <div className={`mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                selectedBumps.includes("lifetime") ? "border-primary bg-primary" : "border-border-subtle"
+              }`}>
+                {selectedBumps.includes("lifetime") && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Infinity className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-foreground text-sm">Acesso Vitalício</span>
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+19,99€</span>
+                </div>
+                <p className="text-xs text-text-muted leading-relaxed">
+                  Pague uma vez, use para sempre. Sem renovação anual — acesso garantido ao Saldo+ por tempo ilimitado.
+                </p>
+              </div>
+            </button>
+
+            {/* eBook bump */}
+            <button
+              type="button"
+              onClick={() => toggleBump("ebook")}
+              className={`w-full flex items-start gap-4 p-4 rounded-xl border transition-all text-left ${
+                selectedBumps.includes("ebook")
+                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                  : "border-border-subtle/60 bg-background hover:border-primary/30"
+              }`}>
+              <div className={`mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                selectedBumps.includes("ebook") ? "border-primary bg-primary" : "border-border-subtle"
+              }`}>
+                {selectedBumps.includes("ebook") && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-foreground text-sm">eBook Finanças Pessoais</span>
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+4,99€</span>
+                </div>
+                <p className="text-xs text-text-muted leading-relaxed">
+                  Guia prático com dicas de gestão financeira pessoal e familiar. PDF para consultar a qualquer momento.
+                </p>
+              </div>
+            </button>
+          </motion.div>
         </div>
       </section>
 
