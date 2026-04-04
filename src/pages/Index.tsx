@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Dashboard } from "@/components/Dashboard";
 import { Expenses } from "@/components/Expenses";
