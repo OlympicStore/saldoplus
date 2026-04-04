@@ -515,6 +515,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_public: boolean
           key: string
           updated_at: string
           value: string
@@ -522,6 +523,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_public?: boolean
           key: string
           updated_at?: string
           value?: string
@@ -529,6 +531,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_public?: boolean
           key?: string
           updated_at?: string
           value?: string
@@ -762,6 +765,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      verify_invite_code: {
+        Args: { _group_id: string; _invite_code: string }
         Returns: boolean
       }
     }
