@@ -180,6 +180,8 @@ const Pricing = () => {
       return;
     }
 
+    const checkoutWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
+
     setLoadingPlan(planId);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
@@ -187,8 +189,16 @@ const Pricing = () => {
       });
       if (error) throw error;
       if (!data?.url) throw new Error("Não foi possível abrir o checkout.");
-      window.location.href = data.url;
+
+      if (checkoutWindow) {
+        checkoutWindow.location.href = data.url;
+      } else {
+        window.location.href = data.url;
+      }
     } catch (err: any) {
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.close();
+      }
       toast.error(err.message || "Erro ao processar pagamento");
     } finally {
       setLoadingPlan(null);
