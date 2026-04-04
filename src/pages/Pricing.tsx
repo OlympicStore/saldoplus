@@ -189,7 +189,7 @@ const Pricing = () => {
     setLoadingPlan(planId);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { plan: planId },
+        body: { plan: planId, bumps: selectedBumps },
       });
       if (error) throw error;
       if (!data?.url) throw new Error("Não foi possível abrir o checkout.");
