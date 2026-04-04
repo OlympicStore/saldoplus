@@ -135,57 +135,34 @@ const FEATURES_GRID = [
 
 const formatEuro = (value: number) => `${value.toFixed(2).replace(".", ",")}€`;
 
+const PAYMENT_LINKS: Record<string, string> = {
+  essencial: "https://buy.stripe.com/14A8wP6neamK7BFfUgbMQ0j",
+  casa: "https://buy.stripe.com/cNiaEXh1S9iGe030ZmbMQ0k",
+  pro: "https://buy.stripe.com/fZu28r9zqbqO3lpcI4bMQ0l",
+};
+
 const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
-
-  const toggleBump = (bumpId: string) => {
-    setSelectedBumps((prev) =>
-      prev.includes(bumpId) ? prev.filter((item) => item !== bumpId) : [...prev, bumpId]
-    );
-  };
-
-  const selectedBumpsTotal = ORDER_BUMPS
-    .filter((bump) => selectedBumps.includes(bump.id))
-    .reduce((total, bump) => total + bump.price, 0);
 
   const usersCounter = useCounter(500);
   const savingsCounter = useCounter(35);
   const timeCounter = useCounter(5);
 
-  const handleSelectPlan = async (planId: string) => {
+  const handleSelectPlan = (planId: string) => {
     if (!user) {
       toast.info("Crie uma conta ou entre para continuar.");
       navigate("/auth");
       return;
     }
 
-    const checkoutWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
+    const link = PAYMENT_LINKS[planId];
+    if (!link) return;
 
-    setLoadingPlan(planId);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { plan: planId, bumps: selectedBumps },
-      });
-      if (error) throw error;
-      if (!data?.url) throw new Error("Não foi possível abrir o checkout.");
-
-      if (checkoutWindow) {
-        checkoutWindow.location.href = data.url;
-      } else {
-        window.location.href = data.url;
-      }
-    } catch (err: any) {
-      if (checkoutWindow && !checkoutWindow.closed) {
-        checkoutWindow.close();
-      }
-      toast.error(err.message || "Erro ao processar pagamento");
-    } finally {
-      setLoadingPlan(null);
-    }
+    const separator = link.includes("?") ? "&" : "?";
+    const url = `${link}${separator}prefilled_email=${encodeURIComponent(user.email || "")}`;
+    window.open(url, "_blank");
   };
 
   return (
