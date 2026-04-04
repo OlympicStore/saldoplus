@@ -767,6 +767,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      join_group_with_invite: {
+        Args: { _group_id: string; _invite_code: string }
+        Returns: boolean
+      }
       verify_invite_code: {
         Args: { _group_id: string; _invite_code: string }
         Returns: boolean
