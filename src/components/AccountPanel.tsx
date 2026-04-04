@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X } from "lucide-react";
 import { toast } from "sonner";
