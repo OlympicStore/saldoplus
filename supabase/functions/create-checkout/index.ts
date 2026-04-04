@@ -8,9 +8,9 @@ const corsHeaders = {
 };
 
 const PLAN_PRICES: Record<string, string> = {
-  essencial: "price_1THUrMImKoY4gMb7NmvaIq3Y",
-  casa: "price_1THUrfImKoY4gMb71vx4MIXi",
-  pro: "price_1THUs1ImKoY4gMb7qWw3WkF5",
+  essencial: "price_1TIIpGImKoY4gMb7U75mePXx",
+  casa: "price_1TIIppImKoY4gMb7ZCEU6iFU",
+  pro: "price_1TIIq2ImKoY4gMb7vZjAOsdL",
 };
 
 serve(async (req) => {
