@@ -397,8 +397,8 @@ const Pricing = () => {
                 <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
               </div>
 
-              {'tagline' in plan && (
-                <p className="text-xs text-text-muted mb-4">{(plan as any).tagline}</p>
+              {plan.tagline && (
+                <p className="text-xs text-text-muted mb-4">{plan.tagline}</p>
               )}
 
               <div className="mb-6">
