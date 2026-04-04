@@ -44,11 +44,19 @@ serve(async (req) => {
       throw new Error("Payment does not belong to this user");
     }
 
-    // Calculate expiration: 1 year minus 1 day
+    // Check if lifetime bump was included
+    const bumps = session.metadata?.bumps || "";
+    const hasLifetime = bumps.split(",").includes("lifetime");
+
+    // Calculate expiration: lifetime = far future, otherwise 1 year minus 1 day
     const now = new Date();
     const expiresAt = new Date(now);
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-    expiresAt.setDate(expiresAt.getDate() - 1);
+    if (hasLifetime) {
+      expiresAt.setFullYear(expiresAt.getFullYear() + 100);
+    } else {
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      expiresAt.setDate(expiresAt.getDate() - 1);
+    }
 
     // Update user profile with the plan
     const { error: updateError } = await supabaseAdmin
