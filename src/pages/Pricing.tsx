@@ -494,12 +494,19 @@ const Pricing = () => {
                 )}
 
                 <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-foreground">{plan.price}€</span>
-                    <span className="text-sm text-text-muted">/ano</span>
+                  <div className="flex items-baseline gap-1 flex-wrap">
+                    <span className="text-4xl font-bold text-foreground">
+                      {formatEuro(Number(plan.price.replace(",", ".")) + selectedBumpsTotal)}
+                    </span>
+                    <span className="text-sm text-text-muted">/total</span>
                   </div>
+                  {selectedBumpsTotal > 0 && (
+                    <p className="text-xs text-text-muted mt-1">
+                      {plan.price}€ do plano + {formatEuro(selectedBumpsTotal)} em extras
+                    </p>
+                  )}
                   <p className="text-xs text-primary font-medium mt-1">
-                    Apenas {plan.monthlyEquiv}€/mês
+                    Apenas {plan.monthlyEquiv}€/mês no plano base
                   </p>
                 </div>
 
@@ -525,13 +532,12 @@ const Pricing = () => {
                       ? "bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20"
                       : "border border-border-subtle text-foreground hover:bg-surface-hover hover:border-primary/30"
                   }`}>
-                  {loadingPlan === plan.id ? "A processar..." : "Começar agora"}
+                  {loadingPlan === plan.id ? "A processar..." : `Continuar por ${formatEuro(Number(plan.price.replace(",", ".")) + selectedBumpsTotal)}`}
                 </button>
               </motion.div>
             ))}
           </div>
 
-          {/* Order Bumps */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="max-w-2xl mx-auto mt-10 space-y-3">
             <p className="text-center text-sm font-medium text-text-muted mb-4">
@@ -539,57 +545,46 @@ const Pricing = () => {
               Adicione extras ao seu pedido
             </p>
 
-            {/* Lifetime bump */}
-            <button
-              type="button"
-              onClick={() => toggleBump("lifetime")}
-              className={`w-full flex items-start gap-4 p-4 rounded-xl border transition-all text-left ${
-                selectedBumps.includes("lifetime")
-                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                  : "border-border-subtle/60 bg-background hover:border-primary/30"
-              }`}>
-              <div className={`mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                selectedBumps.includes("lifetime") ? "border-primary bg-primary" : "border-border-subtle"
-              }`}>
-                {selectedBumps.includes("lifetime") && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <Infinity className="h-4 w-4 text-primary" />
-                  <span className="font-semibold text-foreground text-sm">Acesso Vitalício</span>
-                  <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+19,99€</span>
-                </div>
-                <p className="text-xs text-text-muted leading-relaxed">
-                  Pague uma vez, use para sempre. Sem renovação anual — acesso garantido ao Saldo+ por tempo ilimitado.
-                </p>
-              </div>
-            </button>
+            {ORDER_BUMPS.map((bump) => {
+              const isSelected = selectedBumps.includes(bump.id);
+              const Icon = bump.icon;
 
-            {/* eBook bump */}
-            <button
-              type="button"
-              onClick={() => toggleBump("ebook")}
-              className={`w-full flex items-start gap-4 p-4 rounded-xl border transition-all text-left ${
-                selectedBumps.includes("ebook")
-                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                  : "border-border-subtle/60 bg-background hover:border-primary/30"
-              }`}>
-              <div className={`mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                selectedBumps.includes("ebook") ? "border-primary bg-primary" : "border-border-subtle"
-              }`}>
-                {selectedBumps.includes("ebook") && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+              return (
+                <button
+                  key={bump.id}
+                  type="button"
+                  onClick={() => toggleBump(bump.id)}
+                  className={`w-full flex items-start gap-4 p-4 rounded-xl border transition-all text-left ${
+                    isSelected
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                      : "border-border-subtle/60 bg-background hover:border-primary/30"
+                  }`}
+                >
+                  <div className={`mt-0.5 h-5 w-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    isSelected ? "border-primary bg-primary" : "border-border-subtle"
+                  }`}>
+                    {isSelected && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <Icon className="h-4 w-4 text-primary" />
+                      <span className="font-semibold text-foreground text-sm">{bump.name}</span>
+                      <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                        +{formatEuro(bump.price)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-text-muted leading-relaxed">{bump.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+
+            {selectedBumpsTotal > 0 && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground flex items-center justify-between gap-3">
+                <span>Total de extras selecionados</span>
+                <span className="font-semibold text-primary">{formatEuro(selectedBumpsTotal)}</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                  <span className="font-semibold text-foreground text-sm">eBook Finanças Pessoais</span>
-                  <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+4,99€</span>
-                </div>
-                <p className="text-xs text-text-muted leading-relaxed">
-                  Guia prático com dicas de gestão financeira pessoal e familiar. PDF para consultar a qualquer momento.
-                </p>
-              </div>
-            </button>
+            )}
           </motion.div>
         </div>
       </section>
