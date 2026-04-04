@@ -12,7 +12,11 @@ const PLAN_LABELS: Record<string, string> = {
   pro: "Pro",
 };
 
-const AccountPanel = () => {
+interface AccountPanelProps {
+  onShowTour?: () => void;
+}
+
+const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   const { user, profile, isAdmin, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
