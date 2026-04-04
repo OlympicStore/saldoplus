@@ -392,10 +392,14 @@ const Pricing = () => {
                 </div>
               )}
 
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-2">
                 <plan.icon className="h-5 w-5 text-primary" />
                 <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
               </div>
+
+              {'tagline' in plan && (
+                <p className="text-xs text-text-muted mb-4">{(plan as any).tagline}</p>
+              )}
 
               <div className="mb-6">
                 <span className="text-3xl font-bold text-foreground">{plan.price}€</span>
