@@ -66,6 +66,9 @@ const Index = () => {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showCategoriesPanel, setShowCategoriesPanel] = useState(false);
   const [editingPeople, setEditingPeople] = useState("");
+  const [showTour, setShowTour] = useState(false);
+
+  const handleShowTour = useCallback(() => setShowTour(true), []);
 
   useEffect(() => {
     const nextTab = isTab(requestedTab) && allowedTabs.includes(requestedTab as Tab) ? (requestedTab as Tab) : "dashboard";
