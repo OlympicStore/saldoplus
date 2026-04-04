@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Dashboard } from "@/components/Dashboard";
 import { Expenses } from "@/components/Expenses";
@@ -14,6 +14,7 @@ import { AISuggestions } from "@/components/AISuggestions";
 import { SubAccountSwitcher } from "@/components/SubAccountSwitcher";
 import { useSubAccount } from "@/contexts/SubAccountContext";
 import AccountPanel from "@/components/AccountPanel";
+import GuidedTour from "@/components/GuidedTour";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -65,6 +66,9 @@ const Index = () => {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showCategoriesPanel, setShowCategoriesPanel] = useState(false);
   const [editingPeople, setEditingPeople] = useState("");
+  const [showTour, setShowTour] = useState(false);
+
+  const handleShowTour = useCallback(() => setShowTour(true), []);
 
   useEffect(() => {
     const nextTab = isTab(requestedTab) && allowedTabs.includes(requestedTab as Tab) ? (requestedTab as Tab) : "dashboard";
@@ -137,6 +141,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} />
       <header className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
           <h1 className="text-lg sm:text-xl font-bold tracking-tight">
@@ -353,7 +358,7 @@ const Index = () => {
             selectedYear={selectedYear}
           />
         )}
-        {activeTab === "account" && <AccountPanel />}
+        {activeTab === "account" && <AccountPanel onShowTour={handleShowTour} />}
       </main>
     </div>
   );
