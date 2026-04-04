@@ -358,7 +358,7 @@ const Index = () => {
             selectedYear={selectedYear}
           />
         )}
-        {activeTab === "account" && <AccountPanel />}
+        {activeTab === "account" && <AccountPanel onShowTour={handleShowTour} />}
       </main>
     </div>
   );
