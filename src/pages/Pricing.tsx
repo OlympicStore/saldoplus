@@ -133,23 +133,6 @@ const FEATURES_GRID = [
   { icon: Shield, title: "100% seguro", desc: "Dados encriptados e privados. Só você tem acesso." },
 ];
 
-const ORDER_BUMPS = [
-  {
-    id: "lifetime",
-    name: "Acesso Vitalício",
-    price: 19.99,
-    description: "Pague uma vez, use para sempre. Sem renovação anual — acesso garantido ao Saldo+ por tempo ilimitado.",
-    icon: Infinity,
-  },
-  {
-    id: "ebook",
-    name: "eBook Finanças Pessoais",
-    price: 4.99,
-    description: "Guia prático com dicas de gestão financeira pessoal e familiar. PDF para consultar a qualquer momento.",
-    icon: BookOpen,
-  },
-] as const;
-
 const formatEuro = (value: number) => `${value.toFixed(2).replace(".", ",")}€`;
 
 const Pricing = () => {
