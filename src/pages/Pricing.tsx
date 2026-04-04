@@ -14,7 +14,8 @@ const PLANS = [
   {
     id: "essencial",
     name: "Essencial",
-    price: "9,99",
+    price: "15,99",
+    tagline: "Ideal para quem está a começar a gerir as suas contas",
     icon: Zap,
     features: [
       "Veja rapidamente para onde vai o seu dinheiro",
@@ -27,7 +28,8 @@ const PLANS = [
   {
     id: "casa",
     name: "Casa",
-    price: "19,99",
+    price: "28,99",
+    tagline: "Ideal para quem quer um controlo completo",
     icon: Home,
     popular: true,
     features: [
@@ -42,13 +44,14 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: "29,99",
+    price: "47,99",
+    tagline: "Para quem quer controlo avançado + automação",
     icon: Crown,
     features: [
       "Tudo do plano Casa",
       "Orçamentos por categoria com alertas",
-      "Relatórios avançados e comparações",
-      "Gráficos de gastos vs rendimentos",
+      "Sugestões IA personalizadas",
+      "Multi-conta familiar (até 3 contas)",
       "Controlo total das suas finanças",
     ],
     missing: [],
