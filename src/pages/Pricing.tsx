@@ -133,56 +133,50 @@ const FEATURES_GRID = [
   { icon: Shield, title: "100% seguro", desc: "Dados encriptados e privados. Só você tem acesso." },
 ];
 
+const ORDER_BUMPS = [
+  {
+    id: "lifetime",
+    name: "Acesso Vitalício",
+    price: 19.99,
+    description: "Pague uma vez, use para sempre. Sem renovação anual — acesso garantido ao Saldo+ por tempo ilimitado.",
+    icon: Infinity,
+  },
+  {
+    id: "ebook",
+    name: "eBook Finanças Pessoais",
+    price: 4.99,
+    description: "Guia prático com dicas de gestão financeira pessoal e familiar. PDF para consultar a qualquer momento.",
+    icon: BookOpen,
+  },
+] as const;
+
+const formatEuro = (value: number) => `${value.toFixed(2).replace(".", ",")}€`;
+
 const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({});
   const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
 
-  const toggleBump = (bump: string) => {
-    setSelectedBumps(prev => prev.includes(bump) ? prev.filter(b => b !== bump) : [...prev, bump]);
+  const toggleBump = (bumpId: string) => {
+    setSelectedBumps((prev) =>
+      prev.includes(bumpId) ? prev.filter((item) => item !== bumpId) : [...prev, bumpId]
+    );
   };
+
+  const selectedBumpsTotal = ORDER_BUMPS
+    .filter((bump) => selectedBumps.includes(bump.id))
+    .reduce((total, bump) => total + bump.price, 0);
 
   const usersCounter = useCounter(500);
   const savingsCounter = useCounter(35);
   const timeCounter = useCounter(5);
 
-  useEffect(() => {
-    const loadLinks = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("site_settings" as any)
-          .select("key, value")
-          .like("key", "payment_link_%");
-        if (data && !error) {
-          const links: Record<string, string> = {};
-          (data as any[]).forEach((s) => {
-            const plan = s.key.replace("payment_link_", "");
-            if (s.value) links[plan] = s.value;
-          });
-          setPaymentLinks(links);
-        }
-      } catch (e) {
-        console.error("Failed to load payment links", e);
-      }
-    };
-    loadLinks();
-  }, []);
-
   const handleSelectPlan = async (planId: string) => {
     if (!user) {
       toast.info("Crie uma conta ou entre para continuar.");
       navigate("/auth");
-      return;
-    }
-
-    const paymentLink = paymentLinks[planId];
-    if (paymentLink) {
-      const separator = paymentLink.includes("?") ? "&" : "?";
-      const url = `${paymentLink}${separator}prefilled_email=${encodeURIComponent(user.email || "")}`;
-      window.open(url, "_blank");
       return;
     }
 
