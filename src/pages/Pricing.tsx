@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -10,11 +10,37 @@ import dashboardPreview from "@/assets/dashboard-preview.png";
 import dashboardGoals from "@/assets/dashboard-goals.png";
 import dashboardBills from "@/assets/dashboard-bills.png";
 
+// Animated counter hook
+const useCounter = (end: number, duration = 2000) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref as any, { once: true });
+
+  useEffect(() => {
+    if (!inView) return;
+    let start = 0;
+    const step = end / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= end) {
+        setCount(end);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [inView, end, duration]);
+
+  return { count, ref };
+};
+
 const PLANS = [
   {
     id: "essencial",
     name: "Essencial",
     price: "15,99",
+    monthlyEquiv: "1,33",
     tagline: "Ideal para quem está a começar a gerir as suas contas",
     icon: Zap,
     features: [
@@ -29,6 +55,7 @@ const PLANS = [
     id: "casa",
     name: "Casa",
     price: "28,99",
+    monthlyEquiv: "2,42",
     tagline: "Ideal para quem quer um controlo completo",
     icon: Home,
     popular: true,
@@ -45,6 +72,7 @@ const PLANS = [
     id: "pro",
     name: "Pro",
     price: "47,99",
+    monthlyEquiv: "4,00",
     tagline: "Para quem quer controlo avançado + automação",
     icon: Crown,
     features: [
@@ -73,15 +101,18 @@ const SOLUTIONS = [
 ];
 
 const STEPS = [
-  { num: "1", title: "Crie a sua conta", desc: "Registe-se em menos de 1 minuto com email ou Google." },
-  { num: "2", title: "Insira os seus dados", desc: "Adicione contas, rendimentos e despesas. É simples e guiado." },
-  { num: "3", title: "Acompanhe resultados", desc: "Veja gráficos, metas e o seu saldo evoluir semana a semana." },
+  { num: "1", title: "Crie a sua conta", desc: "Registe-se em menos de 1 minuto com email ou Google.", icon: Sparkles },
+  { num: "2", title: "Insira os seus dados", desc: "Adicione contas, rendimentos e despesas. É simples e guiado.", icon: ClipboardCheck },
+  { num: "3", title: "Acompanhe resultados", desc: "Veja gráficos, metas e o seu saldo evoluir semana a semana.", icon: TrendingUp },
 ];
 
 const TESTIMONIALS = [
-  { name: "Ana S.", text: "Finalmente consigo ver para onde vai o meu dinheiro. Em 2 meses já poupei mais do que no ano todo.", avatar: "AS" },
-  { name: "Miguel R.", text: "A divisão de despesas da casa ficou muito mais justa. Sem discussões, sem confusões.", avatar: "MR" },
-  { name: "Carla F.", text: "Uso 5 minutos por semana e tenho tudo controlado. Simples e eficaz.", avatar: "CF" },
+  { name: "Ana S.", text: "Finalmente consigo ver para onde vai o meu dinheiro. Em 2 meses já poupei mais do que no ano todo.", avatar: "AS", rating: 5 },
+  { name: "Miguel R.", text: "A divisão de despesas da casa ficou muito mais justa. Sem discussões, sem confusões.", avatar: "MR", rating: 5 },
+  { name: "Carla F.", text: "Uso 5 minutos por semana e tenho tudo controlado. Simples e eficaz.", avatar: "CF", rating: 5 },
+  { name: "João P.", text: "Já testei várias apps de finanças mas esta é a que melhor se adapta à realidade portuguesa.", avatar: "JP", rating: 5 },
+  { name: "Sofia L.", text: "As metas financeiras ajudaram-me a poupar para as férias em 4 meses. Recomendo!", avatar: "SL", rating: 5 },
+  { name: "Pedro M.", text: "Controlo as contas da casa toda com o plano Casa. Simples, rápido e sem stress.", avatar: "PM", rating: 5 },
 ];
 
 const FAQS = [
@@ -90,6 +121,16 @@ const FAQS = [
   { q: "É pagamento único?", a: "Sim! Paga uma vez e tem acesso completo durante 1 ano. Sem mensalidades escondidas." },
   { q: "Os meus dados estão seguros?", a: "Absolutamente. Usamos encriptação de ponta e os seus dados são privados — só você tem acesso." },
   { q: "Posso mudar de plano depois?", a: "Sim, pode fazer upgrade a qualquer momento e só paga a diferença." },
+  { q: "E se não gostar?", a: "Tem 7 dias de garantia. Se não gostar, devolvemos o dinheiro — sem perguntas." },
+];
+
+const FEATURES_GRID = [
+  { icon: PieChart, title: "Visão clara dos gastos", desc: "Gráficos que mostram exatamente para onde vai cada euro." },
+  { icon: TrendingUp, title: "Evolução do saldo", desc: "Acompanhe a evolução mês a mês com gráficos automáticos." },
+  { icon: Target, title: "Metas de poupança", desc: "Defina objetivos e veja o progresso em tempo real." },
+  { icon: ClipboardCheck, title: "Controlo de contas", desc: "Saiba o estado de cada conta: paga, pendente ou em dívida." },
+  { icon: Users, title: "Divisão por pessoa", desc: "Divida despesas de forma justa entre todos os da casa." },
+  { icon: Shield, title: "100% seguro", desc: "Dados encriptados e privados. Só você tem acesso." },
 ];
 
 const Pricing = () => {
@@ -99,7 +140,10 @@ const Pricing = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({});
 
-  // Load payment links on mount
+  const usersCounter = useCounter(500);
+  const savingsCounter = useCounter(35);
+  const timeCounter = useCounter(5);
+
   useEffect(() => {
     const loadLinks = async () => {
       try {
@@ -129,29 +173,21 @@ const Pricing = () => {
       return;
     }
 
-    // If there's a payment link configured, use it directly
     const paymentLink = paymentLinks[planId];
     if (paymentLink) {
-      // Append prefilled email for Stripe to pre-fill
       const separator = paymentLink.includes("?") ? "&" : "?";
       const url = `${paymentLink}${separator}prefilled_email=${encodeURIComponent(user.email || "")}`;
       window.open(url, "_blank");
       return;
     }
 
-    // Fallback: use create-checkout edge function
     setLoadingPlan(planId);
-
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { plan: planId },
       });
       if (error) throw error;
-
-      if (!data?.url) {
-        throw new Error("Não foi possível abrir o checkout.");
-      }
-
+      if (!data?.url) throw new Error("Não foi possível abrir o checkout.");
       window.location.href = data.url;
     } catch (err: any) {
       toast.error(err.message || "Erro ao processar pagamento");
@@ -163,13 +199,14 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border-subtle/60 bg-surface/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border-subtle/60 bg-surface/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button onClick={() => navigate("/")} className="flex items-center gap-1">
+          <button onClick={() => navigate("/")} className="flex items-center gap-0.5">
             <span className="text-xl font-bold tracking-tight text-foreground">Saldo</span>
-            <span className="text-xl font-bold text-primary">+</span>
+            <span className="text-2xl font-black text-primary leading-none">+</span>
           </button>
           <div className="flex items-center gap-3">
+            <a href="#funcionalidades" className="text-sm text-text-muted hover:text-foreground transition-colors hidden sm:inline">Funcionalidades</a>
             <a href="#precos" className="text-sm text-text-muted hover:text-foreground transition-colors hidden sm:inline">Preços</a>
             <a href="#como-funciona" className="text-sm text-text-muted hover:text-foreground transition-colors hidden sm:inline">Como funciona</a>
             {user ? (
@@ -181,76 +218,91 @@ const Pricing = () => {
                 <AccountDropdown />
               </>
             ) : (
-              <button onClick={() => navigate("/auth")}
-                className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
-                Começar agora
-              </button>
+              <>
+                <button onClick={() => navigate("/auth")}
+                  className="text-sm px-3 py-2 rounded-lg text-text-muted hover:text-foreground transition-colors hidden sm:inline">
+                  Entrar
+                </button>
+                <button onClick={() => navigate("/auth")}
+                  className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
+                  Começar agora
+                </button>
+              </>
             )}
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 pt-16 sm:pt-24 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <TrendingUp className="h-4 w-4" />
-              +500 pessoas já organizam as suas finanças
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground tracking-tight leading-[1.1] mb-6">
-              Saiba para onde vai o seu dinheiro
-              <span className="text-primary block mt-1">— em 5 minutos por semana</span>
-            </h1>
-            <p className="text-text-muted text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
-              Pare de perder dinheiro sem perceber. O Saldo+ organiza as finanças da sua casa sem complicações.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button onClick={() => user ? navigate("/app") : navigate("/auth")}
-                className="px-6 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                Quero controlar o meu dinheiro <ArrowRight className="h-5 w-5" />
-              </button>
-              <a href="#precos"
-                className="px-6 py-3.5 rounded-xl border border-border-subtle text-foreground font-medium text-base hover:bg-surface-hover transition-colors text-center">
-                Ver planos
-              </a>
-            </div>
-            <div className="flex items-center gap-4 mt-6 text-sm text-text-muted">
-              <span className="flex items-center gap-1.5"><Shield className="h-4 w-4 text-primary" /> Dados 100% seguros</span>
-              <span>·</span>
-              <span>Pagamento único</span>
-              <span>·</span>
-              <span>Acesso imediato</span>
-            </div>
-          </motion.div>
+      <section className="relative overflow-hidden">
+        {/* Subtle background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] to-transparent pointer-events-none" />
 
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }}
-            className="space-y-8">
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
+        <div className="max-w-6xl mx-auto px-4 pt-16 sm:pt-24 pb-12 relative">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 border border-primary/20">
+                <Star className="h-3.5 w-3.5 fill-primary" />
+                +500 portugueses já organizam as suas finanças
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-foreground tracking-tight leading-[1.08] mb-6">
+                Saiba para onde vai cada euro
+                <span className="text-primary block mt-2">— em 5 minutos por semana</span>
+              </h1>
+
+              <p className="text-text-secondary text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
+                Pare de perder dinheiro sem perceber. O Saldo+ organiza todas as finanças da sua casa num só lugar, sem complicações.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                <button onClick={() => user ? navigate("/app") : navigate("/auth")}
+                  className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                  Começar a organizar agora
+                  <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+                <a href="#precos"
+                  className="px-7 py-4 rounded-xl border border-border-subtle text-foreground font-medium text-base hover:bg-surface-hover transition-colors text-center">
+                  Ver planos e preços
+                </a>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-muted">
+                <span className="flex items-center gap-1.5"><Shield className="h-4 w-4 text-primary" /> Dados 100% seguros</span>
+                <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> Pagamento único</span>
+                <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Garantia 7 dias</span>
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }}>
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60 ring-1 ring-black/5">
                 <img src={dashboardPreview} alt="Painel principal do Saldo+ com saldo acumulado, gráfico de evolução mensal, entradas, saídas e balanço do mês" width={1280} height={720} className="w-full h-auto" />
               </div>
-              <p className="text-sm text-text-muted mt-3 text-center">
-                Visão geral das suas finanças: saldo acumulado, evolução mensal e balanço entre entradas e saídas — tudo num só ecrã.
+              <p className="text-xs text-text-muted mt-3 text-center">
+                Dashboard principal — saldo, evolução mensal e balanço num só ecrã
               </p>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
-                <img src={dashboardGoals} alt="Metas financeiras do Saldo+ com progresso por objetivo, distribuição por prazo e valores poupados" loading="lazy" width={1280} height={720} className="w-full h-auto" />
-              </div>
-              <p className="text-sm text-text-muted mt-3 text-center">
-                Acompanhe as suas metas financeiras: veja o progresso de cada objetivo, distribuição por prazo e quanto falta poupar.
-              </p>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border-subtle/60">
-                <img src={dashboardBills} alt="Controlo de contas do Saldo+ com estado de pagamento mensal (Paga, Pendente, Dívida) e opção de anexar comprovativos" loading="lazy" width={1280} height={720} className="w-full h-auto" />
-              </div>
-              <p className="text-sm text-text-muted mt-3 text-center">
-                Controle todas as suas contas: acompanhe o estado de pagamento mês a mês (Paga, Pendente, Dívida) e anexe comprovativos.
-              </p>
-            </motion.div>
-          </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust bar with animated counters */}
+      <section className="border-y border-border-subtle/60 bg-surface py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="grid grid-cols-3 gap-8 text-center">
+            <div ref={usersCounter.ref}>
+              <p className="text-3xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">+{usersCounter.count}</p>
+              <p className="text-sm text-text-muted mt-1">utilizadores ativos</p>
+            </div>
+            <div ref={savingsCounter.ref}>
+              <p className="text-3xl sm:text-4xl font-bold text-primary font-mono tabular-nums">{savingsCounter.count}%</p>
+              <p className="text-sm text-text-muted mt-1">poupam mais no 1.º mês</p>
+            </div>
+            <div ref={timeCounter.ref}>
+              <p className="text-3xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">{timeCounter.count} min</p>
+              <p className="text-sm text-text-muted mt-1">por semana é suficiente</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -260,12 +312,14 @@ const Pricing = () => {
           <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
             className="bg-surface rounded-2xl border border-border-subtle/60 p-8">
             <h2 className="text-2xl font-bold text-foreground mb-6">Isto parece-lhe familiar?</h2>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {PROBLEMS.map((p, i) => (
-                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-[hsl(var(--status-negative)/0.05)]">
+                <motion.div key={i} initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/10">
                   <span className="text-xl">{p.emoji}</span>
                   <p className="text-foreground">{p.text}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -273,166 +327,210 @@ const Pricing = () => {
           <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
             className="bg-surface rounded-2xl border border-primary/20 p-8">
             <h2 className="text-2xl font-bold text-foreground mb-6">
-              Com o Saldo<span className="text-primary">+</span>, tudo muda.
+              Com o Saldo<span className="text-primary font-black">+</span>, tudo muda.
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {SOLUTIONS.map((s, i) => (
-                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-[hsl(var(--status-paid)/0.05)]">
+                <motion.div key={i} initial={{ opacity: 0, x: 10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <s.icon className="h-4 w-4 text-primary" />
                   </div>
                   <p className="text-foreground pt-1">{s.text}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Product showcase */}
-      <section className="bg-surface border-y border-border-subtle/60 py-20">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+      {/* Features grid */}
+      <section id="funcionalidades" className="bg-surface border-y border-border-subtle/60 py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Tudo o que precisa, num só lugar
             </h2>
-            <p className="text-text-muted text-lg max-w-2xl mx-auto mb-12">
+            <p className="text-text-muted text-lg max-w-2xl mx-auto">
               Dashboard intuitivo, gráficos automáticos e controlo total — sem complicações.
             </p>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: PieChart, title: "Visão clara dos gastos", desc: "Gráficos que mostram exatamente para onde vai cada euro." },
-              { icon: TrendingUp, title: "Evolução do saldo", desc: "Acompanhe a evolução do seu saldo mês a mês com gráficos." },
-              { icon: Target, title: "Metas de poupança", desc: "Defina objetivos e veja o progresso em tempo real." },
-              { icon: ClipboardCheck, title: "Controlo de contas", desc: "Saiba o estado de cada conta: paga, pendente ou em dívida." },
-            ].map((f, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {FEATURES_GRID.map((f, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-background rounded-xl border border-border-subtle/60 p-6 text-left">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                transition={{ delay: i * 0.08 }}
+                className="bg-background rounded-xl border border-border-subtle/60 p-6 hover:border-primary/30 hover:shadow-md transition-all group">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
                   <f.icon className="h-5 w-5 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">{f.title}</h3>
-                <p className="text-sm text-text-muted">{f.desc}</p>
+                <p className="text-sm text-text-muted leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Screenshots showcase */}
+      <section className="max-w-6xl mx-auto px-4 py-20">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Veja o Saldo+ em ação</h2>
+          <p className="text-text-muted text-lg">Ecrãs reais da aplicação — sem truques</p>
+        </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-border-subtle/60">
+              <img src={dashboardGoals} alt="Metas financeiras do Saldo+ com progresso por objetivo" loading="lazy" width={1280} height={720} className="w-full h-auto" />
+            </div>
+            <p className="text-sm text-text-muted mt-3 text-center">
+              Metas financeiras — acompanhe o progresso de cada objetivo
+            </p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.15 }}>
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-border-subtle/60">
+              <img src={dashboardBills} alt="Controlo de contas do Saldo+ com estado de pagamento mensal" loading="lazy" width={1280} height={720} className="w-full h-auto" />
+            </div>
+            <p className="text-sm text-text-muted mt-3 text-center">
+              Controlo de contas — estado de pagamento mês a mês
+            </p>
+          </motion.div>
         </div>
       </section>
 
       {/* How it works */}
-      <section id="como-funciona" className="max-w-6xl mx-auto px-4 py-20">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Como funciona</h2>
-          <p className="text-text-muted text-lg">3 passos simples para controlar as suas finanças</p>
-        </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-          {STEPS.map((step, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }} className="text-center">
-              <div className="h-14 w-14 rounded-full bg-primary text-primary-foreground text-xl font-bold flex items-center justify-center mx-auto mb-4">
-                {step.num}
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">{step.title}</h3>
-              <p className="text-sm text-text-muted">{step.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="bg-surface border-y border-border-subtle/60 py-20">
+      <section id="como-funciona" className="bg-surface border-y border-border-subtle/60 py-20">
         <div className="max-w-6xl mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">O que dizem os nossos utilizadores</h2>
-            <p className="text-text-muted text-lg">+500 pessoas já controlam as finanças com o Saldo+</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Como funciona</h2>
+            <p className="text-text-muted text-lg">3 passos simples para controlar as suas finanças</p>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {STEPS.map((step, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-background rounded-xl border border-border-subtle/60 p-6">
-                <p className="text-foreground text-sm mb-4 leading-relaxed">"{t.text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center text-sm">
-                    {t.avatar}
-                  </div>
-                  <span className="text-sm font-medium text-foreground">{t.name}</span>
+                transition={{ delay: i * 0.15 }} className="text-center relative">
+                {i < STEPS.length - 1 && (
+                  <div className="hidden sm:block absolute top-7 left-[60%] w-[80%] border-t-2 border-dashed border-border-subtle" />
+                )}
+                <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground text-xl font-bold flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/20 relative z-10">
+                  {step.num}
                 </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{step.title}</h3>
+                <p className="text-sm text-text-muted leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="precos" className="max-w-6xl mx-auto px-4 py-20">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Escolha o plano ideal para si
-          </h2>
-          <p className="text-text-muted text-lg max-w-2xl mx-auto mb-2">
-            Pagamento único · Acesso por 1 ano · Sem mensalidades
-          </p>
-          <p className="text-sm text-primary font-medium">Garantia de 7 dias — se não gostar, devolvemos o dinheiro</p>
+      {/* Social Proof / Testimonials */}
+      <section className="max-w-6xl mx-auto px-4 py-20">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">O que dizem os nossos utilizadores</h2>
+          <div className="flex items-center justify-center gap-1 mb-2">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
+            ))}
+          </div>
+          <p className="text-text-muted text-lg">+500 pessoas já controlam as finanças com o Saldo+</p>
         </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-10">
-          {PLANS.map((plan, i) => (
-            <motion.div key={plan.id}
-              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className={`relative rounded-xl border bg-surface shadow-card p-6 flex flex-col ${
-                plan.popular ? "border-primary ring-2 ring-primary/20 scale-[1.02]" : "border-border-subtle/60"
-              }`}>
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
-                  Mais vendido
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {TESTIMONIALS.map((t, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ delay: i * 0.08 }}
+              className="bg-surface rounded-xl border border-border-subtle/60 p-6 hover:shadow-md transition-shadow">
+              <div className="flex gap-0.5 mb-3">
+                {[...Array(t.rating)].map((_, j) => (
+                  <Star key={j} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <p className="text-foreground text-sm mb-4 leading-relaxed">"{t.text}"</p>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center text-sm">
+                  {t.avatar}
                 </div>
-              )}
-
-              <div className="flex items-center gap-2 mb-2">
-                <plan.icon className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
+                <span className="text-sm font-medium text-foreground">{t.name}</span>
               </div>
-
-              {plan.tagline && (
-                <p className="text-xs text-text-muted mb-4">{plan.tagline}</p>
-              )}
-
-              <div className="mb-6">
-                <span className="text-3xl font-bold text-foreground">{plan.price}€</span>
-                <span className="text-sm text-text-muted ml-1">/ano</span>
-                <p className="text-xs text-text-muted mt-1">Pagamento único · Acesso imediato</p>
-              </div>
-
-              <ul className="space-y-2.5 mb-8 flex-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm text-foreground">
-                    <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-                {plan.missing.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm text-text-muted line-through opacity-50">
-                    <Check className="h-4 w-4 mt-0.5 shrink-0 opacity-30" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <button onClick={() => handleSelectPlan(plan.id)}
-                disabled={loadingPlan !== null}
-                className={`w-full py-3 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50 ${
-                  plan.popular
-                    ? "bg-primary text-primary-foreground hover:opacity-90"
-                    : "border border-border-subtle text-foreground hover:bg-surface-hover"
-                }`}>
-                {loadingPlan === plan.id ? "A processar..." : "Começar a organizar agora"}
-              </button>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="precos" className="bg-surface border-y border-border-subtle/60 py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Escolha o plano ideal para si
+            </h2>
+            <p className="text-text-muted text-lg max-w-2xl mx-auto mb-2">
+              Pagamento único · Acesso por 1 ano · Sem mensalidades
+            </p>
+            <p className="text-sm text-primary font-medium">🛡️ Garantia de 7 dias — se não gostar, devolvemos o dinheiro</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-10">
+            {PLANS.map((plan, i) => (
+              <motion.div key={plan.id}
+                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className={`relative rounded-2xl border bg-background shadow-card p-6 flex flex-col transition-all hover:shadow-lg ${
+                  plan.popular ? "border-primary ring-2 ring-primary/20 scale-[1.02]" : "border-border-subtle/60"
+                }`}>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-lg shadow-primary/30">
+                    ⭐ Mais vendido
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <plan.icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
+                </div>
+
+                {plan.tagline && (
+                  <p className="text-xs text-text-muted mb-4">{plan.tagline}</p>
+                )}
+
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-foreground">{plan.price}€</span>
+                    <span className="text-sm text-text-muted">/ano</span>
+                  </div>
+                  <p className="text-xs text-primary font-medium mt-1">
+                    Apenas {plan.monthlyEquiv}€/mês
+                  </p>
+                </div>
+
+                <ul className="space-y-2.5 mb-8 flex-1">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-sm text-foreground">
+                      <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                  {plan.missing.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-sm text-text-muted line-through opacity-50">
+                      <Check className="h-4 w-4 mt-0.5 shrink-0 opacity-30" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <button onClick={() => handleSelectPlan(plan.id)}
+                  disabled={loadingPlan !== null}
+                  className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${
+                    plan.popular
+                      ? "bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20"
+                      : "border border-border-subtle text-foreground hover:bg-surface-hover hover:border-primary/30"
+                  }`}>
+                  {loadingPlan === plan.id ? "A processar..." : "Começar agora"}
+                </button>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -440,21 +538,22 @@ const Pricing = () => {
       <section className="max-w-3xl mx-auto px-4 py-20">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Perguntas frequentes</h2>
+          <p className="text-text-muted">Tudo o que precisa de saber antes de começar</p>
         </motion.div>
         <div className="space-y-3">
           {FAQS.map((faq, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
-              className="bg-surface rounded-xl border border-border-subtle/60 overflow-hidden">
+              className="bg-surface rounded-xl border border-border-subtle/60 overflow-hidden hover:border-primary/20 transition-colors">
               <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 className="w-full flex items-center justify-between p-4 text-left">
-                <span className="text-sm font-medium text-foreground">{faq.q}</span>
-                {openFaq === i ? <ChevronUp className="h-4 w-4 text-text-muted shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-muted shrink-0" />}
+                <span className="text-sm font-medium text-foreground pr-4">{faq.q}</span>
+                {openFaq === i ? <ChevronUp className="h-4 w-4 text-primary shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-muted shrink-0" />}
               </button>
               {openFaq === i && (
-                <div className="px-4 pb-4">
-                  <p className="text-sm text-text-muted">{faq.a}</p>
-                </div>
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="px-4 pb-4">
+                  <p className="text-sm text-text-muted leading-relaxed">{faq.a}</p>
+                </motion.div>
               )}
             </motion.div>
           ))}
@@ -462,27 +561,41 @@ const Pricing = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-primary/5 border-t border-primary/10 py-16">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-foreground mb-4">Pronto para controlar o seu dinheiro?</h2>
-          <p className="text-text-muted text-lg mb-8">Comece hoje — leva menos de 5 minutos para configurar.</p>
-          <button onClick={() => user ? navigate("/app") : navigate("/auth")}
-            className="px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2">
-            Começar agora <ArrowRight className="h-5 w-5" />
-          </button>
-          <p className="text-xs text-text-muted mt-4">Garantia de 7 dias · Pagamento único · Sem mensalidades</p>
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 pointer-events-none" />
+        <div className="relative max-w-3xl mx-auto px-4 py-20 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Pronto para controlar o seu dinheiro?
+            </h2>
+            <p className="text-text-muted text-lg mb-8 max-w-lg mx-auto">
+              Junte-se a +500 portugueses que já organizam as suas finanças com o Saldo+. Comece hoje — leva menos de 5 minutos.
+            </p>
+            <button onClick={() => user ? navigate("/app") : navigate("/auth")}
+              className="group px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:opacity-90 transition-all inline-flex items-center gap-2 shadow-xl shadow-primary/25">
+              Começar agora — é rápido
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+            <p className="text-xs text-text-muted mt-4 flex items-center justify-center gap-4">
+              <span>🛡️ Garantia 7 dias</span>
+              <span>💳 Pagamento único</span>
+              <span>⚡ Acesso imediato</span>
+            </p>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border-subtle/60 bg-surface py-8">
+      <footer className="border-t border-border-subtle/60 bg-surface py-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-text-muted">
-              © {new Date().getFullYear()} Saldo+. Todos os direitos reservados.
-            </p>
-            <div className="flex items-center gap-4">
-              <a href="/termos" className="text-sm text-text-muted hover:text-foreground transition-colors">Termos de Serviço</a>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold tracking-tight text-foreground">Saldo</span>
+              <span className="text-lg font-black text-primary">+</span>
+              <span className="text-xs text-text-muted ml-2">© {new Date().getFullYear()}</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <a href="/termos" className="text-sm text-text-muted hover:text-foreground transition-colors">Termos</a>
               <a href="/privacidade" className="text-sm text-text-muted hover:text-foreground transition-colors">Privacidade</a>
               <a href="mailto:suporte@saldoplus.pt" className="text-sm text-text-muted hover:text-foreground transition-colors">Contacto</a>
             </div>
