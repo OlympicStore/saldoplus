@@ -139,6 +139,11 @@ const Pricing = () => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({});
+  const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
+
+  const toggleBump = (bump: string) => {
+    setSelectedBumps(prev => prev.includes(bump) ? prev.filter(b => b !== bump) : [...prev, bump]);
+  };
 
   const usersCounter = useCounter(500);
   const savingsCounter = useCounter(35);
