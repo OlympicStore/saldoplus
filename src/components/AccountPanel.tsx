@@ -258,6 +258,16 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
       </div>
 
       <div className="flex flex-wrap gap-3">
+        {onShowTour && (
+          <button
+            onClick={onShowTour}
+            className="px-4 py-2.5 rounded-lg border border-border-subtle text-foreground text-sm font-medium hover:bg-surface-hover transition-colors inline-flex items-center gap-2"
+          >
+            <BookOpen className="h-4 w-4" />
+            Rever guia do app
+          </button>
+        )}
+
         {!isActive && (
           <button
             onClick={() => navigate("/")}
