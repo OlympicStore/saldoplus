@@ -83,7 +83,6 @@ export const Expenses = ({
 
   const totalExpenses = filtered.reduce((s, r) => s + r.value, 0);
   const categoryNames = categories.map(c => c.name);
-  if (!categoryNames.includes("Outros")) categoryNames.push("Outros");
 
   const handleAdd = () => {
     const val = parseFloat(newExpense.value.replace(",", "."));
