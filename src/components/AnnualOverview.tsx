@@ -80,6 +80,27 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const handleAddBill = () => {
+    const name = newBillName.trim();
+    if (!name || billNames.includes(name)) return;
+    onAddBill({
+      id: crypto.randomUUID(),
+      item: name,
+      dueDay: 1,
+      account: "",
+      monthlyValues: {},
+      monthlyResponsible: {},
+      monthlyPaid: {},
+    });
+    setNewBillName("");
+    setShowAddBill(false);
+  };
+
+  const handleRemoveBill = (billName: string) => {
+    const expense = fixedExpenses.find(e => e.item === billName);
+    if (expense) onRemoveBill(expense.id);
+  };
+
   const statusLabel = (s: BillStatus) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
 
   // --- Annual Dashboard Data ---
