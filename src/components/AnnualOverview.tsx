@@ -42,6 +42,7 @@ interface AnnualOverviewProps {
   onAddBill: (expense: FixedExpense) => void;
   onRemoveBill: (id: string) => void;
   selectedMonth: number;
+  selectedYear: number;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
