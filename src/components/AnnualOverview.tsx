@@ -32,7 +32,7 @@ interface AnnualOverviewProps {
   records: MonthlyBillRecord[];
   attachments: BillAttachment[];
   billNames: string[];
-  onUpdate: (bill: string, month: number, status: BillStatus) => void;
+  onUpdate: (bill: string, month: number, status: BillStatus, year: number) => void;
   onAttach: (bill: string, month: number, file: File) => void;
   onRemoveAttachment: (bill: string, month: number) => void;
   fixedExpenses: FixedExpense[];
