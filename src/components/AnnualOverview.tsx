@@ -47,7 +47,7 @@ interface AnnualOverviewProps {
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
-export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people, onAddBill, onRemoveBill, selectedMonth }: AnnualOverviewProps) => {
+export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people, onAddBill, onRemoveBill, selectedMonth, selectedYear }: AnnualOverviewProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingTarget = useRef<{ bill: string; month: number } | null>(null);
   const [showAddBill, setShowAddBill] = useState(false);
