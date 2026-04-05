@@ -274,6 +274,29 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
         <p className="text-sm text-text-muted mt-0.5">Clique no status para alternar · 📎 para anexar comprovativo</p>
       </div>
 
+      {/* Add bill form */}
+      {showAddBill ? (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 mb-4">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <label className="label-caps mb-1.5 block">Nome da despesa</label>
+              <input value={newBillName} onChange={(e) => setNewBillName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddBill()}
+                placeholder="Ex: Água, Eletricidade, Internet..."
+                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <button onClick={handleAddBill} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
+            <button onClick={() => { setShowAddBill(false); setNewBillName(""); }} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
+          </div>
+        </motion.div>
+      ) : (
+        <button onClick={() => setShowAddBill(true)}
+          className="flex items-center gap-1.5 px-3 py-2 mb-4 rounded-xl border border-dashed border-border-subtle text-sm text-text-muted hover:text-foreground hover:border-primary/50 transition-colors">
+          <Plus className="h-4 w-4" /> Adicionar nova despesa
+        </button>
+      )}
+
       {/* Legend */}
       <div className="flex gap-3 mb-4 flex-wrap">
         {STATUS_OPTIONS.map((s) => (
