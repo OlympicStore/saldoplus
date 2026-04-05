@@ -104,7 +104,7 @@ export function usePersistedData(subAccountId?: string | null) {
 
       if (br.data?.length) {
         setBillRecords(br.data.map((r: any) => ({
-          bill: r.bill, month: r.month, status: r.status as BillStatus,
+          bill: r.bill, month: r.month, year: r.year ?? 2026, status: r.status as BillStatus,
         })));
       }
 
@@ -211,11 +211,11 @@ export function usePersistedData(subAccountId?: string | null) {
     }, { onConflict: "id" });
   }, [userId, subAccountId]);
 
-  const syncBillRecord = useCallback(async (bill: string, month: number, status: BillStatus) => {
+  const syncBillRecord = useCallback(async (bill: string, month: number, year: number, status: BillStatus) => {
     if (!userId) return;
     await supabase.from("bill_records").upsert({ ...subField,
-      user_id: userId, bill, month, status,
-    }, { onConflict: "user_id,bill,month" });
+      user_id: userId, bill, month, year, status,
+    } as any, { onConflict: "user_id,bill,month,year" });
   }, [userId, subAccountId]);
 
   const syncAccount = useCallback(async (account: Account) => {
@@ -354,13 +354,13 @@ export function usePersistedData(subAccountId?: string | null) {
     });
   }, [syncSalaryConfig]);
 
-  const updateBillRecord = useCallback((bill: string, month: number, status: BillStatus) => {
+  const updateBillRecord = useCallback((bill: string, month: number, status: BillStatus, year: number) => {
     setBillRecords(prev => {
-      const idx = prev.findIndex(r => r.bill === bill && r.month === month);
+      const idx = prev.findIndex(r => r.bill === bill && r.month === month && r.year === year);
       if (idx >= 0) return prev.map((r, i) => i === idx ? { ...r, status } : r);
-      return [...prev, { bill, month, status }];
+      return [...prev, { bill, month, year, status }];
     });
-    syncBillRecord(bill, month, status);
+    syncBillRecord(bill, month, year, status);
   }, [syncBillRecord]);
 
   const addGoal = useCallback((goal: FinancialGoal) => {
