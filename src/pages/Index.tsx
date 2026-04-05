@@ -339,7 +339,8 @@ const Index = () => {
         {activeTab === "annual" && (
           <AnnualOverview records={data.billRecords} attachments={billAttachments} billNames={allBillNames}
             onUpdate={data.updateBillRecord} onAttach={addAttachment} onRemoveAttachment={removeAttachment}
-            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses} goals={data.financialGoals} people={data.people} />
+            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses} goals={data.financialGoals} people={data.people}
+            onAddBill={data.addFixedExpense} onRemoveBill={data.deleteFixedExpense} selectedMonth={selectedMonth} />
         )}
         {activeTab === "goals" && (
           <FinancialGoals goals={data.financialGoals}
