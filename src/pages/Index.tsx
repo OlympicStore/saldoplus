@@ -396,7 +396,7 @@ const Index = () => {
         {activeTab === "budgets" && (
           <CategoryBudgets
             categories={data.variableCategories}
-            variableExpenses={data.variableExpenses}
+            variableExpenses={yearVariableExpenses}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
