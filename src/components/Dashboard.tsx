@@ -224,7 +224,7 @@ export const Dashboard = ({
             </div>
           )}
           <p className="text-xs text-text-muted mt-1">
-            {currentBalance !== 0 ? "Valor editado manualmente" : "Calculado automaticamente"}
+            {currentBalance !== 0 ? "Valor editado manualmente" : "Calculado automaticamente com base nos registos"}
             {currentBalance !== 0 && (
               <button onClick={() => onUpdateBalance(0)} className="ml-2 underline hover:text-foreground">repor automático</button>
             )}
