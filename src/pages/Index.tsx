@@ -331,8 +331,8 @@ const Index = () => {
               </div>
             )}
             <Dashboard
-              fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
-              incomes={data.incomes} salaryConfigs={data.salaryConfigs}
+              fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
+              incomes={yearIncomes} salaryConfigs={data.salaryConfigs}
               people={data.people} selectedMonth={selectedMonth}
               currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
               financialGoals={data.financialGoals}
