@@ -354,13 +354,13 @@ export function usePersistedData(subAccountId?: string | null) {
     });
   }, [syncSalaryConfig]);
 
-  const updateBillRecord = useCallback((bill: string, month: number, status: BillStatus) => {
+  const updateBillRecord = useCallback((bill: string, month: number, status: BillStatus, year: number) => {
     setBillRecords(prev => {
-      const idx = prev.findIndex(r => r.bill === bill && r.month === month);
+      const idx = prev.findIndex(r => r.bill === bill && r.month === month && r.year === year);
       if (idx >= 0) return prev.map((r, i) => i === idx ? { ...r, status } : r);
-      return [...prev, { bill, month, status }];
+      return [...prev, { bill, month, year, status }];
     });
-    syncBillRecord(bill, month, status);
+    syncBillRecord(bill, month, year, status);
   }, [syncBillRecord]);
 
   const addGoal = useCallback((goal: FinancialGoal) => {
