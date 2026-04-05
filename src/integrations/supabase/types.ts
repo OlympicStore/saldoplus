@@ -68,6 +68,7 @@ export type Database = {
           sub_account_id: string | null
           updated_at: string
           user_id: string
+          year: number
         }
         Insert: {
           bill: string
@@ -78,6 +79,7 @@ export type Database = {
           sub_account_id?: string | null
           updated_at?: string
           user_id: string
+          year?: number
         }
         Update: {
           bill?: string
@@ -88,6 +90,7 @@ export type Database = {
           sub_account_id?: string | null
           updated_at?: string
           user_id?: string
+          year?: number
         }
         Relationships: [
           {
