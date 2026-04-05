@@ -105,11 +105,13 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   const statusLabel = (s: BillStatus) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
 
   // --- Annual Dashboard Data ---
+  const yearVariableExpenses = variableExpenses.filter(e => new Date(e.date).getFullYear() === selectedYear);
+
   const totalFixedYear = Array.from({ length: 12 }, (_, m) =>
     fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
   ).reduce((a, b) => a + b, 0);
 
-  const totalVariableYear = variableExpenses.reduce((s, e) => s + e.value, 0);
+  const totalVariableYear = yearVariableExpenses.reduce((s, e) => s + e.value, 0);
   const totalYear = totalFixedYear + totalVariableYear;
 
   // Monthly breakdown for bar chart
