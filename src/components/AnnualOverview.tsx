@@ -46,9 +46,11 @@ interface AnnualOverviewProps {
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
-export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people }: AnnualOverviewProps) => {
+export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people, onAddBill, onRemoveBill, selectedMonth }: AnnualOverviewProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingTarget = useRef<{ bill: string; month: number } | null>(null);
+  const [showAddBill, setShowAddBill] = useState(false);
+  const [newBillName, setNewBillName] = useState("");
 
   const getStatus = (bill: string, month: number): BillStatus => {
     return records.find((r) => r.bill === bill && r.month === month)?.status ?? "pendente";
