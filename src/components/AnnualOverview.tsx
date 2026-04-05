@@ -53,8 +53,10 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   const [showAddBill, setShowAddBill] = useState(false);
   const [newBillName, setNewBillName] = useState("");
 
+  const yearRecords = records.filter(r => r.year === selectedYear);
+
   const getStatus = (bill: string, month: number): BillStatus => {
-    return records.find((r) => r.bill === bill && r.month === month)?.status ?? "pendente";
+    return yearRecords.find((r) => r.bill === bill && r.month === month)?.status ?? "pendente";
   };
 
   const getAttachment = (bill: string, month: number) => {
@@ -64,7 +66,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   const cycleStatus = (bill: string, month: number) => {
     const current = getStatus(bill, month);
     const next: BillStatus = current === "pendente" ? "paga" : current === "paga" ? "divida" : "pendente";
-    onUpdate(bill, month, next);
+    onUpdate(bill, month, next, selectedYear);
   };
 
   const handleAttachClick = (bill: string, month: number) => {
