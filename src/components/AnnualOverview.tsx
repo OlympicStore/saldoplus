@@ -126,7 +126,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
     const fixed = Array.from({ length: 12 }, (_, m) =>
       fixedExpenses.filter((e) => e.monthlyResponsible[m] === person).reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
     ).reduce((a, b) => a + b, 0);
-    const variable = variableExpenses.filter((e) => e.responsible === person).reduce((s, e) => s + e.value, 0);
+    const variable = yearVariableExpenses.filter((e) => e.responsible === person).reduce((s, e) => s + e.value, 0);
     return { name: person, value: fixed + variable };
   }).filter((d) => d.value > 0);
 
