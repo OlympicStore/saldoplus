@@ -374,8 +374,11 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
       <div className="sm:hidden space-y-4">
         {billNames.map((bill) => (
           <div key={bill} className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
-            <div className="px-4 py-3 border-b border-border-subtle/40">
+            <div className="px-4 py-3 border-b border-border-subtle/40 flex items-center justify-between">
               <span className="text-sm font-semibold text-foreground">{bill}</span>
+              <button onClick={() => handleRemoveBill(bill)} className="text-text-muted hover:text-status-negative transition-colors" title="Remover despesa">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
             </div>
             <div className="grid grid-cols-4 gap-px bg-border-subtle/30">
               {MONTHS.map((m, monthIdx) => {
