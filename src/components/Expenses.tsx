@@ -93,7 +93,7 @@ export const Expenses = ({
     if (catType === "Fixo") {
       onAddFixed({
         id: crypto.randomUUID(),
-        item: newExpense.description || newExpense.category,
+        item: newExpense.description || finalCategory,
         dueDay: parseInt(newExpense.dueDay) || 1,
         account: newExpense.account || "",
         monthlyValues: { [selectedMonth]: val },
