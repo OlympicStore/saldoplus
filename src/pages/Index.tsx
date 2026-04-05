@@ -20,7 +20,8 @@ import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
-import type { BillAttachment } from "@/types/expense";
+import type { BillAttachment, FixedExpense } from "@/types/expense";
+import { ym } from "@/lib/yearMonth";
 
 const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const MIN_YEAR = 2026;
