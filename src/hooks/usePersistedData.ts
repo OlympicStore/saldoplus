@@ -104,7 +104,7 @@ export function usePersistedData(subAccountId?: string | null) {
 
       if (br.data?.length) {
         setBillRecords(br.data.map((r: any) => ({
-          bill: r.bill, month: r.month, status: r.status as BillStatus,
+          bill: r.bill, month: r.month, year: r.year ?? 2026, status: r.status as BillStatus,
         })));
       }
 
