@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Paperclip, FileCheck, X } from "lucide-react";
+import { Paperclip, FileCheck, X, Plus, Trash2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import type { BillStatus, MonthlyBillRecord, BillAttachment, FixedExpense, VariableExpense } from "@/types/expense";
 import type { FinancialGoal } from "@/types/goal";
