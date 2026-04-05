@@ -320,9 +320,9 @@ const Index = () => {
             {userPlan === "pro" && (
               <div className="mb-6 flex justify-end">
                 <AISuggestions
-                  fixedExpenses={data.fixedExpenses}
-                  variableExpenses={data.variableExpenses}
-                  incomes={data.incomes}
+                  fixedExpenses={yearFixedExpenses}
+                  variableExpenses={yearVariableExpenses}
+                  incomes={yearIncomes}
                   salaryConfigs={data.salaryConfigs}
                   financialGoals={data.financialGoals}
                   selectedMonth={selectedMonth}
