@@ -47,7 +47,7 @@ export const Expenses = ({
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<"all" | "fixo" | "variavel">("all");
   const [newExpense, setNewExpense] = useState({
-    category: "", account: "", date: "", value: "", dueDay: "1", description: "",
+    category: "", customCategory: "", account: "", date: "", value: "", dueDay: "1", description: "",
     responsible: null as string | null, recurring: false,
   });
 
@@ -56,7 +56,7 @@ export const Expenses = ({
     return cat?.type === "fixo" ? "Fixo" : "Variável";
   };
 
-  const selectedCatType = newExpense.category ? getCategoryType(newExpense.category) : null;
+  const selectedCatType = newExpense.category === "__custom" ? "Variável" : newExpense.category ? getCategoryType(newExpense.category) : null;
 
   const rows: ExpenseRow[] = [
     ...fixedExpenses.map((e): ExpenseRow => ({
@@ -83,17 +83,17 @@ export const Expenses = ({
 
   const totalExpenses = filtered.reduce((s, r) => s + r.value, 0);
   const categoryNames = categories.map(c => c.name);
-  if (!categoryNames.includes("Outros")) categoryNames.push("Outros");
 
   const handleAdd = () => {
     const val = parseFloat(newExpense.value.replace(",", "."));
-    if (!newExpense.category || isNaN(val)) return;
-    const catType = getCategoryType(newExpense.category);
+    const finalCategory = newExpense.category === "__custom" ? newExpense.customCategory.trim() : newExpense.category;
+    if (!finalCategory || isNaN(val)) return;
+    const catType = getCategoryType(finalCategory);
 
     if (catType === "Fixo") {
       onAddFixed({
         id: crypto.randomUUID(),
-        item: newExpense.description || newExpense.category,
+        item: newExpense.description || finalCategory,
         dueDay: parseInt(newExpense.dueDay) || 1,
         account: newExpense.account || "",
         monthlyValues: { [selectedMonth]: val },
@@ -104,12 +104,12 @@ export const Expenses = ({
       const year = new Date().getFullYear();
       const date = newExpense.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
       onAddVariable({
-        date, description: newExpense.description || newExpense.category,
-        category: newExpense.category as any, value: val, responsible: newExpense.responsible,
+        date, description: newExpense.description || finalCategory,
+        category: finalCategory as any, value: val, responsible: newExpense.responsible,
         account: newExpense.account || "", recurring: newExpense.recurring,
       });
     }
-    setNewExpense({ category: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null, recurring: false });
+    setNewExpense({ category: "", customCategory: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null, recurring: false });
     setShowForm(false);
   };
 
@@ -162,11 +162,17 @@ export const Expenses = ({
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Categoria</label>
-              <select value={newExpense.category} onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+              <select value={newExpense.category} onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value, customCategory: e.target.value === "__custom" ? newExpense.customCategory : "" })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
                 <option value="">Selecionar</option>
                 {categoryNames.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="__custom">+ Adicionar nova categoria</option>
               </select>
+              {newExpense.category === "__custom" && (
+                <input value={newExpense.customCategory} onChange={(e) => setNewExpense({ ...newExpense, customCategory: e.target.value })}
+                  placeholder="Ex: Netflix, Gasolina..."
+                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+              )}
             </div>
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Título</label>
