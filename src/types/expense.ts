@@ -29,6 +29,7 @@ export interface VariableExpense {
 export interface MonthlyBillRecord {
   bill: string;
   month: number;
+  year: number;
   status: BillStatus;
 }
 
