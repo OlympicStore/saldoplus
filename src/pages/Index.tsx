@@ -20,7 +20,8 @@ import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
-import type { BillAttachment } from "@/types/expense";
+import type { BillAttachment, FixedExpense } from "@/types/expense";
+import { ym } from "@/lib/yearMonth";
 
 const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const MIN_YEAR = 2026;
@@ -93,7 +94,51 @@ const Index = () => {
 
   const data = usePersistedData(currentSubAccountId);
 
+  // --- Year-filtered data ---
+  // Fixed expenses: extract only selectedYear values from composite keys
+  const yearFixedExpenses: FixedExpense[] = data.fixedExpenses.map(e => {
+    const mvYear: Record<number, number> = {};
+    const mrYear: Record<number, string | null> = {};
+    const mpYear: Record<number, boolean> = {};
+    for (let m = 0; m < 12; m++) {
+      const key = ym(selectedYear, m);
+      if (key in e.monthlyValues) mvYear[m] = e.monthlyValues[key] as number;
+      if (key in e.monthlyResponsible) mrYear[m] = e.monthlyResponsible[key] as string | null;
+      if (key in e.monthlyPaid) mpYear[m] = e.monthlyPaid[key] as boolean;
+    }
+    return { ...e, monthlyValues: mvYear, monthlyResponsible: mrYear, monthlyPaid: mpYear };
+  });
+
+  // Date-based data: filter by year
+  const yearVariableExpenses = data.variableExpenses.filter(e => new Date(e.date).getFullYear() === selectedYear);
+  const yearIncomes = data.incomes.filter(i => new Date(i.date).getFullYear() === selectedYear);
+  const yearInvestments = data.investments.filter(i => new Date(i.date).getFullYear() === selectedYear);
+  const yearTransfers = data.transfers.filter(t => new Date(t.date).getFullYear() === selectedYear);
+
   const allBillNames = data.fixedExpenses.map((e) => e.item);
+
+  // Year-aware wrappers for fixed expense monthly operations
+  const yearUpdateFixedMonthly = useCallback((id: string, month: number, field: "value" | "responsible" | "paid", val: number | string | null | boolean) => {
+    data.updateFixedMonthly(id, ym(selectedYear, month), field, val);
+  }, [data.updateFixedMonthly, selectedYear]);
+
+  const yearAddFixed = useCallback((expense: FixedExpense) => {
+    // Convert 0-11 keys to composite keys for the selected year
+    const convert = (obj: Record<number, any>) => {
+      const result: Record<number, any> = {};
+      for (const [k, v] of Object.entries(obj)) {
+        const num = Number(k);
+        result[num >= 0 && num <= 11 ? ym(selectedYear, num) : num] = v;
+      }
+      return result;
+    };
+    data.addFixed({
+      ...expense,
+      monthlyValues: convert(expense.monthlyValues),
+      monthlyResponsible: convert(expense.monthlyResponsible),
+      monthlyPaid: convert(expense.monthlyPaid),
+    });
+  }, [data.addFixed, selectedYear]);
 
   // Get display name: first + last name only
   const getDisplayName = (fullName: string | null | undefined) => {
@@ -275,9 +320,9 @@ const Index = () => {
             {userPlan === "pro" && (
               <div className="mb-6 flex justify-end">
                 <AISuggestions
-                  fixedExpenses={data.fixedExpenses}
-                  variableExpenses={data.variableExpenses}
-                  incomes={data.incomes}
+                  fixedExpenses={yearFixedExpenses}
+                  variableExpenses={yearVariableExpenses}
+                  incomes={yearIncomes}
                   salaryConfigs={data.salaryConfigs}
                   financialGoals={data.financialGoals}
                   selectedMonth={selectedMonth}
@@ -286,8 +331,8 @@ const Index = () => {
               </div>
             )}
             <Dashboard
-              fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
-              incomes={data.incomes} salaryConfigs={data.salaryConfigs}
+              fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
+              incomes={yearIncomes} salaryConfigs={data.salaryConfigs}
               people={data.people} selectedMonth={selectedMonth}
               currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
               financialGoals={data.financialGoals}
@@ -299,10 +344,10 @@ const Index = () => {
         {activeTab === "balance" && (
           <InitialBalance
             accounts={data.accounts}
-            incomes={data.incomes}
-            fixedExpenses={data.fixedExpenses}
-            variableExpenses={data.variableExpenses}
-            investments={data.investments}
+            incomes={yearIncomes}
+            fixedExpenses={yearFixedExpenses}
+            variableExpenses={yearVariableExpenses}
+            investments={yearInvestments}
             onAdd={data.addAccount}
             onUpdate={data.updateAccount}
             onDelete={data.deleteAccount}
@@ -310,8 +355,8 @@ const Index = () => {
         )}
         {activeTab === "entries" && (
           <Entries
-            incomes={data.incomes} salaryConfigs={data.salaryConfigs}
-            accounts={data.accounts} transfers={data.transfers} people={data.people} selectedMonth={selectedMonth}
+            incomes={yearIncomes} salaryConfigs={data.salaryConfigs}
+            accounts={data.accounts} transfers={yearTransfers} people={data.people} selectedMonth={selectedMonth}
             onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
             onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
             onAddTransfer={data.addTransfer} onDeleteTransfer={data.deleteTransfer}
@@ -319,18 +364,18 @@ const Index = () => {
         )}
         {activeTab === "expenses" && (
           <Expenses
-            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
+            fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
             categories={data.categories} accounts={data.accounts}
             people={data.people} selectedMonth={selectedMonth}
-            onAddFixed={data.addFixed} onUpdateFixed={data.updateFixed}
-            onUpdateFixedMonthly={data.updateFixedMonthly} onDeleteFixed={data.deleteFixed}
+            onAddFixed={yearAddFixed} onUpdateFixed={data.updateFixed}
+            onUpdateFixedMonthly={yearUpdateFixedMonthly} onDeleteFixed={data.deleteFixed}
             onAddVariable={data.addVariable} onUpdateVariable={data.updateVariable}
             onDeleteVariable={data.deleteVariable}
           />
         )}
         {activeTab === "investments" && (
           <Investments
-            investments={data.investments} accounts={data.accounts}
+            investments={yearInvestments} accounts={data.accounts}
             selectedMonth={selectedMonth}
             onAdd={data.addInvestment} onUpdate={data.updateInvestment}
             onDelete={data.deleteInvestment}
@@ -339,8 +384,8 @@ const Index = () => {
         {activeTab === "annual" && (
           <AnnualOverview records={data.billRecords} attachments={billAttachments} billNames={allBillNames}
             onUpdate={data.updateBillRecord} onAttach={addAttachment} onRemoveAttachment={removeAttachment}
-            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses} goals={data.financialGoals} people={data.people}
-            onAddBill={data.addFixed} onRemoveBill={data.deleteFixed} selectedMonth={selectedMonth} selectedYear={selectedYear} />
+            fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses} goals={data.financialGoals} people={data.people}
+            onAddBill={yearAddFixed} onRemoveBill={data.deleteFixed} selectedMonth={selectedMonth} selectedYear={selectedYear} />
         )}
         {activeTab === "goals" && (
           <FinancialGoals goals={data.financialGoals}
@@ -351,7 +396,7 @@ const Index = () => {
         {activeTab === "budgets" && (
           <CategoryBudgets
             categories={data.variableCategories}
-            variableExpenses={data.variableExpenses}
+            variableExpenses={yearVariableExpenses}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
