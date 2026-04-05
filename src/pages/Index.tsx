@@ -370,7 +370,7 @@ const Index = () => {
         )}
         {activeTab === "entries" && (
           <Entries
-            incomes={yearIncomes} salaryConfigs={data.salaryConfigs}
+            incomes={yearIncomes} salaryConfigs={yearSalaryConfigs}
             accounts={data.accounts} transfers={yearTransfers} people={data.people} selectedMonth={selectedMonth}
             onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
             onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
