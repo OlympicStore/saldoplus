@@ -364,11 +364,11 @@ const Index = () => {
         )}
         {activeTab === "expenses" && (
           <Expenses
-            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses}
+            fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
             categories={data.categories} accounts={data.accounts}
             people={data.people} selectedMonth={selectedMonth}
-            onAddFixed={data.addFixed} onUpdateFixed={data.updateFixed}
-            onUpdateFixedMonthly={data.updateFixedMonthly} onDeleteFixed={data.deleteFixed}
+            onAddFixed={yearAddFixed} onUpdateFixed={data.updateFixed}
+            onUpdateFixedMonthly={yearUpdateFixedMonthly} onDeleteFixed={data.deleteFixed}
             onAddVariable={data.addVariable} onUpdateVariable={data.updateVariable}
             onDeleteVariable={data.deleteVariable}
           />
