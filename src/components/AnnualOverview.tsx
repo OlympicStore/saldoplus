@@ -325,7 +325,14 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
           <tbody className="divide-y divide-border-subtle/40">
             {billNames.map((bill) => (
               <tr key={bill} className="hover:bg-surface-hover transition-colors">
-                <td className="px-4 py-2.5 font-semibold text-foreground sticky left-0 bg-surface z-10">{bill}</td>
+                <td className="px-4 py-2.5 font-semibold text-foreground sticky left-0 bg-surface z-10">
+                  <div className="flex items-center gap-2">
+                    <span>{bill}</span>
+                    <button onClick={() => handleRemoveBill(bill)} className="text-text-muted hover:text-status-negative transition-colors opacity-0 group-hover:opacity-100" title="Remover despesa">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </td>
                 {MONTHS.map((_, monthIdx) => {
                   const status = getStatus(bill, monthIdx);
                   const attachment = getAttachment(bill, monthIdx);
