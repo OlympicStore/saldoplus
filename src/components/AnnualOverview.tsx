@@ -131,7 +131,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   }).filter((d) => d.value > 0);
 
   // Category breakdown for variable expenses
-  const categoryData = variableExpenses.reduce<Record<string, number>>((acc, e) => {
+  const categoryData = yearVariableExpenses.reduce<Record<string, number>>((acc, e) => {
     acc[e.category] = (acc[e.category] ?? 0) + e.value;
     return acc;
   }, {});
