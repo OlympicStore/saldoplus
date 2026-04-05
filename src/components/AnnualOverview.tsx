@@ -42,11 +42,12 @@ interface AnnualOverviewProps {
   onAddBill: (expense: FixedExpense) => void;
   onRemoveBill: (id: string) => void;
   selectedMonth: number;
+  selectedYear: number;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
-export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people, onAddBill, onRemoveBill, selectedMonth }: AnnualOverviewProps) => {
+export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people, onAddBill, onRemoveBill, selectedMonth, selectedYear }: AnnualOverviewProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingTarget = useRef<{ bill: string; month: number } | null>(null);
   const [showAddBill, setShowAddBill] = useState(false);
@@ -104,17 +105,19 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   const statusLabel = (s: BillStatus) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
 
   // --- Annual Dashboard Data ---
+  const yearVariableExpenses = variableExpenses.filter(e => new Date(e.date).getFullYear() === selectedYear);
+
   const totalFixedYear = Array.from({ length: 12 }, (_, m) =>
     fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
   ).reduce((a, b) => a + b, 0);
 
-  const totalVariableYear = variableExpenses.reduce((s, e) => s + e.value, 0);
+  const totalVariableYear = yearVariableExpenses.reduce((s, e) => s + e.value, 0);
   const totalYear = totalFixedYear + totalVariableYear;
 
   // Monthly breakdown for bar chart
   const monthlyData = MONTHS.map((label, m) => {
     const fixed = fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0);
-    const variable = variableExpenses.filter((e) => new Date(e.date).getMonth() === m).reduce((s, e) => s + e.value, 0);
+    const variable = yearVariableExpenses.filter((e) => new Date(e.date).getMonth() === m).reduce((s, e) => s + e.value, 0);
     return { name: label, Fixos: fixed, Variáveis: variable };
   });
 
@@ -123,12 +126,12 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
     const fixed = Array.from({ length: 12 }, (_, m) =>
       fixedExpenses.filter((e) => e.monthlyResponsible[m] === person).reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
     ).reduce((a, b) => a + b, 0);
-    const variable = variableExpenses.filter((e) => e.responsible === person).reduce((s, e) => s + e.value, 0);
+    const variable = yearVariableExpenses.filter((e) => e.responsible === person).reduce((s, e) => s + e.value, 0);
     return { name: person, value: fixed + variable };
   }).filter((d) => d.value > 0);
 
   // Category breakdown for variable expenses
-  const categoryData = variableExpenses.reduce<Record<string, number>>((acc, e) => {
+  const categoryData = yearVariableExpenses.reduce<Record<string, number>>((acc, e) => {
     acc[e.category] = (acc[e.category] ?? 0) + e.value;
     return acc;
   }, {});
