@@ -93,10 +93,7 @@ const Index = () => {
 
   const data = usePersistedData(currentSubAccountId);
 
-  const allBillNames = [
-    ...data.fixedExpenses.map((e) => e.item),
-    ...data.variableCategories,
-  ];
+  const allBillNames = data.fixedExpenses.map((e) => e.item);
 
   // Get display name: first + last name only
   const getDisplayName = (fullName: string | null | undefined) => {
