@@ -86,8 +86,9 @@ export const Expenses = ({
 
   const handleAdd = () => {
     const val = parseFloat(newExpense.value.replace(",", "."));
-    if (!newExpense.category || isNaN(val)) return;
-    const catType = getCategoryType(newExpense.category);
+    const finalCategory = newExpense.category === "__custom" ? newExpense.customCategory.trim() : newExpense.category;
+    if (!finalCategory || isNaN(val)) return;
+    const catType = getCategoryType(finalCategory);
 
     if (catType === "Fixo") {
       onAddFixed({
