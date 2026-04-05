@@ -104,8 +104,8 @@ export const Expenses = ({
       const year = new Date().getFullYear();
       const date = newExpense.date || new Date(year, selectedMonth, 15).toISOString().split("T")[0];
       onAddVariable({
-        date, description: newExpense.description || newExpense.category,
-        category: newExpense.category as any, value: val, responsible: newExpense.responsible,
+        date, description: newExpense.description || finalCategory,
+        category: finalCategory as any, value: val, responsible: newExpense.responsible,
         account: newExpense.account || "", recurring: newExpense.recurring,
       });
     }
