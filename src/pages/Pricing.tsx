@@ -151,17 +151,14 @@ const Pricing = () => {
   const timeCounter = useCounter(5);
 
   const handleSelectPlan = (planId: string) => {
-    if (!user) {
-      toast.info("Crie uma conta ou entre para continuar.");
-      navigate("/auth");
-      return;
-    }
-
     const link = PAYMENT_LINKS[planId];
     if (!link) return;
 
     const separator = link.includes("?") ? "&" : "?";
-    const url = `${link}${separator}prefilled_email=${encodeURIComponent(user.email || "")}`;
+    const email = user?.email || "";
+    const url = email
+      ? `${link}${separator}prefilled_email=${encodeURIComponent(email)}`
+      : link;
     window.open(url, "_blank");
   };
 
