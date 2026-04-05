@@ -338,21 +338,21 @@ const Index = () => {
                   fixedExpenses={yearFixedExpenses}
                   variableExpenses={yearVariableExpenses}
                   incomes={yearIncomes}
-                  salaryConfigs={data.salaryConfigs}
-                  financialGoals={data.financialGoals}
+                  salaryConfigs={yearSalaryConfigs}
+                  financialGoals={homeGoals}
                   selectedMonth={selectedMonth}
-                  currentBalance={data.currentBalance}
+                  currentBalance={homeBalance}
                 />
               </div>
             )}
             <Dashboard
               fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
-              incomes={yearIncomes} salaryConfigs={data.salaryConfigs}
+              incomes={yearIncomes} salaryConfigs={yearSalaryConfigs}
               people={data.people} selectedMonth={selectedMonth}
-              currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
-              financialGoals={data.financialGoals}
+              currentBalance={homeBalance} onUpdateBalance={data.updateBalance}
+              financialGoals={homeGoals}
               userPlan={userPlan}
-              accounts={data.accounts}
+              accounts={homeAccounts}
             />
           </>
         )}
