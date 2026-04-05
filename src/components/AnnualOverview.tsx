@@ -1,6 +1,6 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Paperclip, FileCheck, X } from "lucide-react";
+import { Paperclip, FileCheck, X, Plus, Trash2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import type { BillStatus, MonthlyBillRecord, BillAttachment, FixedExpense, VariableExpense } from "@/types/expense";
 import type { FinancialGoal } from "@/types/goal";
@@ -39,13 +39,18 @@ interface AnnualOverviewProps {
   variableExpenses: VariableExpense[];
   goals: FinancialGoal[];
   people: string[];
+  onAddBill: (expense: FixedExpense) => void;
+  onRemoveBill: (id: string) => void;
+  selectedMonth: number;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
-export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people }: AnnualOverviewProps) => {
+export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people, onAddBill, onRemoveBill, selectedMonth }: AnnualOverviewProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingTarget = useRef<{ bill: string; month: number } | null>(null);
+  const [showAddBill, setShowAddBill] = useState(false);
+  const [newBillName, setNewBillName] = useState("");
 
   const getStatus = (bill: string, month: number): BillStatus => {
     return records.find((r) => r.bill === bill && r.month === month)?.status ?? "pendente";
@@ -73,6 +78,27 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
     }
     pendingTarget.current = null;
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleAddBill = () => {
+    const name = newBillName.trim();
+    if (!name || billNames.includes(name)) return;
+    onAddBill({
+      id: crypto.randomUUID(),
+      item: name,
+      dueDay: 1,
+      account: "",
+      monthlyValues: {},
+      monthlyResponsible: {},
+      monthlyPaid: {},
+    });
+    setNewBillName("");
+    setShowAddBill(false);
+  };
+
+  const handleRemoveBill = (billName: string) => {
+    const expense = fixedExpenses.find(e => e.item === billName);
+    if (expense) onRemoveBill(expense.id);
   };
 
   const statusLabel = (s: BillStatus) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
@@ -248,6 +274,29 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
         <p className="text-sm text-text-muted mt-0.5">Clique no status para alternar · 📎 para anexar comprovativo</p>
       </div>
 
+      {/* Add bill form */}
+      {showAddBill ? (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 mb-4">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <label className="label-caps mb-1.5 block">Nome da despesa</label>
+              <input value={newBillName} onChange={(e) => setNewBillName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddBill()}
+                placeholder="Ex: Água, Eletricidade, Internet..."
+                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <button onClick={handleAddBill} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
+            <button onClick={() => { setShowAddBill(false); setNewBillName(""); }} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
+          </div>
+        </motion.div>
+      ) : (
+        <button onClick={() => setShowAddBill(true)}
+          className="flex items-center gap-1.5 px-3 py-2 mb-4 rounded-xl border border-dashed border-border-subtle text-sm text-text-muted hover:text-foreground hover:border-primary/50 transition-colors">
+          <Plus className="h-4 w-4" /> Adicionar nova despesa
+        </button>
+      )}
+
       {/* Legend */}
       <div className="flex gap-3 mb-4 flex-wrap">
         {STATUS_OPTIONS.map((s) => (
@@ -275,8 +324,15 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
           </thead>
           <tbody className="divide-y divide-border-subtle/40">
             {billNames.map((bill) => (
-              <tr key={bill} className="hover:bg-surface-hover transition-colors">
-                <td className="px-4 py-2.5 font-semibold text-foreground sticky left-0 bg-surface z-10">{bill}</td>
+              <tr key={bill} className="hover:bg-surface-hover transition-colors group">
+                <td className="px-4 py-2.5 font-semibold text-foreground sticky left-0 bg-surface z-10">
+                  <div className="flex items-center gap-2">
+                    <span>{bill}</span>
+                    <button onClick={() => handleRemoveBill(bill)} className="text-text-muted hover:text-status-negative transition-colors opacity-0 group-hover:opacity-100" title="Remover despesa">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </td>
                 {MONTHS.map((_, monthIdx) => {
                   const status = getStatus(bill, monthIdx);
                   const attachment = getAttachment(bill, monthIdx);
@@ -318,8 +374,11 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
       <div className="sm:hidden space-y-4">
         {billNames.map((bill) => (
           <div key={bill} className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
-            <div className="px-4 py-3 border-b border-border-subtle/40">
+            <div className="px-4 py-3 border-b border-border-subtle/40 flex items-center justify-between">
               <span className="text-sm font-semibold text-foreground">{bill}</span>
+              <button onClick={() => handleRemoveBill(bill)} className="text-text-muted hover:text-status-negative transition-colors" title="Remover despesa">
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
             </div>
             <div className="grid grid-cols-4 gap-px bg-border-subtle/30">
               {MONTHS.map((m, monthIdx) => {

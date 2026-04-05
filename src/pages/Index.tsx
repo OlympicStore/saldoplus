@@ -93,10 +93,7 @@ const Index = () => {
 
   const data = usePersistedData(currentSubAccountId);
 
-  const allBillNames = [
-    ...data.fixedExpenses.map((e) => e.item),
-    ...data.variableCategories,
-  ];
+  const allBillNames = data.fixedExpenses.map((e) => e.item);
 
   // Get display name: first + last name only
   const getDisplayName = (fullName: string | null | undefined) => {
@@ -342,7 +339,8 @@ const Index = () => {
         {activeTab === "annual" && (
           <AnnualOverview records={data.billRecords} attachments={billAttachments} billNames={allBillNames}
             onUpdate={data.updateBillRecord} onAttach={addAttachment} onRemoveAttachment={removeAttachment}
-            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses} goals={data.financialGoals} people={data.people} />
+            fixedExpenses={data.fixedExpenses} variableExpenses={data.variableExpenses} goals={data.financialGoals} people={data.people}
+            onAddBill={data.addFixed} onRemoveBill={data.deleteFixed} selectedMonth={selectedMonth} />
         )}
         {activeTab === "goals" && (
           <FinancialGoals goals={data.financialGoals}
