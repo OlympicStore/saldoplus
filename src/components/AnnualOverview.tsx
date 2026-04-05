@@ -106,8 +106,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
 
   const statusLabel = (s: BillStatus) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
 
-  // --- Annual Dashboard Data ---
-  const yearVariableExpenses = variableExpenses.filter(e => new Date(e.date).getFullYear() === selectedYear);
+  // --- Annual Dashboard Data --- (data already filtered by year from parent)
 
   const totalFixedYear = Array.from({ length: 12 }, (_, m) =>
     fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
