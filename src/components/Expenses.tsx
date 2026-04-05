@@ -56,7 +56,7 @@ export const Expenses = ({
     return cat?.type === "fixo" ? "Fixo" : "Variável";
   };
 
-  const selectedCatType = newExpense.category ? getCategoryType(newExpense.category) : null;
+  const selectedCatType = newExpense.category === "__custom" ? "Variável" : newExpense.category ? getCategoryType(newExpense.category) : null;
 
   const rows: ExpenseRow[] = [
     ...fixedExpenses.map((e): ExpenseRow => ({
