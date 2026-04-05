@@ -115,6 +115,21 @@ const Index = () => {
   const yearInvestments = data.investments.filter(i => new Date(i.date).getFullYear() === selectedYear);
   const yearTransfers = data.transfers.filter(t => new Date(t.date).getFullYear() === selectedYear);
 
+  const yearSalaryConfigs = data.salaryConfigs.map(config => {
+    const monthlyValues: Record<number, number> = {};
+    for (let m = 0; m < 12; m++) {
+      const compositeValue = config.monthlyValues[ym(selectedYear, m)];
+      const legacyValue = selectedYear === 2026 ? config.monthlyValues[m] : undefined;
+      if (compositeValue !== undefined) monthlyValues[m] = compositeValue;
+      else if (legacyValue !== undefined) monthlyValues[m] = legacyValue;
+    }
+    return { ...config, monthlyValues };
+  });
+
+  const homeAccounts = selectedYear === 2026 ? data.accounts : [];
+  const homeBalance = selectedYear === 2026 ? data.currentBalance : 0;
+  const homeGoals = selectedYear === 2026 ? data.financialGoals : [];
+
   const allBillNames = data.fixedExpenses.map((e) => e.item);
 
   // Year-aware wrappers for fixed expense monthly operations
@@ -323,21 +338,21 @@ const Index = () => {
                   fixedExpenses={yearFixedExpenses}
                   variableExpenses={yearVariableExpenses}
                   incomes={yearIncomes}
-                  salaryConfigs={data.salaryConfigs}
-                  financialGoals={data.financialGoals}
+                  salaryConfigs={yearSalaryConfigs}
+                  financialGoals={homeGoals}
                   selectedMonth={selectedMonth}
-                  currentBalance={data.currentBalance}
+                  currentBalance={homeBalance}
                 />
               </div>
             )}
             <Dashboard
               fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
-              incomes={yearIncomes} salaryConfigs={data.salaryConfigs}
+              incomes={yearIncomes} salaryConfigs={yearSalaryConfigs}
               people={data.people} selectedMonth={selectedMonth}
-              currentBalance={data.currentBalance} onUpdateBalance={data.updateBalance}
-              financialGoals={data.financialGoals}
+              currentBalance={homeBalance} onUpdateBalance={data.updateBalance}
+              financialGoals={homeGoals}
               userPlan={userPlan}
-              accounts={data.accounts}
+              accounts={homeAccounts}
             />
           </>
         )}
@@ -355,7 +370,7 @@ const Index = () => {
         )}
         {activeTab === "entries" && (
           <Entries
-            incomes={yearIncomes} salaryConfigs={data.salaryConfigs}
+            incomes={yearIncomes} salaryConfigs={yearSalaryConfigs}
             accounts={data.accounts} transfers={yearTransfers} people={data.people} selectedMonth={selectedMonth}
             onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
             onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
