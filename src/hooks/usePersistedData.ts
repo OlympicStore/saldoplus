@@ -211,11 +211,11 @@ export function usePersistedData(subAccountId?: string | null) {
     }, { onConflict: "id" });
   }, [userId, subAccountId]);
 
-  const syncBillRecord = useCallback(async (bill: string, month: number, status: BillStatus) => {
+  const syncBillRecord = useCallback(async (bill: string, month: number, year: number, status: BillStatus) => {
     if (!userId) return;
     await supabase.from("bill_records").upsert({ ...subField,
-      user_id: userId, bill, month, status,
-    }, { onConflict: "user_id,bill,month" });
+      user_id: userId, bill, month, year, status,
+    } as any, { onConflict: "user_id,bill,month,year" });
   }, [userId, subAccountId]);
 
   const syncAccount = useCallback(async (account: Account) => {
