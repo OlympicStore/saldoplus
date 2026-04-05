@@ -117,6 +117,29 @@ const Index = () => {
 
   const allBillNames = data.fixedExpenses.map((e) => e.item);
 
+  // Year-aware wrappers for fixed expense monthly operations
+  const yearUpdateFixedMonthly = useCallback((id: string, month: number, field: "value" | "responsible" | "paid", val: number | string | null | boolean) => {
+    data.updateFixedMonthly(id, ym(selectedYear, month), field, val);
+  }, [data.updateFixedMonthly, selectedYear]);
+
+  const yearAddFixed = useCallback((expense: FixedExpense) => {
+    // Convert 0-11 keys to composite keys for the selected year
+    const convert = (obj: Record<number, any>) => {
+      const result: Record<number, any> = {};
+      for (const [k, v] of Object.entries(obj)) {
+        const num = Number(k);
+        result[num >= 0 && num <= 11 ? ym(selectedYear, num) : num] = v;
+      }
+      return result;
+    };
+    data.addFixed({
+      ...expense,
+      monthlyValues: convert(expense.monthlyValues),
+      monthlyResponsible: convert(expense.monthlyResponsible),
+      monthlyPaid: convert(expense.monthlyPaid),
+    });
+  }, [data.addFixed, selectedYear]);
+
   // Get display name: first + last name only
   const getDisplayName = (fullName: string | null | undefined) => {
     if (!fullName) return "";
