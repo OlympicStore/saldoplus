@@ -324,7 +324,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
           </thead>
           <tbody className="divide-y divide-border-subtle/40">
             {billNames.map((bill) => (
-              <tr key={bill} className="hover:bg-surface-hover transition-colors">
+              <tr key={bill} className="hover:bg-surface-hover transition-colors group">
                 <td className="px-4 py-2.5 font-semibold text-foreground sticky left-0 bg-surface z-10">
                   <div className="flex items-center gap-2">
                     <span>{bill}</span>
