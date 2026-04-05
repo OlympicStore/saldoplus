@@ -94,6 +94,27 @@ const Index = () => {
 
   const data = usePersistedData(currentSubAccountId);
 
+  // --- Year-filtered data ---
+  // Fixed expenses: extract only selectedYear values from composite keys
+  const yearFixedExpenses: FixedExpense[] = data.fixedExpenses.map(e => {
+    const mvYear: Record<number, number> = {};
+    const mrYear: Record<number, string | null> = {};
+    const mpYear: Record<number, boolean> = {};
+    for (let m = 0; m < 12; m++) {
+      const key = ym(selectedYear, m);
+      if (key in e.monthlyValues) mvYear[m] = e.monthlyValues[key] as number;
+      if (key in e.monthlyResponsible) mrYear[m] = e.monthlyResponsible[key] as string | null;
+      if (key in e.monthlyPaid) mpYear[m] = e.monthlyPaid[key] as boolean;
+    }
+    return { ...e, monthlyValues: mvYear, monthlyResponsible: mrYear, monthlyPaid: mpYear };
+  });
+
+  // Date-based data: filter by year
+  const yearVariableExpenses = data.variableExpenses.filter(e => new Date(e.date).getFullYear() === selectedYear);
+  const yearIncomes = data.incomes.filter(i => new Date(i.date).getFullYear() === selectedYear);
+  const yearInvestments = data.investments.filter(i => new Date(i.date).getFullYear() === selectedYear);
+  const yearTransfers = data.transfers.filter(t => new Date(t.date).getFullYear() === selectedYear);
+
   const allBillNames = data.fixedExpenses.map((e) => e.item);
 
   // Get display name: first + last name only
