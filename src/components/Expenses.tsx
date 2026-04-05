@@ -162,11 +162,17 @@ export const Expenses = ({
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Categoria</label>
-              <select value={newExpense.category} onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+              <select value={newExpense.category} onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value, customCategory: e.target.value === "__custom" ? newExpense.customCategory : "" })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
                 <option value="">Selecionar</option>
                 {categoryNames.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="__custom">+ Adicionar nova categoria</option>
               </select>
+              {newExpense.category === "__custom" && (
+                <input value={newExpense.customCategory} onChange={(e) => setNewExpense({ ...newExpense, customCategory: e.target.value })}
+                  placeholder="Ex: Netflix, Gasolina..."
+                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+              )}
             </div>
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Título</label>
