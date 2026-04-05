@@ -117,7 +117,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   // Monthly breakdown for bar chart
   const monthlyData = MONTHS.map((label, m) => {
     const fixed = fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0);
-    const variable = variableExpenses.filter((e) => new Date(e.date).getMonth() === m).reduce((s, e) => s + e.value, 0);
+    const variable = yearVariableExpenses.filter((e) => new Date(e.date).getMonth() === m).reduce((s, e) => s + e.value, 0);
     return { name: label, Fixos: fixed, Variáveis: variable };
   });
 
