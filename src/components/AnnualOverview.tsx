@@ -39,6 +39,9 @@ interface AnnualOverviewProps {
   variableExpenses: VariableExpense[];
   goals: FinancialGoal[];
   people: string[];
+  onAddBill: (expense: FixedExpense) => void;
+  onRemoveBill: (id: string) => void;
+  selectedMonth: number;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
