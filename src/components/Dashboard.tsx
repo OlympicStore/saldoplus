@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
-import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, Pencil, Check, X, Target } from "lucide-react";
+import { useMemo } from "react";
+import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, Target } from "lucide-react";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from "recharts";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Income, SalaryConfig } from "@/types/income";
@@ -30,8 +30,6 @@ interface DashboardProps {
   salaryConfigs: SalaryConfig[];
   people: string[];
   selectedMonth: number;
-  currentBalance: number;
-  onUpdateBalance: (v: number) => void;
   financialGoals?: FinancialGoal[];
   userPlan?: string;
   accounts?: Account[];
@@ -39,11 +37,9 @@ interface DashboardProps {
 
 export const Dashboard = ({
   fixedExpenses, variableExpenses, incomes, salaryConfigs,
-  people, selectedMonth, currentBalance, onUpdateBalance,
+  people, selectedMonth,
   financialGoals = [], userPlan = "essencial", accounts = [],
 }: DashboardProps) => {
-  const [editingBalance, setEditingBalance] = useState(false);
-  const [editBalanceVal, setEditBalanceVal] = useState("");
 
   // === CALCULATIONS ===
   const getMonthData = (month: number) => {
@@ -71,29 +67,6 @@ export const Dashboard = ({
   const prevBalance = prev.totalIncome - prev.totalExpenses;
 
   // Auto-calculated balance: account balances + cumulative paid transactions
-  const autoBalance = useMemo(() => {
-    const accountTotal = accounts.reduce((s, a) => s + a.balance, 0);
-    let cumulative = 0;
-    for (let m = 0; m <= selectedMonth; m++) {
-      const d = getMonthData(m);
-      cumulative += d.totalIncome - d.totalExpensesPaid;
-    }
-    return accountTotal + cumulative;
-  }, [selectedMonth, fixedExpenses, variableExpenses, incomes, salaryConfigs, accounts]);
-
-  // Use manual override if set, otherwise auto-calculated
-  const displayBalance = currentBalance !== 0 ? currentBalance : autoBalance;
-
-  const startEditBalance = () => {
-    setEditBalanceVal(displayBalance.toFixed(2).replace(".", ","));
-    setEditingBalance(true);
-  };
-  const saveBalance = () => {
-    const num = parseFloat(editBalanceVal.replace(",", "."));
-    if (!isNaN(num)) onUpdateBalance(num);
-    setEditingBalance(false);
-  };
-
   // Paid/pending fixed
   const paidFixed = fixedExpenses.filter((e) => e.monthlyPaid[selectedMonth]).reduce((s, e) => s + (e.monthlyValues[selectedMonth] ?? 0), 0);
   const pendingFixed = current.totalFixed - paidFixed;
