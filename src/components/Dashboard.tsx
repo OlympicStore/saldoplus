@@ -30,8 +30,6 @@ interface DashboardProps {
   salaryConfigs: SalaryConfig[];
   people: string[];
   selectedMonth: number;
-  currentBalance: number;
-  onUpdateBalance: (v: number) => void;
   financialGoals?: FinancialGoal[];
   userPlan?: string;
   accounts?: Account[];
@@ -39,11 +37,9 @@ interface DashboardProps {
 
 export const Dashboard = ({
   fixedExpenses, variableExpenses, incomes, salaryConfigs,
-  people, selectedMonth, currentBalance, onUpdateBalance,
+  people, selectedMonth,
   financialGoals = [], userPlan = "essencial", accounts = [],
 }: DashboardProps) => {
-  const [editingBalance, setEditingBalance] = useState(false);
-  const [editBalanceVal, setEditBalanceVal] = useState("");
 
   // === CALCULATIONS ===
   const getMonthData = (month: number) => {
