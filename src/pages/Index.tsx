@@ -349,7 +349,6 @@ const Index = () => {
               fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
               incomes={yearIncomes} salaryConfigs={yearSalaryConfigs}
               people={data.people} selectedMonth={selectedMonth}
-              currentBalance={homeBalance} onUpdateBalance={data.updateBalance}
               financialGoals={homeGoals}
               userPlan={userPlan}
               accounts={homeAccounts}

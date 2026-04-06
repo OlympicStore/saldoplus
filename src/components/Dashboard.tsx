@@ -67,29 +67,6 @@ export const Dashboard = ({
   const prevBalance = prev.totalIncome - prev.totalExpenses;
 
   // Auto-calculated balance: account balances + cumulative paid transactions
-  const autoBalance = useMemo(() => {
-    const accountTotal = accounts.reduce((s, a) => s + a.balance, 0);
-    let cumulative = 0;
-    for (let m = 0; m <= selectedMonth; m++) {
-      const d = getMonthData(m);
-      cumulative += d.totalIncome - d.totalExpensesPaid;
-    }
-    return accountTotal + cumulative;
-  }, [selectedMonth, fixedExpenses, variableExpenses, incomes, salaryConfigs, accounts]);
-
-  // Use manual override if set, otherwise auto-calculated
-  const displayBalance = currentBalance !== 0 ? currentBalance : autoBalance;
-
-  const startEditBalance = () => {
-    setEditBalanceVal(displayBalance.toFixed(2).replace(".", ","));
-    setEditingBalance(true);
-  };
-  const saveBalance = () => {
-    const num = parseFloat(editBalanceVal.replace(",", "."));
-    if (!isNaN(num)) onUpdateBalance(num);
-    setEditingBalance(false);
-  };
-
   // Paid/pending fixed
   const paidFixed = fixedExpenses.filter((e) => e.monthlyPaid[selectedMonth]).reduce((s, e) => s + (e.monthlyValues[selectedMonth] ?? 0), 0);
   const pendingFixed = current.totalFixed - paidFixed;
