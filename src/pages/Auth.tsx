@@ -25,6 +25,17 @@ const Auth = () => {
         if (error) throw error;
         navigate("/app");
       } else {
+        // Check if email is registered in Stripe before allowing signup
+        const { data: checkData, error: checkError } = await supabase.functions.invoke("check-email-allowed", {
+          body: { email },
+        });
+        if (checkError) throw new Error("Erro ao verificar email. Tente novamente.");
+        if (!checkData?.allowed) {
+          toast.error("Este email não tem um pagamento associado. Adquira um plano primeiro.");
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
           email, password,
           options: {
