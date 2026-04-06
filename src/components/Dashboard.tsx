@@ -197,40 +197,8 @@ export const Dashboard = ({
 
   return (
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
-      {/* Saldo acumulado + gráfico evolução */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 flex flex-col items-center justify-center">
-          <span className="label-caps mb-2">Saldo Acumulado</span>
-          {editingBalance ? (
-            <div className="flex items-center justify-center gap-2">
-              <input
-                autoFocus
-                value={editBalanceVal}
-                onChange={(e) => setEditBalanceVal(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && saveBalance()}
-                className="w-40 text-2xl font-semibold font-mono text-center bg-background border border-primary rounded-lg px-3 py-1 focus:outline-none"
-              />
-              <button onClick={saveBalance} className="text-status-paid"><Check className="h-5 w-5" /></button>
-              <button onClick={() => setEditingBalance(false)} className="text-text-muted"><X className="h-5 w-5" /></button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center gap-2">
-              <p className={`display-value ${displayBalance >= 0 ? "text-foreground" : "text-status-negative"}`}>
-                {fmt(displayBalance)}
-              </p>
-              <button onClick={startEditBalance} className="text-text-muted hover:text-foreground transition-colors">
-                <Pencil className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-          <p className="text-xs text-text-muted mt-1">
-            {currentBalance !== 0 ? "Valor editado manualmente" : "Calculado automaticamente com base nos registos"}
-            {currentBalance !== 0 && (
-              <button onClick={() => onUpdateBalance(0)} className="ml-2 underline hover:text-foreground">repor automático</button>
-            )}
-          </p>
-        </div>
-
+      {/* Evolução do saldo */}
+      <div className="mb-6">
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <span className="label-caps mb-3 block">Evolução do Saldo</span>
           <ResponsiveContainer width="100%" height={160}>

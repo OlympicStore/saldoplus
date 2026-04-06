@@ -83,6 +83,13 @@
   }
 }
 
+/* Hide Lovable badge */
+#lovable-badge,
+a[href*="lovable.dev"][style],
+div[class*="lovable"] {
+  display: none !important;
+}
+
 @layer utilities {
   .label-caps {
     @apply text-[10px] font-bold uppercase tracking-[0.1em];
