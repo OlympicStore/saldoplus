@@ -500,6 +500,11 @@ const Pricing = () => {
                   ))}
                 </ul>
 
+                <p className="text-xs text-amber-600 font-medium mb-3 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Últimos {plan.id === "essencial" ? "12" : plan.id === "casa" ? "8" : "5"} acessos com este preço
+                </p>
+
                 <button onClick={() => handleSelectPlan(plan.id)}
                   className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all ${
                     plan.popular
