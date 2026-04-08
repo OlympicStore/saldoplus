@@ -5,6 +5,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { fbTrackPurchase } from "@/lib/fbPixel";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -29,6 +30,8 @@ const PaymentSuccess = () => {
         if (error) throw error;
         if (data?.success) {
           setStatus("success");
+          const PLAN_VALUES: Record<string, number> = { essencial: 15.99, casa: 27.99, pro: 47.99 };
+          fbTrackPurchase(plan, PLAN_VALUES[plan] || 0);
           await refreshProfile();
           toast.success("Plano ativado com sucesso!");
         } else {

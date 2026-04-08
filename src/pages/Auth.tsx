@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { fbTrackLead } from "@/lib/fbPixel";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -44,6 +45,7 @@ const Auth = () => {
           },
         });
         if (error) throw error;
+        fbTrackLead();
         toast.success("Conta criada! Verifique o seu email para confirmar.");
       }
     } catch (err: any) {

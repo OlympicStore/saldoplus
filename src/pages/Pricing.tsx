@@ -5,6 +5,7 @@ import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronD
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { fbTrackInitiateCheckout } from "@/lib/fbPixel";
 import AccountDropdown from "@/components/AccountDropdown";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import dashboardGoals from "@/assets/dashboard-goals.png";
@@ -153,6 +154,10 @@ const Pricing = () => {
   const handleSelectPlan = (planId: string) => {
     const link = PAYMENT_LINKS[planId];
     if (!link) return;
+
+    const plan = PLANS.find((p) => p.id === planId);
+    const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
+    fbTrackInitiateCheckout(planId, value);
 
     const separator = link.includes("?") ? "&" : "?";
     const email = user?.email || "";
