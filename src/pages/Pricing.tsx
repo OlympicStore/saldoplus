@@ -267,8 +267,8 @@ const Pricing = () => {
               <p className="text-sm text-text-muted mt-1">portugueses já controlam o seu dinheiro</p>
             </div>
             <div ref={savingsCounter.ref}>
-              <p className="text-3xl sm:text-4xl font-bold text-primary font-mono tabular-nums">{savingsCounter.count}%</p>
-              <p className="text-sm text-text-muted mt-1">poupam mais no 1.º mês</p>
+              <p className="text-3xl sm:text-4xl font-bold text-primary font-mono tabular-nums">€{savingsCounter.count}/mês</p>
+              <p className="text-sm text-text-muted mt-1">Em média, os utilizadores poupam</p>
             </div>
             <div ref={timeCounter.ref}>
               <p className="text-3xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">{timeCounter.count} min</p>
