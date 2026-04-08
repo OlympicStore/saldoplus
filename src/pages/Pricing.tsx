@@ -127,11 +127,11 @@ const FAQS = [
 ];
 
 const FEATURES_GRID = [
-  { icon: PieChart, title: "Visão clara dos gastos", desc: "Gráficos que mostram exatamente para onde vai cada euro." },
+  { icon: PieChart, title: "Visão clara dos gastos", desc: "Veja exatamente onde está a perder dinheiro" },
   { icon: TrendingUp, title: "Evolução do saldo", desc: "Acompanhe a evolução mês a mês com gráficos automáticos." },
-  { icon: Target, title: "Metas de poupança", desc: "Defina objetivos e veja o progresso em tempo real." },
+  { icon: Target, title: "Metas de poupança", desc: "Veja exatamente onde está a perder dinheiro" },
   { icon: ClipboardCheck, title: "Controlo de contas", desc: "Saiba o estado de cada conta: paga, pendente ou em dívida." },
-  { icon: Users, title: "Divisão por pessoa", desc: "Divida despesas de forma justa entre todos os da casa." },
+  { icon: Users, title: "Divisão por pessoa", desc: "Divida contas sem discussões" },
   { icon: Shield, title: "100% seguro", desc: "Dados encriptados e privados. Só você tem acesso." },
 ];
 
@@ -149,7 +149,7 @@ const Pricing = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const usersCounter = useCounter(500);
-  const savingsCounter = useCounter(35);
+  const savingsCounter = useCounter(150);
   const timeCounter = useCounter(5);
 
   const handleSelectPlan = (planId: string) => {
@@ -219,8 +219,8 @@ const Pricing = () => {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-foreground tracking-tight leading-[1.08] mb-6">
-                Saiba para onde vai cada euro
-                <span className="text-primary block mt-2">— em 5 minutos por semana</span>
+                Deixe de chegar ao fim do mês sem saber para onde foi o dinheiro.
+                <span className="text-primary block mt-4">— em 5 minutos por semana</span>
               </h1>
 
               <p className="text-text-secondary text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
@@ -230,7 +230,7 @@ const Pricing = () => {
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
                 <a href={user ? undefined : "#precos"} onClick={user ? () => navigate("/app") : undefined}
                   className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer">
-                  Começar a organizar agora
+                  Criar conta em 1 minuto
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
                 </a>
                 <a href="#precos"
@@ -264,11 +264,11 @@ const Pricing = () => {
           <div className="grid grid-cols-3 gap-8 text-center">
             <div ref={usersCounter.ref}>
               <p className="text-3xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">+{usersCounter.count}</p>
-              <p className="text-sm text-text-muted mt-1">utilizadores ativos</p>
+              <p className="text-sm text-text-muted mt-1">portugueses já controlam o seu dinheiro</p>
             </div>
             <div ref={savingsCounter.ref}>
-              <p className="text-3xl sm:text-4xl font-bold text-primary font-mono tabular-nums">{savingsCounter.count}%</p>
-              <p className="text-sm text-text-muted mt-1">poupam mais no 1.º mês</p>
+              <p className="text-3xl sm:text-4xl font-bold text-primary font-mono tabular-nums">€{savingsCounter.count}/mês</p>
+              <p className="text-sm text-text-muted mt-1">Em média, os utilizadores poupam</p>
             </div>
             <div ref={timeCounter.ref}>
               <p className="text-3xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">{timeCounter.count} min</p>
@@ -283,7 +283,7 @@ const Pricing = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
             className="bg-surface rounded-2xl border border-border-subtle/60 p-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Isto parece-lhe familiar?</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6">Se isto acontece contigo...</h2>
             <div className="space-y-3">
               {PROBLEMS.map((p, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
