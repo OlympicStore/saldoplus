@@ -119,7 +119,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   { q: "Preciso saber de Excel ou contabilidade?", a: "Não! O Saldo+ é desenhado para iniciantes. Basta inserir os valores e nós fazemos os cálculos." },
-  { q: "Funciona no telemóvel?", a: "Sim, o Saldo+ é 100% responsivo e funciona perfeitamente no telemóvel, tablet e computador." },
+  { q: "Funciona no telemóve e computadorl?", a: "Sim, o Saldo+ é 100% responsivo e funciona perfeitamente no telemóvel, tablet e computador." },
   { q: "É pagamento único?", a: "Sim! Paga uma vez e tem acesso completo durante 1 ano. Sem mensalidades escondidas." },
   { q: "Os meus dados estão seguros?", a: "Absolutamente. Usamos encriptação de ponta e os seus dados são privados — só você tem acesso." },
   { q: "Posso mudar de plano depois?", a: "Sim, pode fazer upgrade a qualquer momento e só paga a diferença." },
