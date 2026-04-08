@@ -230,7 +230,7 @@ const Pricing = () => {
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
                 <a href={user ? undefined : "#precos"} onClick={user ? () => navigate("/app") : undefined}
                   className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer">
-                  Começar a organizar agora
+                  Criar conta em 1 minuto
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
                 </a>
                 <a href="#precos"
