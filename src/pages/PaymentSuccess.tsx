@@ -5,6 +5,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { fbTrackPurchase } from "@/lib/fbPixel";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
