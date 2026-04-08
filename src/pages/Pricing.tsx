@@ -219,8 +219,8 @@ const Pricing = () => {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-foreground tracking-tight leading-[1.08] mb-6">
-                Saiba para onde vai cada euro
-                <span className="text-primary block mt-2">— em 5 minutos por semana</span>
+                Deixe de chegar ao fim do mês sem saber para onde foi o dinheiro.
+                <span className="text-primary block mt-4">— em 5 minutos por semana</span>
               </h1>
 
               <p className="text-text-secondary text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
