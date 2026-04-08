@@ -129,7 +129,7 @@ const FAQS = [
 const FEATURES_GRID = [
   { icon: PieChart, title: "Visão clara dos gastos", desc: "Veja exatamente onde está a perder dinheiro" },
   { icon: TrendingUp, title: "Evolução do saldo", desc: "Acompanhe a evolução mês a mês com gráficos automáticos." },
-  { icon: Target, title: "Metas de poupança", desc: "Veja exatamente onde está a perder dinheiro" },
+  { icon: Target, title: "Metas de poupança", desc: "Defina objetivos e veja o progresso em tempo real." },
   { icon: ClipboardCheck, title: "Controlo de contas", desc: "Saiba o estado de cada conta: paga, pendente ou em dívida." },
   { icon: Users, title: "Divisão por pessoa", desc: "Divida contas sem discussões" },
   { icon: Shield, title: "100% seguro", desc: "Dados encriptados e privados. Só você tem acesso." },
