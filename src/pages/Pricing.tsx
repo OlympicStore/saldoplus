@@ -155,6 +155,10 @@ const Pricing = () => {
     const link = PAYMENT_LINKS[planId];
     if (!link) return;
 
+    const plan = PLANS.find((p) => p.id === planId);
+    const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
+    fbTrackInitiateCheckout(planId, value);
+
     const separator = link.includes("?") ? "&" : "?";
     const email = user?.email || "";
     const url = email

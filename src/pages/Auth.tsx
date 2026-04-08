@@ -45,6 +45,7 @@ const Auth = () => {
           },
         });
         if (error) throw error;
+        fbTrackLead();
         toast.success("Conta criada! Verifique o seu email para confirmar.");
       }
     } catch (err: any) {
