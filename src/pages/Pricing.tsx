@@ -294,6 +294,10 @@ const Pricing = () => {
                 </motion.div>
               ))}
             </div>
+            <p className="text-sm text-text-muted mt-5 italic leading-relaxed">
+              A maioria das pessoas não tem um sistema — apenas tentam "controlar melhor."
+              <br />E isso nunca funciona.
+            </p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
@@ -313,6 +317,9 @@ const Pricing = () => {
                 </motion.div>
               ))}
             </div>
+            <p className="text-sm text-primary/80 mt-5 font-semibold leading-relaxed">
+              Sem Excel. Sem complicações. Sem stress. Mais dinheiro.
+            </p>
           </motion.div>
         </div>
       </section>
