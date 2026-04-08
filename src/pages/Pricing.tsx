@@ -119,7 +119,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   { q: "Preciso saber de Excel ou contabilidade?", a: "Não! O Saldo+ é desenhado para iniciantes. Basta inserir os valores e nós fazemos os cálculos." },
-  { q: "Funciona no telemóve e computadorl?", a: "Sim, o Saldo+ é 100% responsivo e funciona perfeitamente no telemóvel, tablet e computador." },
+  { q: "Funciona no telemóvel e computador?", a: "Sim, o Saldo+ é 100% responsivo e funciona perfeitamente no telemóvel, tablet e computador." },
   { q: "É pagamento único?", a: "Sim! Paga uma vez e tem acesso completo durante 1 ano. Sem mensalidades escondidas." },
   { q: "Os meus dados estão seguros?", a: "Absolutamente. Usamos encriptação de ponta e os seus dados são privados — só você tem acesso." },
   { q: "Posso mudar de plano depois?", a: "Sim, pode fazer upgrade a qualquer momento e só paga a diferença." },
@@ -437,6 +437,126 @@ const Pricing = () => {
         </div>
       </section>
 
+      {/* CTA after testimonials */}
+      <section className="bg-surface border-y border-border-subtle/60 py-12">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <p className="text-text-muted text-lg mb-6">Junte-se a quem já controla as suas finanças</p>
+            <a href="#precos"
+              className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+              Criar conta em 1 minuto
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+            </a>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Why Saldo+ is different */}
+      <section className="max-w-6xl mx-auto px-4 py-20">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+            Porque o Saldo<span className="text-primary font-black">+</span> é diferente
+          </h2>
+          <p className="text-text-muted text-lg">Sem complicações. Sem curva de aprendizagem.</p>
+        </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="space-y-3">
+            {[
+              "Não precisa de Excel nem folhas de cálculo",
+              "Não é complicado como apps bancárias",
+              "Sem jargão financeiro confuso",
+              "Sem anúncios nem venda dos seus dados",
+            ].map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="flex items-center gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/10">
+                <span className="text-destructive font-bold text-lg">✕</span>
+                <p className="text-foreground text-sm">{item}</p>
+              </motion.div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            {[
+              "Feito para portugueses, em português",
+              "5 minutos por semana é suficiente",
+              "Interface simples e intuitiva",
+              "Os seus dados são 100% privados",
+            ].map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: 10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                <Check className="h-5 w-5 text-primary shrink-0" />
+                <p className="text-foreground text-sm">{item}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Before vs After */}
+      <section className="bg-surface border-y border-border-subtle/60 py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Antes vs Depois</h2>
+            <p className="text-text-muted text-lg">Como muda a vida de quem usa o Saldo+</p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+              className="rounded-2xl border border-destructive/20 bg-destructive/5 p-8">
+              <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                <span className="text-2xl">😰</span> Antes do Saldo+
+              </h3>
+              <ul className="space-y-4">
+                {[
+                  { emoji: "💸", text: "Dinheiro desaparece sem explicação" },
+                  { emoji: "📊", text: "Zero visibilidade sobre os gastos" },
+                  { emoji: "😤", text: "Discussões sobre quem paga o quê" },
+                  { emoji: "🎯", text: "Metas? Que metas?" },
+                  { emoji: "📝", text: "Contas espalhadas entre apps e papéis" },
+                ].map((item, i) => (
+                  <motion.li key={i} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-center gap-3 text-foreground">
+                    <span className="text-lg">{item.emoji}</span>
+                    <span className="text-sm">{item.text}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+              className="rounded-2xl border border-primary/20 bg-primary/5 p-8">
+              <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                <span className="text-2xl">🎉</span> Depois do Saldo+
+              </h3>
+              <ul className="space-y-4">
+                {[
+                  { emoji: "✅", text: "Sabe exatamente onde vai cada euro" },
+                  { emoji: "📈", text: "Gráficos claros de evolução mensal" },
+                  { emoji: "🤝", text: "Divisão justa e automática de despesas" },
+                  { emoji: "🎯", text: "Metas definidas com progresso real" },
+                  { emoji: "🧘", text: "Paz de espírito e controlo total" },
+                ].map((item, i) => (
+                  <motion.li key={i} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-center gap-3 text-foreground">
+                    <span className="text-lg">{item.emoji}</span>
+                    <span className="text-sm">{item.text}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="text-center mt-10">
+            <a href="#precos"
+              className="group inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+              Quero ter controlo — Criar conta
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
+            </a>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section id="precos" className="bg-surface border-y border-border-subtle/60 py-20">
         <div className="max-w-6xl mx-auto px-4">
@@ -499,6 +619,11 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
+
+                <p className="text-xs text-amber-600 font-medium mb-3 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Últimos {plan.id === "essencial" ? "12" : plan.id === "casa" ? "8" : "5"} acessos com este preço
+                </p>
 
                 <button onClick={() => handleSelectPlan(plan.id)}
                   className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all ${
