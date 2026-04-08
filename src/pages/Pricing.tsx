@@ -283,7 +283,7 @@ const Pricing = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
             className="bg-surface rounded-2xl border border-border-subtle/60 p-8">
-            <h2 className="text-2xl font-bold text-foreground mb-6">Isto parece-lhe familiar?</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6">Se isto acontece contigo...</h2>
             <div className="space-y-3">
               {PROBLEMS.map((p, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
