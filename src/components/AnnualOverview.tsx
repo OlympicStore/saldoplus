@@ -248,12 +248,9 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
             <span className="label-caps mb-3 block">Resumo de Metas</span>
             <div className="space-y-3">
               {(["short", "medium", "long"] as const).map((term) => {
-                const mockGoals: Record<string, { count: number; current: number; target: number }> = {
-                  short: { count: 3, current: 6500, target: 28000 },
-                  medium: { count: 3, current: 19000, target: 120000 },
-                  long: { count: 3, current: 90000, target: 1800000 },
-                };
-                const { count, current, target } = mockGoals[term];
+                const termGoals = goals.filter((g) => g.term === term);
+                const current = termGoals.reduce((s, g) => s + g.currentValue, 0);
+                const target = termGoals.reduce((s, g) => s + g.totalValue, 0);
                 const pct = target > 0 ? (current / target) * 100 : 0;
                 const colors = TERM_COLORS[term];
                 return (
@@ -266,7 +263,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
                       <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(pct, 100)}%` }}
                         transition={{ duration: 0.6 }} className={`h-full rounded-full ${colors.bar}`} />
                     </div>
-                    <p className="text-[10px] text-text-muted mt-0.5">{count} metas · {pct.toFixed(0)}%</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">{termGoals.length} metas · {pct.toFixed(0)}%</p>
                   </div>
                 );
               })}
