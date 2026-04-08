@@ -106,41 +106,32 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
 
   const statusLabel = (s: BillStatus) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
 
-  // --- Annual Dashboard Data --- (data already filtered by year from parent)
-
-  const totalFixedYear = Array.from({ length: 12 }, (_, m) =>
-    fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
-  ).reduce((a, b) => a + b, 0);
-
-  const totalVariableYear = variableExpenses.reduce((s, e) => s + e.value, 0);
+  // --- MOCK DATA FOR SCREENSHOT (temporary) ---
+  const totalFixedYear = 14280;
+  const totalVariableYear = 8940;
   const totalYear = totalFixedYear + totalVariableYear;
 
-  // Monthly breakdown for bar chart
   const monthlyData = MONTHS.map((label, m) => {
-    const fixed = fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0);
-    const variable = variableExpenses.filter((e) => new Date(e.date).getMonth() === m).reduce((s, e) => s + e.value, 0);
-    return { name: label, Fixos: fixed, Variáveis: variable };
+    const mockFixed = [1050, 1120, 1180, 1250, 1200, 1150, 1300, 1180, 1250, 1100, 1200, 1300];
+    const mockVariable = [680, 720, 850, 790, 640, 710, 830, 760, 690, 820, 750, 700];
+    return { name: label, Fixos: mockFixed[m], Variáveis: mockVariable[m] };
   });
 
-  // Per person annual
-  const personData = people.map((person) => {
-    const fixed = Array.from({ length: 12 }, (_, m) =>
-      fixedExpenses.filter((e) => e.monthlyResponsible[m] === person).reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
-    ).reduce((a, b) => a + b, 0);
-    const variable = variableExpenses.filter((e) => e.responsible === person).reduce((s, e) => s + e.value, 0);
-    return { name: person, value: fixed + variable };
-  }).filter((d) => d.value > 0);
+  const personData = [
+    { name: "João", value: 11520 },
+    { name: "Maria", value: 11700 },
+  ];
 
-  // Category breakdown for variable expenses
-  const categoryData = variableExpenses.reduce<Record<string, number>>((acc, e) => {
-    acc[e.category] = (acc[e.category] ?? 0) + e.value;
-    return acc;
-  }, {});
-  const categoryPieData = Object.entries(categoryData).map(([name, value]) => ({ name, value }));
+  const categoryPieData = [
+    { name: "Supermercado", value: 3200 },
+    { name: "Transportes", value: 1850 },
+    { name: "Restaurantes", value: 1420 },
+    { name: "Saúde", value: 980 },
+    { name: "Outros", value: 1490 },
+  ];
 
-  // Goals summary
-  const totalGoalsCurrent = goals.reduce((s, g) => s + g.currentValue, 0);
-  const totalGoalsTarget = goals.reduce((s, g) => s + g.totalValue, 0);
+  const totalGoalsCurrent = 115500;
+  const totalGoalsTarget = 1948000;
   const goalsPct = totalGoalsTarget > 0 ? (totalGoalsCurrent / totalGoalsTarget) * 100 : 0;
 
   return (
@@ -248,9 +239,12 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
             <span className="label-caps mb-3 block">Resumo de Metas</span>
             <div className="space-y-3">
               {(["short", "medium", "long"] as const).map((term) => {
-                const termGoals = goals.filter((g) => g.term === term);
-                const current = termGoals.reduce((s, g) => s + g.currentValue, 0);
-                const target = termGoals.reduce((s, g) => s + g.totalValue, 0);
+                const mockGoals: Record<string, { count: number; current: number; target: number }> = {
+                  short: { count: 3, current: 6500, target: 28000 },
+                  medium: { count: 3, current: 19000, target: 120000 },
+                  long: { count: 3, current: 90000, target: 1800000 },
+                };
+                const { count, current, target } = mockGoals[term];
                 const pct = target > 0 ? (current / target) * 100 : 0;
                 const colors = TERM_COLORS[term];
                 return (
@@ -263,7 +257,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
                       <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(pct, 100)}%` }}
                         transition={{ duration: 0.6 }} className={`h-full rounded-full ${colors.bar}`} />
                     </div>
-                    <p className="text-[10px] text-text-muted mt-0.5">{termGoals.length} metas · {pct.toFixed(0)}%</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">{count} metas · {pct.toFixed(0)}%</p>
                   </div>
                 );
               })}
