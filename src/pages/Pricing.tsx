@@ -671,10 +671,10 @@ const Pricing = () => {
         <div className="relative max-w-3xl mx-auto px-4 py-20 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Pronto para controlar o seu dinheiro?
+              Pronto para finalmente controlar o seu dinheiro?
             </h2>
             <p className="text-text-muted text-lg mb-8 max-w-lg mx-auto">
-              Junte-se a +500 portugueses que já organizam as suas finanças com o Saldo+. Comece hoje — leva menos de 5 minutos.
+              Junte-se a +500 portugueses que já sabem para onde vai cada euro.
             </p>
             <button onClick={() => user ? navigate("/app") : navigate("/auth")}
               className="group px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:opacity-90 transition-all inline-flex items-center gap-2 shadow-xl shadow-primary/25">
