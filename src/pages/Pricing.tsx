@@ -350,7 +350,7 @@ const Pricing = () => {
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Veja o Saldo+ em ação</h2>
           <p className="text-text-muted text-lg">Ecrãs reais da aplicação — sem truques</p>
         </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <div className="rounded-2xl overflow-hidden shadow-xl border border-border-subtle/60">
               <img src={dashboardGoals} alt="Metas financeiras do Saldo+ com progresso por objetivo" loading="lazy" width={1280} height={720} className="w-full h-auto" />
@@ -361,14 +361,6 @@ const Pricing = () => {
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.15 }}>
             <div className="rounded-2xl overflow-hidden shadow-xl border border-border-subtle/60">
-              <img src={dashboardBills} alt="Controlo de contas do Saldo+ com estado de pagamento mensal" loading="lazy" width={1280} height={720} className="w-full h-auto" />
-            </div>
-            <p className="text-sm text-text-muted mt-3 text-center">
-              Controlo de contas — estado de pagamento mês a mês
-            </p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
-            <div className="rounded-2xl overflow-hidden shadow-xl border border-border-subtle/60">
               <img src={dashboardAnnual} alt="Dashboard anual do Saldo+ com totais, gráfico de gastos mensais, categorias e resumo de metas" loading="lazy" width={1280} height={720} className="w-full h-auto" />
             </div>
             <p className="text-sm text-text-muted mt-3 text-center">
@@ -376,6 +368,15 @@ const Pricing = () => {
             </p>
           </motion.div>
         </div>
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}
+          className="max-w-4xl mx-auto">
+          <div className="rounded-2xl overflow-hidden shadow-xl border border-border-subtle/60">
+            <img src={dashboardBills} alt="Controlo de contas do Saldo+ com estado de pagamento mensal" loading="lazy" width={1280} height={720} className="w-full h-auto" />
+          </div>
+          <p className="text-sm text-text-muted mt-3 text-center">
+            Controlo de contas — estado de pagamento mês a mês
+          </p>
+        </motion.div>
       </section>
 
       {/* How it works */}
