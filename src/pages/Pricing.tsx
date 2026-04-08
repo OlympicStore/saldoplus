@@ -10,6 +10,7 @@ import AccountDropdown from "@/components/AccountDropdown";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import dashboardGoals from "@/assets/dashboard-goals.png";
 import dashboardBills from "@/assets/dashboard-bills.png";
+import dashboardAnnual from "@/assets/dashboard-annual.png";
 
 // Animated counter hook
 const useCounter = (end: number, duration = 2000) => {
