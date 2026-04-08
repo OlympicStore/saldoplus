@@ -149,7 +149,7 @@ const Pricing = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const usersCounter = useCounter(500);
-  const savingsCounter = useCounter(35);
+  const savingsCounter = useCounter(150);
   const timeCounter = useCounter(5);
 
   const handleSelectPlan = (planId: string) => {
