@@ -317,6 +317,9 @@ const Pricing = () => {
                 </motion.div>
               ))}
             </div>
+            <p className="text-sm text-primary/80 mt-5 font-semibold leading-relaxed">
+              Sem Excel. Sem complicações. Sem stress. Mais dinheiro.
+            </p>
           </motion.div>
         </div>
       </section>
