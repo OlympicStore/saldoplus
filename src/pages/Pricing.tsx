@@ -10,6 +10,7 @@ import AccountDropdown from "@/components/AccountDropdown";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import dashboardGoals from "@/assets/dashboard-goals.png";
 import dashboardBills from "@/assets/dashboard-bills.png";
+import dashboardAnnual from "@/assets/dashboard-annual.png";
 
 // Animated counter hook
 const useCounter = (end: number, duration = 2000) => {
@@ -227,11 +228,11 @@ const Pricing = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                <button onClick={() => user ? navigate("/app") : navigate("/auth")}
-                  className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                <a href={user ? undefined : "#precos"} onClick={user ? () => navigate("/app") : undefined}
+                  className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer">
                   Começar a organizar agora
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
-                </button>
+                </a>
                 <a href="#precos"
                   className="px-7 py-4 rounded-xl border border-border-subtle text-foreground font-medium text-base hover:bg-surface-hover transition-colors text-center">
                   Ver planos e preços
@@ -349,7 +350,7 @@ const Pricing = () => {
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Veja o Saldo+ em ação</h2>
           <p className="text-text-muted text-lg">Ecrãs reais da aplicação — sem truques</p>
         </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <div className="rounded-2xl overflow-hidden shadow-xl border border-border-subtle/60">
               <img src={dashboardGoals} alt="Metas financeiras do Saldo+ com progresso por objetivo" loading="lazy" width={1280} height={720} className="w-full h-auto" />
@@ -364,6 +365,14 @@ const Pricing = () => {
             </div>
             <p className="text-sm text-text-muted mt-3 text-center">
               Controlo de contas — estado de pagamento mês a mês
+            </p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.3 }}>
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-border-subtle/60">
+              <img src={dashboardAnnual} alt="Dashboard anual do Saldo+ com totais, gráfico de gastos mensais, categorias e resumo de metas" loading="lazy" width={1280} height={720} className="w-full h-auto" />
+            </div>
+            <p className="text-sm text-text-muted mt-3 text-center">
+              Dashboard anual — totais, gastos por mês, categorias e metas
             </p>
           </motion.div>
         </div>
