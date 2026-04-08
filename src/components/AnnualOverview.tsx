@@ -106,32 +106,41 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
 
   const statusLabel = (s: BillStatus) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
 
-  // --- MOCK DATA FOR SCREENSHOT (temporary) ---
-  const totalFixedYear = 14280;
-  const totalVariableYear = 8940;
+  // --- Annual Dashboard Data --- (data already filtered by year from parent)
+
+  const totalFixedYear = Array.from({ length: 12 }, (_, m) =>
+    fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
+  ).reduce((a, b) => a + b, 0);
+
+  const totalVariableYear = variableExpenses.reduce((s, e) => s + e.value, 0);
   const totalYear = totalFixedYear + totalVariableYear;
 
+  // Monthly breakdown for bar chart
   const monthlyData = MONTHS.map((label, m) => {
-    const mockFixed = [1050, 1120, 1180, 1250, 1200, 1150, 1300, 1180, 1250, 1100, 1200, 1300];
-    const mockVariable = [680, 720, 850, 790, 640, 710, 830, 760, 690, 820, 750, 700];
-    return { name: label, Fixos: mockFixed[m], Variáveis: mockVariable[m] };
+    const fixed = fixedExpenses.reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0);
+    const variable = variableExpenses.filter((e) => new Date(e.date).getMonth() === m).reduce((s, e) => s + e.value, 0);
+    return { name: label, Fixos: fixed, Variáveis: variable };
   });
 
-  const personData = [
-    { name: "João", value: 11520 },
-    { name: "Maria", value: 11700 },
-  ];
+  // Per person annual
+  const personData = people.map((person) => {
+    const fixed = Array.from({ length: 12 }, (_, m) =>
+      fixedExpenses.filter((e) => e.monthlyResponsible[m] === person).reduce((s, e) => s + (e.monthlyValues[m] ?? 0), 0)
+    ).reduce((a, b) => a + b, 0);
+    const variable = variableExpenses.filter((e) => e.responsible === person).reduce((s, e) => s + e.value, 0);
+    return { name: person, value: fixed + variable };
+  }).filter((d) => d.value > 0);
 
-  const categoryPieData = [
-    { name: "Supermercado", value: 3200 },
-    { name: "Transportes", value: 1850 },
-    { name: "Restaurantes", value: 1420 },
-    { name: "Saúde", value: 980 },
-    { name: "Outros", value: 1490 },
-  ];
+  // Category breakdown for variable expenses
+  const categoryData = variableExpenses.reduce<Record<string, number>>((acc, e) => {
+    acc[e.category] = (acc[e.category] ?? 0) + e.value;
+    return acc;
+  }, {});
+  const categoryPieData = Object.entries(categoryData).map(([name, value]) => ({ name, value }));
 
-  const totalGoalsCurrent = 115500;
-  const totalGoalsTarget = 1948000;
+  // Goals summary
+  const totalGoalsCurrent = goals.reduce((s, g) => s + g.currentValue, 0);
+  const totalGoalsTarget = goals.reduce((s, g) => s + g.totalValue, 0);
   const goalsPct = totalGoalsTarget > 0 ? (totalGoalsCurrent / totalGoalsTarget) * 100 : 0;
 
   return (
