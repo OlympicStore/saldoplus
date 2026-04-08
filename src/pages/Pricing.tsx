@@ -264,7 +264,7 @@ const Pricing = () => {
           <div className="grid grid-cols-3 gap-8 text-center">
             <div ref={usersCounter.ref}>
               <p className="text-3xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">+{usersCounter.count}</p>
-              <p className="text-sm text-text-muted mt-1">utilizadores ativos</p>
+              <p className="text-sm text-text-muted mt-1">portugueses já controlam o seu dinheiro</p>
             </div>
             <div ref={savingsCounter.ref}>
               <p className="text-3xl sm:text-4xl font-bold text-primary font-mono tabular-nums">{savingsCounter.count}%</p>
