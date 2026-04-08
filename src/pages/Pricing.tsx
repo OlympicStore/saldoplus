@@ -562,7 +562,7 @@ const Pricing = () => {
         <div className="max-w-6xl mx-auto px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Escolha o plano ideal para si
+              Um pequeno investimento para mudar as suas finanças 💰
             </h2>
             <p className="text-text-muted text-lg max-w-2xl mx-auto mb-2">
               Pagamento único · Acesso por 1 ano · Sem mensalidades
