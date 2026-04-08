@@ -362,6 +362,7 @@ const Index = () => {
             fixedExpenses={yearFixedExpenses}
             variableExpenses={yearVariableExpenses}
             investments={yearInvestments}
+            transfers={yearTransfers}
             onAdd={data.addAccount}
             onUpdate={data.updateAccount}
             onDelete={data.deleteAccount}
