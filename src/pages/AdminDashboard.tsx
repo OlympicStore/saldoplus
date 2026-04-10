@@ -23,7 +23,13 @@ interface UserProfile {
   plan_expires_at: string | null;
 }
 
-interface Stats {
+interface Suggestion {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  created_at: string;
+}
   total_users: number;
   by_plan: Record<string, number>;
   recent_users: UserProfile[] | null;
