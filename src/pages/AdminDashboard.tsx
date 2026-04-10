@@ -61,6 +61,7 @@ const AdminDashboard = () => {
   const [newUser, setNewUser] = useState({ full_name: "", email: "", password: "", plan: "essencial" as Plan });
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [recentPurchases, setRecentPurchases] = useState<UserProfile[]>([]);
+  const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({ essencial: "", casa: "", pro: "" });
   const [savingLinks, setSavingLinks] = useState(false);
 
   useEffect(() => {
