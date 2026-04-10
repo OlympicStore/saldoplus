@@ -74,13 +74,23 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [statsRes, usersRes, linksRes] = await Promise.all([
+    const [statsRes, usersRes, linksRes, suggestionsRes] = await Promise.all([
       supabase.rpc("get_admin_stats"),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("site_settings").select("key, value").like("key", "payment_link_%"),
+      supabase.from("suggestions").select("*").order("created_at", { ascending: false }).limit(20),
     ]);
     if (statsRes.data) setStats(statsRes.data as unknown as Stats);
-    if (usersRes.data) setUsers(usersRes.data as UserProfile[]);
+    if (usersRes.data) {
+      setUsers(usersRes.data as UserProfile[]);
+      // Recent purchases = users with a paid plan (casa or pro) sorted by plan_started_at
+      setRecentPurchases(
+        (usersRes.data as UserProfile[])
+          .filter((u) => u.plan !== "essencial" && u.plan_started_at)
+          .sort((a, b) => new Date(b.plan_started_at!).getTime() - new Date(a.plan_started_at!).getTime())
+          .slice(0, 10)
+      );
+    }
     if (linksRes.data) {
       const links: Record<string, string> = { essencial: "", casa: "", pro: "" };
       linksRes.data.forEach((s: any) => {
@@ -89,6 +99,7 @@ const AdminDashboard = () => {
       });
       setPaymentLinks(links);
     }
+    if (suggestionsRes.data) setSuggestions(suggestionsRes.data as Suggestion[]);
     setLoading(false);
   };
 
