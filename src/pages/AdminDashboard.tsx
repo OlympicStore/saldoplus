@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search,
   ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
+  MessageSquarePlus, ShoppingCart,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,6 +21,14 @@ interface UserProfile {
   created_at: string;
   plan_started_at: string | null;
   plan_expires_at: string | null;
+}
+
+interface Suggestion {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  created_at: string;
 }
 
 interface Stats {
@@ -50,6 +59,8 @@ const AdminDashboard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newUser, setNewUser] = useState({ full_name: "", email: "", password: "", plan: "essencial" as Plan });
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [recentPurchases, setRecentPurchases] = useState<UserProfile[]>([]);
   const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({ essencial: "", casa: "", pro: "" });
   const [savingLinks, setSavingLinks] = useState(false);
 
@@ -63,13 +74,23 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [statsRes, usersRes, linksRes] = await Promise.all([
+    const [statsRes, usersRes, linksRes, suggestionsRes] = await Promise.all([
       supabase.rpc("get_admin_stats"),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("site_settings").select("key, value").like("key", "payment_link_%"),
+      supabase.from("suggestions").select("*").order("created_at", { ascending: false }).limit(20),
     ]);
     if (statsRes.data) setStats(statsRes.data as unknown as Stats);
-    if (usersRes.data) setUsers(usersRes.data as UserProfile[]);
+    if (usersRes.data) {
+      setUsers(usersRes.data as UserProfile[]);
+      // Recent purchases = users with a paid plan (casa or pro) sorted by plan_started_at
+      setRecentPurchases(
+        (usersRes.data as UserProfile[])
+          .filter((u) => u.plan !== "essencial" && u.plan_started_at)
+          .sort((a, b) => new Date(b.plan_started_at!).getTime() - new Date(a.plan_started_at!).getTime())
+          .slice(0, 10)
+      );
+    }
     if (linksRes.data) {
       const links: Record<string, string> = { essencial: "", casa: "", pro: "" };
       linksRes.data.forEach((s: any) => {
@@ -78,6 +99,7 @@ const AdminDashboard = () => {
       });
       setPaymentLinks(links);
     }
+    if (suggestionsRes.data) setSuggestions(suggestionsRes.data as Suggestion[]);
     setLoading(false);
   };
 
@@ -293,6 +315,67 @@ const AdminDashboard = () => {
             Cole aqui os links de pagamento do Stripe para cada plano. Quando o utilizador pagar, o acesso é ativado automaticamente.
           </p>
         </motion.div>
+
+        {/* Suggestions & Recent Purchases Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Sugestões Recebidas */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}
+            className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-border-subtle/60 flex items-center gap-2">
+              <MessageSquarePlus className="h-4 w-4 text-primary" />
+              <span className="label-caps">Sugestões Recebidas ({suggestions.length})</span>
+            </div>
+            <div className="max-h-80 overflow-y-auto divide-y divide-border-subtle/40">
+              {suggestions.length === 0 ? (
+                <div className="px-5 py-8 text-center text-sm text-text-muted">Nenhuma sugestão recebida.</div>
+              ) : (
+                suggestions.map((s) => (
+                  <div key={s.id} className="p-4 hover:bg-surface-hover transition-colors">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <p className="text-sm font-semibold text-foreground">{s.name || "Anónimo"}</p>
+                      <span className="text-[10px] text-text-muted shrink-0">
+                        {new Date(s.created_at).toLocaleDateString("pt-PT")} {new Date(s.created_at).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-text-muted mb-1.5">{s.email}</p>
+                    <p className="text-sm text-text-secondary leading-relaxed">{s.message}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+
+          {/* Compras Recentes */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.29 }}
+            className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-border-subtle/60 flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4 text-status-paid" />
+              <span className="label-caps">Compras Recentes ({recentPurchases.length})</span>
+            </div>
+            <div className="max-h-80 overflow-y-auto divide-y divide-border-subtle/40">
+              {recentPurchases.length === 0 ? (
+                <div className="px-5 py-8 text-center text-sm text-text-muted">Nenhuma compra registada.</div>
+              ) : (
+                recentPurchases.map((u) => (
+                  <div key={u.id} className="p-4 hover:bg-surface-hover transition-colors flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{u.full_name || "—"}</p>
+                      <p className="text-xs text-text-muted truncate">{u.email}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${PLAN_COLORS[u.plan]}`}>
+                        {u.plan}
+                      </span>
+                      <span className="text-[10px] text-text-muted">
+                        {u.plan_started_at ? new Date(u.plan_started_at).toLocaleDateString("pt-PT") : "—"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
 
         {/* Users Table */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
