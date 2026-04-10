@@ -30,6 +30,8 @@ interface Suggestion {
   message: string;
   created_at: string;
 }
+
+interface Stats {
   total_users: number;
   by_plan: Record<string, number>;
   recent_users: UserProfile[] | null;
