@@ -316,6 +316,67 @@ const AdminDashboard = () => {
           </p>
         </motion.div>
 
+        {/* Suggestions & Recent Purchases Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Sugestões Recebidas */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}
+            className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-border-subtle/60 flex items-center gap-2">
+              <MessageSquarePlus className="h-4 w-4 text-primary" />
+              <span className="label-caps">Sugestões Recebidas ({suggestions.length})</span>
+            </div>
+            <div className="max-h-80 overflow-y-auto divide-y divide-border-subtle/40">
+              {suggestions.length === 0 ? (
+                <div className="px-5 py-8 text-center text-sm text-text-muted">Nenhuma sugestão recebida.</div>
+              ) : (
+                suggestions.map((s) => (
+                  <div key={s.id} className="p-4 hover:bg-surface-hover transition-colors">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <p className="text-sm font-semibold text-foreground">{s.name || "Anónimo"}</p>
+                      <span className="text-[10px] text-text-muted shrink-0">
+                        {new Date(s.created_at).toLocaleDateString("pt-PT")} {new Date(s.created_at).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-text-muted mb-1.5">{s.email}</p>
+                    <p className="text-sm text-text-secondary leading-relaxed">{s.message}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+
+          {/* Compras Recentes */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.29 }}
+            className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-border-subtle/60 flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4 text-status-paid" />
+              <span className="label-caps">Compras Recentes ({recentPurchases.length})</span>
+            </div>
+            <div className="max-h-80 overflow-y-auto divide-y divide-border-subtle/40">
+              {recentPurchases.length === 0 ? (
+                <div className="px-5 py-8 text-center text-sm text-text-muted">Nenhuma compra registada.</div>
+              ) : (
+                recentPurchases.map((u) => (
+                  <div key={u.id} className="p-4 hover:bg-surface-hover transition-colors flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{u.full_name || "—"}</p>
+                      <p className="text-xs text-text-muted truncate">{u.email}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${PLAN_COLORS[u.plan]}`}>
+                        {u.plan}
+                      </span>
+                      <span className="text-[10px] text-text-muted">
+                        {u.plan_started_at ? new Date(u.plan_started_at).toLocaleDateString("pt-PT") : "—"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
+
         {/* Users Table */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
           className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
