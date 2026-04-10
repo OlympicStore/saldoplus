@@ -59,7 +59,8 @@ const AdminDashboard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newUser, setNewUser] = useState({ full_name: "", email: "", password: "", plan: "essencial" as Plan });
-  const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({ essencial: "", casa: "", pro: "" });
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [recentPurchases, setRecentPurchases] = useState<UserProfile[]>([]);
   const [savingLinks, setSavingLinks] = useState(false);
 
   useEffect(() => {
