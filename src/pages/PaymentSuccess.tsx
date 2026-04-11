@@ -30,7 +30,7 @@ const PaymentSuccess = () => {
         if (error) throw error;
         if (data?.success) {
           setStatus("success");
-          const PLAN_VALUES: Record<string, number> = { essencial: 15.99, casa: 27.99, pro: 47.99 };
+          const PLAN_VALUES: Record<string, number> = { essencial: 15.99, casa: 28.99, pro: 47.99 };
           fbTrackPurchase(plan, PLAN_VALUES[plan] || 0);
           await refreshProfile();
           toast.success("Plano ativado com sucesso!");
