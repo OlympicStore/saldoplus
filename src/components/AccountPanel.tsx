@@ -186,7 +186,43 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Upgrade section */}
+      {isActive && availableUpgrades.length > 0 && (
+        <div className="bg-surface rounded-xl shadow-card border border-primary/20 p-5">
+          <h2 className="text-lg font-semibold text-foreground mb-1">Fazer upgrade</h2>
+          <p className="text-sm text-text-muted mb-4">
+            Pague apenas a diferença para desbloquear mais funcionalidades.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {availableUpgrades.map((plan) => {
+              const diff = UPGRADE_DIFF[profile.plan]?.[plan];
+              if (!diff) return null;
+              return (
+                <div key={plan} className="rounded-xl border border-border-subtle/60 bg-background p-4 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{PLAN_LABELS[plan]}</p>
+                    <p className="text-xs text-text-muted">
+                      +{diff.toFixed(2).replace(".", ",")}€ (diferença)
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleUpgrade(plan)}
+                    disabled={upgradingTo !== null}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {upgradingTo === plan ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ArrowUpRight className="h-4 w-4" />
+                    )}
+                    Upgrade
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
         <section className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <h2 className="text-lg font-semibold text-foreground mb-4">Dados da conta</h2>
 
