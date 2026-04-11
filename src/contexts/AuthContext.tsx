@@ -97,6 +97,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [syncAuthState]);
 
+  // Auto-refresh profile when user returns to the tab (e.g. after Stripe checkout)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && user) {
+        void refreshProfile();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [user, refreshProfile]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
