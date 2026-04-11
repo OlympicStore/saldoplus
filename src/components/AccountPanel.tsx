@@ -223,6 +223,8 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
           </div>
         </div>
       )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <h2 className="text-lg font-semibold text-foreground mb-4">Dados da conta</h2>
 
