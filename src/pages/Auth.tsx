@@ -165,6 +165,15 @@ const Auth = () => {
               {isLogin ? "Criar conta" : "Entrar"}
             </button>
           </p>
+
+          <div className="mt-6 pt-4 border-t border-border-subtle/40 text-center">
+            <p className="text-xs text-text-muted">
+              Ficou com dúvidas? Contacte-nos através de{" "}
+              <a href="mailto:contactosaldoplus@gmail.com" className="text-primary hover:underline font-medium">
+                contactosaldoplus@gmail.com
+              </a>
+            </p>
+          </div>
         </div>
       </motion.div>
     </div>
