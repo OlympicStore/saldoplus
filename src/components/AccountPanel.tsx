@@ -114,6 +114,28 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
     }
   };
 
+  const handleUpgrade = async (targetPlan: string) => {
+    setUpgradingTo(targetPlan);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-upgrade", {
+        body: { target_plan: targetPlan },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Não foi possível criar a sessão de pagamento.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao iniciar upgrade.");
+    } finally {
+      setUpgradingTo(null);
+    }
+  };
+
+  const currentPlanIdx = PLAN_ORDER.indexOf(profile.plan);
+  const availableUpgrades = PLAN_ORDER.filter((_, i) => i > currentPlanIdx);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
