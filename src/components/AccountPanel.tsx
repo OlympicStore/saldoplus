@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X } from "lucide-react";
+import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X, ArrowUpRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
