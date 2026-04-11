@@ -76,7 +76,7 @@ serve(async (req) => {
     if (telegramToken && telegramChatId) {
       const amount = session.amount_total ? (session.amount_total / 100).toFixed(2) : "?";
 
-      const PLAN_PRICES: Record<string, number> = { essencial: 15.99, casa: 27.99, pro: 47.99 };
+      const PLAN_PRICES: Record<string, number> = { essencial: 15.99, casa: 28.99, pro: 47.99 };
       const { data: paidProfiles } = await supabaseAdmin
         .from("profiles")
         .select("plan")
