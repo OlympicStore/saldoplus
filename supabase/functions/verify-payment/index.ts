@@ -70,16 +70,36 @@ serve(async (req) => {
 
     if (updateError) throw new Error("Failed to update plan: " + updateError.message);
 
-    // Send Telegram notification
+    // Send Telegram notification with sales totals
     const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
     const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID");
     if (telegramToken && telegramChatId) {
       const amount = session.amount_total ? (session.amount_total / 100).toFixed(2) : "?";
+
+      const PLAN_PRICES: Record<string, number> = { essencial: 15.99, casa: 27.99, pro: 47.99 };
+      const { data: paidProfiles } = await supabaseAdmin
+        .from("profiles")
+        .select("plan")
+        .not("plan_started_at", "is", null);
+
+      const counts: Record<string, number> = { essencial: 0, casa: 0, pro: 0 };
+      (paidProfiles || []).forEach((p: any) => { if (counts[p.plan] !== undefined) counts[p.plan]++; });
+      const totalEssencial = (counts.essencial * PLAN_PRICES.essencial).toFixed(2);
+      const totalCasa = (counts.casa * PLAN_PRICES.casa).toFixed(2);
+      const totalPro = (counts.pro * PLAN_PRICES.pro).toFixed(2);
+      const totalVendas = (counts.essencial * PLAN_PRICES.essencial + counts.casa * PLAN_PRICES.casa + counts.pro * PLAN_PRICES.pro).toFixed(2);
+
+      const esc = (s: string) => s.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
       const message = `💰 *Nova venda no Saldo\\+\\!*\n\n` +
-        `📧 Email: ${(user.email || "?").replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}\n` +
-        `📋 Plano: *${plan.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}*\n` +
-        `💶 Valor: ${amount}€\n` +
-        `📅 Data: ${new Date().toLocaleDateString("pt-PT")}`;
+        `📧 Email: ${esc(user.email || "?")}\n` +
+        `📋 Plano: *${esc(plan)}*\n` +
+        `💶 Valor: ${esc(amount)}€\n` +
+        `📅 Data: ${esc(new Date().toLocaleDateString("pt-PT"))}\n\n` +
+        `📊 *Resumo de vendas:*\n` +
+        `Essencial: ${esc(totalEssencial)}€ \\(${counts.essencial} vendas\\)\n` +
+        `Casa: ${esc(totalCasa)}€ \\(${counts.casa} vendas\\)\n` +
+        `Pro: ${esc(totalPro)}€ \\(${counts.pro} vendas\\)\n` +
+        `*Total: ${esc(totalVendas)}€*`;
       try {
         await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
           method: "POST",
