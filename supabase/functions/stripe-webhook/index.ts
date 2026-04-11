@@ -125,6 +125,28 @@ serve(async (req) => {
       }
 
       console.log(`[STRIPE-WEBHOOK] Plan ${plan} activated for user ${profile.id} until ${expiresAt.toISOString()}`);
+
+      // Send Telegram notification
+      const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
+      const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID");
+      if (telegramToken && telegramChatId) {
+        const amount = session.amount_total ? (session.amount_total / 100).toFixed(2) : "?";
+        const message = `💰 *Nova venda no Saldo\\+\\!*\n\n` +
+          `📧 Email: ${customerEmail?.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}\n` +
+          `📋 Plano: *${plan?.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')}*\n` +
+          `💶 Valor: ${amount}€\n` +
+          `📅 Data: ${new Date().toLocaleDateString("pt-PT")}`;
+        try {
+          await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: telegramChatId, text: message, parse_mode: "MarkdownV2" }),
+          });
+          console.log("[STRIPE-WEBHOOK] Telegram notification sent");
+        } catch (tgErr) {
+          console.error("[STRIPE-WEBHOOK] Telegram notification failed:", tgErr);
+        }
+      }
     }
 
     return new Response(JSON.stringify({ received: true }), {
