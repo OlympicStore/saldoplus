@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X } from "lucide-react";
+import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X, ArrowUpRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,19 @@ interface AccountPanelProps {
   onShowTour?: () => void;
 }
 
+const PLAN_PRICES: Record<string, number> = {
+  essencial: 15.99,
+  casa: 28.99,
+  pro: 47.99,
+};
+
+const UPGRADE_DIFF: Record<string, Record<string, number>> = {
+  essencial: { casa: 13.00, pro: 32.00 },
+  casa: { pro: 19.00 },
+};
+
+const PLAN_ORDER = ["essencial", "casa", "pro"];
+
 const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   const { user, profile, isAdmin, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
@@ -25,6 +38,7 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [upgradingTo, setUpgradingTo] = useState<string | null>(null);
 
   if (!user || !profile) return null;
 
@@ -100,6 +114,28 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
     }
   };
 
+  const handleUpgrade = async (targetPlan: string) => {
+    setUpgradingTo(targetPlan);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-upgrade", {
+        body: { target_plan: targetPlan },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Não foi possível criar a sessão de pagamento.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao iniciar upgrade.");
+    } finally {
+      setUpgradingTo(null);
+    }
+  };
+
+  const currentPlanIdx = PLAN_ORDER.indexOf(profile.plan);
+  const availableUpgrades = PLAN_ORDER.filter((_, i) => i > currentPlanIdx);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -149,6 +185,44 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
           </div>
         </div>
       </div>
+
+      {/* Upgrade section */}
+      {isActive && availableUpgrades.length > 0 && (
+        <div className="bg-surface rounded-xl shadow-card border border-primary/20 p-5">
+          <h2 className="text-lg font-semibold text-foreground mb-1">Fazer upgrade</h2>
+          <p className="text-sm text-text-muted mb-4">
+            Pague apenas a diferença para desbloquear mais funcionalidades.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {availableUpgrades.map((plan) => {
+              const diff = UPGRADE_DIFF[profile.plan]?.[plan];
+              if (!diff) return null;
+              return (
+                <div key={plan} className="rounded-xl border border-border-subtle/60 bg-background p-4 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{PLAN_LABELS[plan]}</p>
+                    <p className="text-xs text-text-muted">
+                      +{diff.toFixed(2).replace(".", ",")}€ (diferença)
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleUpgrade(plan)}
+                    disabled={upgradingTo !== null}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {upgradingTo === plan ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ArrowUpRight className="h-4 w-4" />
+                    )}
+                    Upgrade
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
