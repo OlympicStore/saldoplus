@@ -16,6 +16,19 @@ interface AccountPanelProps {
   onShowTour?: () => void;
 }
 
+const PLAN_PRICES: Record<string, number> = {
+  essencial: 15.99,
+  casa: 28.99,
+  pro: 47.99,
+};
+
+const UPGRADE_DIFF: Record<string, Record<string, number>> = {
+  essencial: { casa: 13.00, pro: 32.00 },
+  casa: { pro: 19.00 },
+};
+
+const PLAN_ORDER = ["essencial", "casa", "pro"];
+
 const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   const { user, profile, isAdmin, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
@@ -25,6 +38,7 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [upgradingTo, setUpgradingTo] = useState<string | null>(null);
 
   if (!user || !profile) return null;
 
