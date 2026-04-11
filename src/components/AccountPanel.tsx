@@ -122,7 +122,10 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
       });
       if (error) throw error;
       if (data?.url) {
-        window.location.href = data.url;
+        const checkoutWindow = window.open(data.url, "_blank", "noopener,noreferrer");
+        if (!checkoutWindow) {
+          window.location.assign(data.url);
+        }
       } else {
         throw new Error("Não foi possível criar a sessão de pagamento.");
       }
