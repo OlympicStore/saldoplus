@@ -65,11 +65,7 @@ serve(async (req) => {
       throw new Error("Só é possível fazer upgrade para um plano superior.");
     }
 
-    // Check plan is still active
-    if (!profile.plan_expires_at || new Date(profile.plan_expires_at).getTime() < Date.now()) {
-      throw new Error("O seu plano expirou. Por favor adquira um novo plano.");
-    }
-
+    // Note: we allow upgrades even if plan_expires_at is null (free essencial users)
     const priceId = UPGRADE_PRICES[currentPlan]?.[target_plan];
     if (!priceId) throw new Error("Upgrade path not available");
 
