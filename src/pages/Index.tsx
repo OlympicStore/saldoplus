@@ -334,7 +334,7 @@ const Index = () => {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === "dashboard" && (
           <>
-            {userPlan === "pro" && (
+            {(userPlan === "pro" || userPlan === "casa_segura_plus") && (
               <div className="mb-6 flex justify-end">
                 <AISuggestions
                   fixedExpenses={yearFixedExpenses}
@@ -418,6 +418,7 @@ const Index = () => {
             selectedYear={selectedYear}
           />
         )}
+        {activeTab === "minha_casa" && <MinhaCasa />}
         {activeTab === "account" && <AccountPanel onShowTour={handleShowTour} />}
       </main>
     </div>
