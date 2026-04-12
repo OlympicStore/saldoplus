@@ -236,10 +236,10 @@ const Index = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {partnerBranding?.brand_logo_url && (
-              <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-8 w-8 rounded-lg object-contain" />
+              <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-12 w-12 rounded-lg object-contain" />
             )}
             {partnerBranding?.consultant_photo_url && (
-              <img src={partnerBranding.consultant_photo_url} alt={partnerBranding.consultant_name || ""} className="h-8 w-8 rounded-full object-cover border border-border-subtle" />
+              <img src={partnerBranding.consultant_photo_url} alt={partnerBranding.consultant_name || ""} className="h-12 w-12 rounded-full object-cover border-2 border-border-subtle" />
             )}
             <div>
               <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-none">
