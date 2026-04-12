@@ -511,6 +511,8 @@ export type Database = {
       partners: {
         Row: {
           active: boolean
+          brand_color: string | null
+          brand_logo_url: string | null
           created_at: string
           email: string
           id: string
@@ -520,6 +522,8 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          brand_color?: string | null
+          brand_logo_url?: string | null
           created_at?: string
           email: string
           id?: string
@@ -529,6 +533,8 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          brand_color?: string | null
+          brand_logo_url?: string | null
           created_at?: string
           email?: string
           id?: string

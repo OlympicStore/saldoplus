@@ -55,7 +55,7 @@ const planTabs: Record<string, Tab[]> = {
 const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
 
 const Index = () => {
-  const { profile, isAdmin, signOut } = useAuth();
+  const { profile, isAdmin, partnerBranding, signOut } = useAuth();
   const { currentSubAccountId } = useSubAccount();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,6 +75,32 @@ const Index = () => {
   const [showTour, setShowTour] = useState(false);
 
   const handleShowTour = useCallback(() => setShowTour(true), []);
+
+  // Apply partner branding (override primary color)
+  useEffect(() => {
+    if (partnerBranding?.brand_color) {
+      const hex = partnerBranding.brand_color;
+      // Convert hex to HSL for CSS variable
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const l = (max + min) / 2;
+      let h = 0, s = 0;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        else if (max === g) h = ((b - r) / d + 2) / 6;
+        else h = ((r - g) / d + 4) / 6;
+      }
+      const hsl = `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+      document.documentElement.style.setProperty("--primary", hsl);
+      return () => {
+        document.documentElement.style.removeProperty("--primary");
+      };
+    }
+  }, [partnerBranding]);
 
   useEffect(() => {
     const nextTab = isTab(requestedTab) && allowedTabs.includes(requestedTab as Tab) ? (requestedTab as Tab) : "dashboard";
@@ -208,10 +234,15 @@ const Index = () => {
       <ExpirationBanner />
       <header className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
-          <h1 className="text-lg sm:text-xl font-bold tracking-tight">
-            <span className="text-foreground">Saldo</span>
-            <span className="text-primary text-2xl sm:text-3xl font-black leading-none">+</span>
-          </h1>
+          <div className="flex items-center gap-3">
+            {partnerBranding?.brand_logo_url && (
+              <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-8 w-8 rounded-lg object-contain" />
+            )}
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+              <span className="text-foreground">Saldo</span>
+              <span className="text-primary text-2xl sm:text-3xl font-black leading-none">+</span>
+            </h1>
+          </div>
           <div className="flex items-center gap-3">
             {profile && (
               <span className="text-xs text-text-muted hidden sm:inline">

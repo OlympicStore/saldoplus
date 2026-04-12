@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Building2, Plus, Mail, Users, Send, Loader2, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check,
+  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -20,6 +20,8 @@ interface Partner {
   plan_type: string;
   active: boolean;
   created_at: string;
+  brand_color: string | null;
+  brand_logo_url: string | null;
 }
 
 interface Invite {
@@ -56,6 +58,7 @@ const AdminPartners = () => {
   const [editingLimit, setEditingLimit] = useState<string | null>(null);
   const [editLimitValue, setEditLimitValue] = useState(0);
   const [creating, setCreating] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
 
   const [newPartner, setNewPartner] = useState({ name: "", email: "", plan_limit: 25, plan_type: "starter" });
@@ -183,6 +186,52 @@ const AdminPartners = () => {
         prev.map((p) => (p.id === partnerId ? { ...p, plan_limit: editLimitValue } : p))
       );
       setEditingLimit(null);
+    }
+  };
+
+  const handleLogoUpload = async (partnerId: string, file: File) => {
+    setUploadingLogo(partnerId);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${partnerId}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("partner-logos")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("partner-logos")
+        .getPublicUrl(path);
+
+      const { error } = await supabase
+        .from("partners")
+        .update({ brand_logo_url: publicUrl })
+        .eq("id", partnerId);
+      if (error) throw error;
+
+      setPartners((prev) =>
+        prev.map((p) => (p.id === partnerId ? { ...p, brand_logo_url: publicUrl } : p))
+      );
+      toast.success("Logo carregado com sucesso");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar logo");
+    } finally {
+      setUploadingLogo(null);
+    }
+  };
+
+  const handleBrandColorChange = async (partnerId: string, color: string) => {
+    const { error } = await supabase
+      .from("partners")
+      .update({ brand_color: color })
+      .eq("id", partnerId);
+    if (error) {
+      toast.error("Erro ao guardar cor");
+    } else {
+      setPartners((prev) =>
+        prev.map((p) => (p.id === partnerId ? { ...p, brand_color: color } : p))
+      );
+      toast.success("Cor atualizada");
     }
   };
 
@@ -383,6 +432,52 @@ const AdminPartners = () => {
                               {partner.plan_limit} <Pencil className="h-3 w-3 text-text-muted" />
                             </button>
                           )}
+                        </div>
+
+                        {/* Branding */}
+                        <div className="rounded-lg bg-surface border border-border-subtle/60 p-3 space-y-3">
+                          <div className="flex items-center gap-2 text-sm text-text-muted">
+                            <Palette className="h-4 w-4" />
+                            <span className="font-semibold uppercase text-[10px]">Branding</span>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            {/* Logo */}
+                            <div className="flex items-center gap-3">
+                              {partner.brand_logo_url ? (
+                                <img src={partner.brand_logo_url} alt="Logo" className="h-10 w-10 rounded-lg object-contain border border-border-subtle" />
+                              ) : (
+                                <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center text-text-muted">
+                                  <Building2 className="h-5 w-5" />
+                                </div>
+                              )}
+                              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors cursor-pointer">
+                                {uploadingLogo === partner.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                                {partner.brand_logo_url ? "Alterar logo" : "Carregar logo"}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleLogoUpload(partner.id, file);
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+                            </div>
+                            {/* Color */}
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={partner.brand_color || "#10B981"}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => handleBrandColorChange(partner.id, e.target.value)}
+                                className="h-9 w-9 rounded-lg border border-border-subtle cursor-pointer"
+                              />
+                              <span className="text-xs text-text-muted font-mono">{partner.brand_color || "Sem cor"}</span>
+                            </div>
+                          </div>
                         </div>
 
                         {pInvites.length > 0 && (
