@@ -55,7 +55,7 @@ const planTabs: Record<string, Tab[]> = {
 const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
 
 const Index = () => {
-  const { profile, isAdmin, signOut } = useAuth();
+  const { profile, isAdmin, partnerBranding, signOut } = useAuth();
   const { currentSubAccountId } = useSubAccount();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
