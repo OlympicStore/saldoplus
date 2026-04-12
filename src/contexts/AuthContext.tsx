@@ -98,10 +98,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       checkAdmin(user.id),
     ]);
 
+    const branding = await fetchPartnerBranding(nextProfile?.partner_id ?? null);
     setProfile(nextProfile);
     setIsAdmin(nextIsAdmin);
+    setPartnerBranding(branding);
     setLoading(false);
-  }, [checkAdmin, fetchProfile, user]);
+  }, [checkAdmin, fetchProfile, fetchPartnerBranding, user]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
