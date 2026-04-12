@@ -34,7 +34,7 @@ serve(async (req) => {
 
     if (!roleData) throw new Error("Not authorized - admin only");
 
-    const { email, partner_id, expires_in_months } = await req.json();
+    const { email, partner_id, expires_in_months, consultant_name, consultant_phone, consultant_email } = await req.json();
     if (!email || !partner_id) throw new Error("Email and partner_id are required");
 
     // Check partner exists and is active
@@ -79,6 +79,9 @@ serve(async (req) => {
         partner_id,
         status: "pending",
         expires_at: expiresAt.toISOString(),
+        consultant_name: consultant_name || null,
+        consultant_phone: consultant_phone || null,
+        consultant_email: consultant_email || null,
       })
       .select()
       .single();

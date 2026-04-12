@@ -61,10 +61,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return data === true;
   }, []);
 
-  const fetchPartnerBranding = useCallback(async (partnerId: string | null): Promise<PartnerBranding | null> => {
-    if (!partnerId) return null;
-    const { data } = await supabase.from("partners").select("name, brand_color, brand_logo_url, consultant_name, consultant_phone, consultant_email, consultant_photo_url").eq("id", partnerId).maybeSingle();
-    return data as PartnerBranding | null;
+  const fetchPartnerBranding = useCallback(async (prof: Profile | null): Promise<PartnerBranding | null> => {
+    if (!prof?.partner_id) return null;
+
+    // Get partner branding (logo, color, name)
+    const { data: partner } = await supabase
+      .from("partners")
+      .select("name, brand_color, brand_logo_url")
+      .eq("id", prof.partner_id)
+      .maybeSingle();
+
+    if (!partner) return null;
+
+    // Get consultant from the user's accepted invite
+    const { data: invite } = await supabase
+      .from("partner_invites")
+      .select("consultant_name, consultant_phone, consultant_email, consultant_photo_url")
+      .eq("email", prof.email)
+      .eq("partner_id", prof.partner_id)
+      .eq("status", "accepted")
+      .maybeSingle();
+
+    return {
+      name: partner.name,
+      brand_color: partner.brand_color,
+      brand_logo_url: partner.brand_logo_url,
+      consultant_name: (invite as any)?.consultant_name ?? null,
+      consultant_phone: (invite as any)?.consultant_phone ?? null,
+      consultant_email: (invite as any)?.consultant_email ?? null,
+      consultant_photo_url: (invite as any)?.consultant_photo_url ?? null,
+    };
   }, []);
 
   const syncAuthState = useCallback(async (nextSession: Session | null) => {
@@ -86,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       checkAdmin(nextUser.id),
     ]);
 
-    const branding = await fetchPartnerBranding(nextProfile?.partner_id ?? null);
+    const branding = await fetchPartnerBranding(nextProfile);
     setProfile(nextProfile);
     setIsAdmin(nextIsAdmin);
     setPartnerBranding(branding);
@@ -102,7 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       checkAdmin(user.id),
     ]);
 
-    const branding = await fetchPartnerBranding(nextProfile?.partner_id ?? null);
+    const branding = await fetchPartnerBranding(nextProfile);
     setProfile(nextProfile);
     setIsAdmin(nextIsAdmin);
     setPartnerBranding(branding);
