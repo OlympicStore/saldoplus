@@ -53,6 +53,8 @@ const AdminPartners = () => {
   const [expandedPartner, setExpandedPartner] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Partner | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editingLimit, setEditingLimit] = useState<string | null>(null);
+  const [editLimitValue, setEditLimitValue] = useState(0);
   const [creating, setCreating] = useState(false);
   const [inviting, setInviting] = useState(false);
 
