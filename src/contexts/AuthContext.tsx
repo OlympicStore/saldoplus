@@ -4,6 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Plan = "essencial" | "casa" | "pro" | "casa_segura_plus";
 
+interface PartnerBranding {
+  name: string;
+  brand_color: string | null;
+  brand_logo_url: string | null;
+}
+
 interface Profile {
   id: string;
   email: string;
