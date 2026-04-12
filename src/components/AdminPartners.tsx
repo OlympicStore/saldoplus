@@ -51,6 +51,8 @@ const AdminPartners = () => {
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [expandedPartner, setExpandedPartner] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Partner | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [creating, setCreating] = useState(false);
   const [inviting, setInviting] = useState(false);
 
@@ -135,6 +137,30 @@ const AdminPartners = () => {
       setPartners((prev) =>
         prev.map((p) => (p.id === partner.id ? { ...p, active: !p.active } : p))
       );
+    }
+  };
+
+  const handleDeletePartner = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      // Delete all invites for this partner first
+      await supabase.from("partner_invites").delete().eq("partner_id", deleteTarget.id);
+      // Remove partner_id from profiles
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({ plan: "essencial", plan_source: "direct", partner_id: null })
+        .eq("partner_id", deleteTarget.id);
+      // Delete partner
+      const { error } = await supabase.from("partners").delete().eq("id", deleteTarget.id);
+      if (error) throw error;
+      toast.success(`Parceiro ${deleteTarget.name} removido`);
+      setDeleteTarget(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao remover parceiro");
+    } finally {
+      setDeleting(false);
     }
   };
 
