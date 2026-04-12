@@ -58,6 +58,7 @@ const AdminPartners = () => {
   const [editingLimit, setEditingLimit] = useState<string | null>(null);
   const [editLimitValue, setEditLimitValue] = useState(0);
   const [creating, setCreating] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
 
   const [newPartner, setNewPartner] = useState({ name: "", email: "", plan_limit: 25, plan_type: "starter" });
