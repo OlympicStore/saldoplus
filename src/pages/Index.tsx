@@ -234,10 +234,15 @@ const Index = () => {
       <ExpirationBanner />
       <header className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
-          <h1 className="text-lg sm:text-xl font-bold tracking-tight">
-            <span className="text-foreground">Saldo</span>
-            <span className="text-primary text-2xl sm:text-3xl font-black leading-none">+</span>
-          </h1>
+          <div className="flex items-center gap-3">
+            {partnerBranding?.brand_logo_url && (
+              <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-8 w-8 rounded-lg object-contain" />
+            )}
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+              <span className="text-foreground">Saldo</span>
+              <span className="text-primary text-2xl sm:text-3xl font-black leading-none">+</span>
+            </h1>
+          </div>
           <div className="flex items-center gap-3">
             {profile && (
               <span className="text-xs text-text-muted hidden sm:inline">
