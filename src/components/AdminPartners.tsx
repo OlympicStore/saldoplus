@@ -39,6 +39,7 @@ interface Invite {
   consultant_phone: string | null;
   consultant_email: string | null;
   consultant_photo_url: string | null;
+  consultant_photo_position: string | null;
 }
 
 const PLAN_TYPE_LABELS: Record<string, string> = {
@@ -621,7 +622,7 @@ const AdminPartners = () => {
                                         </div>
                                         <div className="flex items-center gap-3">
                                           {inv.consultant_photo_url ? (
-                                            <img src={inv.consultant_photo_url} alt="Consultor" className="h-10 w-10 rounded-full object-cover border border-border-subtle" />
+                                            <img src={inv.consultant_photo_url} alt="Consultor" className="h-10 w-10 rounded-full object-cover border border-border-subtle" style={{ objectPosition: inv.consultant_photo_position || "center" }} />
                                           ) : (
                                             <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-text-muted">
                                               <User className="h-5 w-5" />
@@ -641,6 +642,24 @@ const AdminPartners = () => {
                                               }}
                                             />
                                           </label>
+                                          {inv.consultant_photo_url && (
+                                            <div className="flex items-center gap-1">
+                                              <span className="text-[10px] text-text-muted mr-1">Posição:</span>
+                                              {["top", "center", "bottom"].map((pos) => (
+                                                <button
+                                                  key={pos}
+                                                  onClick={() => handleInviteConsultantFieldChange(inv.id, "consultant_photo_position", pos)}
+                                                  className={`px-2 py-0.5 text-[10px] rounded-md border transition-colors ${
+                                                    (inv.consultant_photo_position || "center") === pos
+                                                      ? "bg-primary text-primary-foreground border-primary"
+                                                      : "border-border-subtle text-text-muted hover:bg-surface-hover"
+                                                  }`}
+                                                >
+                                                  {pos === "top" ? "Topo" : pos === "center" ? "Centro" : "Base"}
+                                                </button>
+                                              ))}
+                                            </div>
+                                          )}
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                           <input
