@@ -189,6 +189,52 @@ const AdminPartners = () => {
     }
   };
 
+  const handleLogoUpload = async (partnerId: string, file: File) => {
+    setUploadingLogo(partnerId);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${partnerId}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("partner-logos")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("partner-logos")
+        .getPublicUrl(path);
+
+      const { error } = await supabase
+        .from("partners")
+        .update({ brand_logo_url: publicUrl })
+        .eq("id", partnerId);
+      if (error) throw error;
+
+      setPartners((prev) =>
+        prev.map((p) => (p.id === partnerId ? { ...p, brand_logo_url: publicUrl } : p))
+      );
+      toast.success("Logo carregado com sucesso");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar logo");
+    } finally {
+      setUploadingLogo(null);
+    }
+  };
+
+  const handleBrandColorChange = async (partnerId: string, color: string) => {
+    const { error } = await supabase
+      .from("partners")
+      .update({ brand_color: color })
+      .eq("id", partnerId);
+    if (error) {
+      toast.error("Erro ao guardar cor");
+    } else {
+      setPartners((prev) =>
+        prev.map((p) => (p.id === partnerId ? { ...p, brand_color: color } : p))
+      );
+      toast.success("Cor atualizada");
+    }
+  };
+
   const getPartnerInvites = (partnerId: string) =>
     invites.filter((i) => i.partner_id === partnerId);
 
