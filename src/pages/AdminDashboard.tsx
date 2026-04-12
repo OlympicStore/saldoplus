@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import AdminPartners from "@/components/AdminPartners";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search,
   ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
@@ -317,7 +319,13 @@ const AdminDashboard = () => {
           </p>
         </motion.div>
 
-        {/* Suggestions & Recent Purchases Grid */}
+        {/* Partners Section */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}
+          className="mb-8">
+          <AdminPartners />
+        </motion.div>
+
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Sugestões Recebidas */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}
