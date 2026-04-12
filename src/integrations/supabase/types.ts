@@ -478,6 +478,7 @@ export type Database = {
           consultant_email: string | null
           consultant_name: string | null
           consultant_phone: string | null
+          consultant_photo_position: string | null
           consultant_photo_url: string | null
           created_at: string
           email: string
@@ -490,6 +491,7 @@ export type Database = {
           consultant_email?: string | null
           consultant_name?: string | null
           consultant_phone?: string | null
+          consultant_photo_position?: string | null
           consultant_photo_url?: string | null
           created_at?: string
           email: string
@@ -502,6 +504,7 @@ export type Database = {
           consultant_email?: string | null
           consultant_name?: string | null
           consultant_phone?: string | null
+          consultant_photo_position?: string | null
           consultant_photo_url?: string | null
           created_at?: string
           email?: string
