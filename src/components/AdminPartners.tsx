@@ -348,7 +348,43 @@ const AdminPartners = () => {
                           </div>
                         </div>
 
-                        {/* Invites list */}
+                        {/* Limit editor */}
+                        <div className="rounded-lg bg-surface border border-border-subtle/60 p-3 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 text-sm text-text-muted">
+                            <Users className="h-4 w-4" />
+                            <span>Limite de utilizadores:</span>
+                          </div>
+                          {editingLimit === partner.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={1}
+                                value={editLimitValue}
+                                onChange={(e) => setEditLimitValue(Number(e.target.value) || 1)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-20 px-2 py-1 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono text-center"
+                              />
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleUpdateLimit(partner.id); }}
+                                className="p-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                              >
+                                <Check className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingLimit(partner.id);
+                                setEditLimitValue(partner.plan_limit);
+                              }}
+                              className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors"
+                            >
+                              {partner.plan_limit} <Pencil className="h-3 w-3 text-text-muted" />
+                            </button>
+                          )}
+                        </div>
+
                         {pInvites.length > 0 && (
                           <div className="rounded-lg border border-border-subtle/60 overflow-hidden">
                             <div className="px-3 py-2 bg-surface border-b border-border-subtle/40">
