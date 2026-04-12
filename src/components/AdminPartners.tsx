@@ -240,6 +240,51 @@ const AdminPartners = () => {
     }
   };
 
+  const handleConsultantPhotoUpload = async (partnerId: string, file: File) => {
+    setUploadingPhoto(partnerId);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `consultant-${partnerId}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("partner-logos")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("partner-logos")
+        .getPublicUrl(path);
+
+      const { error } = await supabase
+        .from("partners")
+        .update({ consultant_photo_url: publicUrl })
+        .eq("id", partnerId);
+      if (error) throw error;
+
+      setPartners((prev) =>
+        prev.map((p) => (p.id === partnerId ? { ...p, consultant_photo_url: publicUrl } : p))
+      );
+      toast.success("Foto do consultor carregada");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar foto");
+    } finally {
+      setUploadingPhoto(null);
+    }
+  };
+
+  const handleConsultantFieldChange = async (partnerId: string, field: string, value: string) => {
+    const { error } = await supabase
+      .from("partners")
+      .update({ [field]: value || null })
+      .eq("id", partnerId);
+    if (error) {
+      toast.error("Erro ao guardar");
+    } else {
+      setPartners((prev) =>
+        prev.map((p) => (p.id === partnerId ? { ...p, [field]: value || null } : p))
+      );
+    }
+  };
+
   const getPartnerInvites = (partnerId: string) =>
     invites.filter((i) => i.partner_id === partnerId);
 
