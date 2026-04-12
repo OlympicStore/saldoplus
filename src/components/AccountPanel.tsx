@@ -10,6 +10,7 @@ const PLAN_LABELS: Record<string, string> = {
   essencial: "Essencial",
   casa: "Casa",
   pro: "Pro",
+  casa_segura_plus: "Casa Segura Plus",
 };
 
 interface AccountPanelProps {
@@ -146,17 +147,37 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Partner welcome banner */}
+      {profile.plan === "casa_segura_plus" && profile.plan_source === "partner" && (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg">
+              🏠
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-foreground">Casa Segura Plus</p>
+              <p className="text-sm text-primary font-medium">Oferecido por parceiro imobiliário</p>
+            </div>
+          </div>
+          <p className="text-sm text-text-muted">
+            Este acesso foi oferecido pela sua imobiliária para o ajudar na gestão financeira da sua nova casa.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <span className="label-caps mb-2 block">Plano atual</span>
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Shield className="h-5 w-5" />
+              {profile.plan === "casa_segura_plus" ? <span className="text-lg">🏠</span> : <Shield className="h-5 w-5" />}
             </div>
             <div>
               <p className="text-lg font-semibold text-foreground">{PLAN_LABELS[profile.plan] || profile.plan}</p>
               <p className="text-sm text-text-muted">
-                {isActive && daysRemaining !== null ? `${daysRemaining} dias restantes` : "Plano sem acesso ativo"}
+                {profile.plan_source === "partner"
+                  ? "Oferecido por parceiro imobiliário"
+                  : isActive && daysRemaining !== null ? `${daysRemaining} dias restantes` : "Plano sem acesso ativo"}
               </p>
             </div>
           </div>
