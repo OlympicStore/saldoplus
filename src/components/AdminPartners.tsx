@@ -39,6 +39,7 @@ interface Invite {
   consultant_phone: string | null;
   consultant_email: string | null;
   consultant_photo_url: string | null;
+  consultant_photo_position: string | null;
 }
 
 const PLAN_TYPE_LABELS: Record<string, string> = {
