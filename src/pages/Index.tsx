@@ -16,6 +16,8 @@ import { useSubAccount } from "@/contexts/SubAccountContext";
 import AccountPanel from "@/components/AccountPanel";
 import GuidedTour from "@/components/GuidedTour";
 import MinhaCasa from "@/components/MinhaCasa";
+import ExpirationBanner from "@/components/ExpirationBanner";
+import PartnerOnboarding from "@/components/PartnerOnboarding";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -201,7 +203,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PartnerOnboarding />
       <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange} />
+      <ExpirationBanner />
       <header className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
           <h1 className="text-lg sm:text-xl font-bold tracking-tight">
