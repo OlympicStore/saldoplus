@@ -166,6 +166,26 @@ const AdminPartners = () => {
     }
   };
 
+  const handleUpdateLimit = async (partnerId: string) => {
+    if (editLimitValue < 1) {
+      toast.error("O limite deve ser pelo menos 1");
+      return;
+    }
+    const { error } = await supabase
+      .from("partners")
+      .update({ plan_limit: editLimitValue })
+      .eq("id", partnerId);
+    if (error) {
+      toast.error("Erro ao atualizar limite");
+    } else {
+      toast.success("Limite atualizado");
+      setPartners((prev) =>
+        prev.map((p) => (p.id === partnerId ? { ...p, plan_limit: editLimitValue } : p))
+      );
+      setEditingLimit(null);
+    }
+  };
+
   const getPartnerInvites = (partnerId: string) =>
     invites.filter((i) => i.partner_id === partnerId);
 
