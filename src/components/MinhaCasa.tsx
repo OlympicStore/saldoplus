@@ -165,7 +165,55 @@ const MinhaCasa = () => {
         </div>
       </div>
 
-      {/* Summary cards */}
+      {/* Consultant bot warning when ratio >= 30% */}
+      {ratio >= 30 && partnerBranding?.consultant_name && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <div className="flex gap-3">
+            {partnerBranding.consultant_photo_url ? (
+              <img
+                src={partnerBranding.consultant_photo_url}
+                alt={partnerBranding.consultant_name}
+                className="h-12 w-12 rounded-full object-cover border-2 border-primary/30 shrink-0"
+              />
+            ) : (
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <MessageCircle className="h-6 w-6 text-primary" />
+              </div>
+            )}
+            <div className="flex-1">
+              <div className="bg-surface rounded-xl rounded-tl-none p-3 shadow-card border border-border-subtle/60">
+                <p className="text-sm text-foreground">
+                  💬 Quer renegociar o seu financiamento para ficar mais saudável para si?{" "}
+                  <strong>Fale comigo!</strong>
+                </p>
+                <p className="text-xs text-text-muted mt-1">
+                  — {partnerBranding.consultant_name}
+                  {partnerBranding.name && `, ${partnerBranding.name}`}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {partnerBranding.consultant_phone && (
+                  <a
+                    href={`tel:${partnerBranding.consultant_phone}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity"
+                  >
+                    <Phone className="h-3.5 w-3.5" /> {partnerBranding.consultant_phone}
+                  </a>
+                )}
+                {partnerBranding.consultant_email && (
+                  <a
+                    href={`mailto:${partnerBranding.consultant_email}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors"
+                  >
+                    <Mail className="h-3.5 w-3.5" /> Email
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <span className="label-caps mb-1 block">Total habitação/mês</span>
