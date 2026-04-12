@@ -15,6 +15,7 @@ import { SubAccountSwitcher } from "@/components/SubAccountSwitcher";
 import { useSubAccount } from "@/contexts/SubAccountContext";
 import AccountPanel from "@/components/AccountPanel";
 import GuidedTour from "@/components/GuidedTour";
+import MinhaCasa from "@/components/MinhaCasa";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
