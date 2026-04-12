@@ -123,6 +123,19 @@ const MinhaCasa = () => {
         </div>
       </div>
 
+      {/* Info banner */}
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex gap-3">
+        <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+        <div className="text-sm text-text-muted">
+          <p className="font-medium text-foreground mb-1">Nota importante</p>
+          <p>
+            Esta secção serve apenas para <strong>acompanhar o impacto da habitação no seu orçamento</strong>.
+            As despesas da casa (prestação, condomínio, seguros, etc.) devem também ser registadas na aba <strong>"Despesas"</strong> para
+            serem incluídas no saldo, balanço mensal e resumo anual.
+          </p>
+        </div>
+      </div>
+
       {/* Indicator */}
       <div className={`rounded-xl border border-border-subtle/60 p-5 ${status.bg}`}>
         <div className="flex items-center gap-3">
