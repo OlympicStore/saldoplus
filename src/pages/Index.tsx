@@ -27,7 +27,7 @@ const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julh
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
-type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "account";
+type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
 
 const allTabs: { key: Tab; label: string }[] = [
   { key: "dashboard", label: "Home" },
@@ -38,6 +38,7 @@ const allTabs: { key: Tab; label: string }[] = [
   { key: "annual", label: "Anual" },
   { key: "goals", label: "Metas" },
   { key: "budgets", label: "Orçamentos" },
+  { key: "minha_casa", label: "Minha Casa" },
   { key: "account", label: "Conta" },
 ];
 
@@ -45,6 +46,7 @@ const planTabs: Record<string, Tab[]> = {
   essencial: ["dashboard", "balance", "entries", "expenses", "account"],
   casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
   pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
+  casa_segura_plus: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
 };
 
 const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);

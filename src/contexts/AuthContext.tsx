@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, ReactNode 
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type Plan = "essencial" | "casa" | "pro";
+type Plan = "essencial" | "casa" | "pro" | "casa_segura_plus";
 
 interface Profile {
   id: string;
@@ -11,6 +11,8 @@ interface Profile {
   plan: Plan;
   plan_started_at: string | null;
   plan_expires_at: string | null;
+  partner_id: string | null;
+  plan_source: "direct" | "partner";
 }
 
 interface AuthContextType {
