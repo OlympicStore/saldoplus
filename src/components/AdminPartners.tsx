@@ -454,6 +454,28 @@ const AdminPartners = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Partner Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover parceiro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao remover <strong>{deleteTarget?.name}</strong>, todos os convites serão eliminados e os utilizadores associados perderão o plano Casa Segura Plus (revertidos para Essencial).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePartner}
+              disabled={deleting}
+              className="bg-status-negative text-white hover:bg-status-negative/90"
+            >
+              {deleting ? "A remover..." : "Remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
