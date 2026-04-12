@@ -238,10 +238,20 @@ const Index = () => {
             {partnerBranding?.brand_logo_url && (
               <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-8 w-8 rounded-lg object-contain" />
             )}
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight">
-              <span className="text-foreground">Saldo</span>
-              <span className="text-primary text-2xl sm:text-3xl font-black leading-none">+</span>
-            </h1>
+            {partnerBranding?.consultant_photo_url && (
+              <img src={partnerBranding.consultant_photo_url} alt={partnerBranding.consultant_name || ""} className="h-8 w-8 rounded-full object-cover border border-border-subtle" />
+            )}
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-none">
+                <span className="text-foreground">Saldo</span>
+                <span className="text-primary text-2xl sm:text-3xl font-black leading-none">+</span>
+              </h1>
+              {partnerBranding?.consultant_name && (
+                <p className="text-[10px] text-text-muted leading-tight mt-0.5">
+                  {partnerBranding.consultant_name} · {partnerBranding.name}
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {profile && (
