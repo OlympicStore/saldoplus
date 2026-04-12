@@ -210,8 +210,8 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
         </div>
       </div>
 
-      {/* Upgrade section */}
-      {availableUpgrades.length > 0 && (
+      {/* Upgrade section - hide for partner plans */}
+      {availableUpgrades.length > 0 && profile.plan_source !== "partner" && (
         <div className="bg-surface rounded-xl shadow-card border border-primary/20 p-5">
           <h2 className="text-lg font-semibold text-foreground mb-1">Fazer upgrade</h2>
           <p className="text-sm text-text-muted mb-4">
