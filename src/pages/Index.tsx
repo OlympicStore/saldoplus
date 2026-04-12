@@ -19,7 +19,8 @@ import MinhaCasa from "@/components/MinhaCasa";
 import ExpirationBanner from "@/components/ExpirationBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
 
-import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
@@ -239,7 +240,52 @@ const Index = () => {
               <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-12 w-12 rounded-lg object-contain" />
             )}
             {partnerBranding?.consultant_photo_url && (
-              <img src={partnerBranding.consultant_photo_url} alt={partnerBranding.consultant_name || ""} className="h-12 w-12 rounded-full object-cover border-2 border-border-subtle" />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full">
+                    <img
+                      src={partnerBranding.consultant_photo_url}
+                      alt={partnerBranding.consultant_name || ""}
+                      className="h-12 w-12 rounded-full object-cover border-2 border-border-subtle cursor-pointer hover:opacity-90 transition-opacity"
+                      style={{ objectPosition: partnerBranding.consultant_photo_position || "center" }}
+                    />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-4" align="start">
+                  <div className="flex items-center gap-3 mb-3">
+                    <img
+                      src={partnerBranding.consultant_photo_url}
+                      alt={partnerBranding.consultant_name || ""}
+                      className="h-14 w-14 rounded-full object-cover border-2 border-border-subtle"
+                      style={{ objectPosition: partnerBranding.consultant_photo_position || "center" }}
+                    />
+                    <div>
+                      <p className="font-semibold text-sm text-foreground">{partnerBranding.consultant_name || "Consultor"}</p>
+                      <p className="text-[10px] text-text-muted">{partnerBranding.name}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {partnerBranding.consultant_phone && (
+                      <a
+                        href={`tel:${partnerBranding.consultant_phone}`}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-surface-hover transition-colors text-sm text-foreground"
+                      >
+                        <Phone className="h-4 w-4 text-primary" />
+                        <span>{partnerBranding.consultant_phone}</span>
+                      </a>
+                    )}
+                    {partnerBranding.consultant_email && (
+                      <a
+                        href={`mailto:${partnerBranding.consultant_email}`}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-surface-hover transition-colors text-sm text-foreground"
+                      >
+                        <Mail className="h-4 w-4 text-primary" />
+                        <span className="truncate">{partnerBranding.consultant_email}</span>
+                      </a>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
             <div>
               <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-none">
