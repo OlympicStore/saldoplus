@@ -11,7 +11,7 @@ import {
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type Plan = "essencial" | "casa" | "pro";
+type Plan = "essencial" | "casa" | "pro" | "casa_segura_plus";
 
 interface UserProfile {
   id: string;
@@ -37,16 +37,17 @@ interface Stats {
   recent_users: UserProfile[] | null;
 }
 
-const PLAN_COLORS: Record<Plan, string> = {
+const PLAN_COLORS: Record<string, string> = {
   essencial: "bg-secondary text-foreground",
   casa: "bg-[hsl(var(--accent)/0.15)] text-accent",
   pro: "bg-[hsl(var(--status-paid)/0.15)] text-status-paid",
+  casa_segura_plus: "bg-primary/10 text-primary",
 };
 
-const PLAN_ORDER: Plan[] = ["essencial", "casa", "pro"];
+const PLAN_ORDER: Plan[] = ["essencial", "casa", "pro", "casa_segura_plus"];
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
-const PLAN_PRICES: Record<Plan, number> = { essencial: 0, casa: 4.99, pro: 9.99 };
+const PLAN_PRICES: Record<string, number> = { essencial: 0, casa: 4.99, pro: 9.99, casa_segura_plus: 0 };
 
 const AdminDashboard = () => {
   const { isAdmin } = useAuth();
