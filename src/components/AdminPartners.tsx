@@ -299,6 +299,15 @@ const AdminPartners = () => {
                             {partner.active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
                             {partner.active ? "Desativar" : "Ativar"}
                           </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTarget(partner);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-status-negative/30 text-status-negative text-xs font-medium hover:bg-status-negative/10 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Remover
+                          </button>
                         </div>
 
                         {/* Stats row */}
