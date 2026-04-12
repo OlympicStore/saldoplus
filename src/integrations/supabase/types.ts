@@ -513,6 +513,10 @@ export type Database = {
           active: boolean
           brand_color: string | null
           brand_logo_url: string | null
+          consultant_email: string | null
+          consultant_name: string | null
+          consultant_phone: string | null
+          consultant_photo_url: string | null
           created_at: string
           email: string
           id: string
@@ -524,6 +528,10 @@ export type Database = {
           active?: boolean
           brand_color?: string | null
           brand_logo_url?: string | null
+          consultant_email?: string | null
+          consultant_name?: string | null
+          consultant_phone?: string | null
+          consultant_photo_url?: string | null
           created_at?: string
           email: string
           id?: string
@@ -535,6 +543,10 @@ export type Database = {
           active?: boolean
           brand_color?: string | null
           brand_logo_url?: string | null
+          consultant_email?: string | null
+          consultant_name?: string | null
+          consultant_phone?: string | null
+          consultant_photo_url?: string | null
           created_at?: string
           email?: string
           id?: string
