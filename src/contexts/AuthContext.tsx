@@ -12,6 +12,7 @@ interface PartnerBranding {
   consultant_phone: string | null;
   consultant_email: string | null;
   consultant_photo_url: string | null;
+  consultant_photo_position: string | null;
 }
 
 interface Profile {
@@ -76,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Get consultant from the user's accepted invite
     const { data: invite } = await supabase
       .from("partner_invites")
-      .select("consultant_name, consultant_phone, consultant_email, consultant_photo_url")
+      .select("consultant_name, consultant_phone, consultant_email, consultant_photo_url, consultant_photo_position")
       .eq("email", prof.email)
       .eq("partner_id", prof.partner_id)
       .eq("status", "accepted")
@@ -90,6 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       consultant_phone: (invite as any)?.consultant_phone ?? null,
       consultant_email: (invite as any)?.consultant_email ?? null,
       consultant_photo_url: (invite as any)?.consultant_photo_url ?? null,
+      consultant_photo_position: (invite as any)?.consultant_photo_position ?? "center",
     };
   }, []);
 
