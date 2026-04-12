@@ -26,13 +26,14 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isAdmin: boolean;
+  partnerBranding: PartnerBranding | null;
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null, session: null, profile: null, isAdmin: false, loading: true,
+  user: null, session: null, profile: null, isAdmin: false, partnerBranding: null, loading: true,
   signOut: async () => {}, refreshProfile: async () => {},
 });
 
