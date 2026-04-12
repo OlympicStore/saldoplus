@@ -214,7 +214,7 @@ const Index = () => {
                 {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
-            {userPlan === "pro" && <SubAccountSwitcher />}
+            {(userPlan === "pro" || userPlan === "casa_segura_plus") && <SubAccountSwitcher />}
             <SuggestionsDialog />
             <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
               className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
