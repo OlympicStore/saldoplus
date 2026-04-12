@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPartners from "@/components/AdminPartners";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search,
   ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
