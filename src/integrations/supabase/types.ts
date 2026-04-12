@@ -340,6 +340,39 @@ export type Database = {
         }
         Relationships: []
       }
+      house_data: {
+        Row: {
+          created_at: string
+          estimated_expenses: number
+          house_value: number
+          id: string
+          monthly_income: number
+          monthly_payment: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_expenses?: number
+          house_value?: number
+          id?: string
+          monthly_income?: number
+          monthly_payment?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          estimated_expenses?: number
+          house_value?: number
+          id?: string
+          monthly_income?: number
+          monthly_payment?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       incomes: {
         Row: {
           account: string
@@ -440,14 +473,105 @@ export type Database = {
           },
         ]
       }
+      partner_invites: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string | null
+          id: string
+          partner_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          id?: string
+          partner_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          id?: string
+          partner_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_invites_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          name: string
+          plan_limit: number
+          plan_type: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          plan_limit?: number
+          plan_type?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          plan_limit?: number
+          plan_type?: string
+        }
+        Relationships: []
+      }
+      plans: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: string
+          name: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           email: string
           full_name: string | null
           id: string
-          plan: Database["public"]["Enums"]["app_plan"]
+          partner_id: string | null
+          plan: string
           plan_expires_at: string | null
+          plan_source: string
           plan_started_at: string | null
           updated_at: string
         }
@@ -456,8 +580,10 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
-          plan?: Database["public"]["Enums"]["app_plan"]
+          partner_id?: string | null
+          plan?: string
           plan_expires_at?: string | null
+          plan_source?: string
           plan_started_at?: string | null
           updated_at?: string
         }
@@ -466,12 +592,22 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
-          plan?: Database["public"]["Enums"]["app_plan"]
+          partner_id?: string | null
+          plan?: string
           plan_expires_at?: string | null
+          plan_source?: string
           plan_started_at?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salary_configs: {
         Row: {
@@ -780,7 +916,6 @@ export type Database = {
       }
     }
     Enums: {
-      app_plan: "essencial" | "casa" | "pro"
       app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
@@ -909,7 +1044,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_plan: ["essencial", "casa", "pro"],
       app_role: ["admin", "moderator", "user"],
     },
   },
