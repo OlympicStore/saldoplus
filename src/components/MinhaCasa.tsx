@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2 } from "lucide-react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -120,6 +120,19 @@ const MinhaCasa = () => {
         <div>
           <h2 className="text-lg font-semibold text-foreground">Minha Casa</h2>
           <p className="text-sm text-text-muted">Acompanhe o impacto da sua habitação no orçamento</p>
+        </div>
+      </div>
+
+      {/* Info banner */}
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex gap-3">
+        <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+        <div className="text-sm text-text-muted">
+          <p className="font-medium text-foreground mb-1">Nota importante</p>
+          <p>
+            Esta secção serve apenas para <strong>acompanhar o impacto da habitação no seu orçamento</strong>.
+            As despesas da casa (prestação, condomínio, seguros, etc.) devem também ser registadas na aba <strong>"Despesas"</strong> para
+            serem incluídas no saldo, balanço mensal e resumo anual.
+          </p>
         </div>
       </div>
 

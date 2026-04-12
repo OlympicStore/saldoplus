@@ -4,8 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Building2, Plus, Mail, Users, Send, Loader2, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, BarChart3,
+  ChevronDown, ChevronUp, BarChart3, Trash2,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Partner {
@@ -47,6 +51,8 @@ const AdminPartners = () => {
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [expandedPartner, setExpandedPartner] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Partner | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [creating, setCreating] = useState(false);
   const [inviting, setInviting] = useState(false);
 
@@ -131,6 +137,30 @@ const AdminPartners = () => {
       setPartners((prev) =>
         prev.map((p) => (p.id === partner.id ? { ...p, active: !p.active } : p))
       );
+    }
+  };
+
+  const handleDeletePartner = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      // Delete all invites for this partner first
+      await supabase.from("partner_invites").delete().eq("partner_id", deleteTarget.id);
+      // Remove partner_id from profiles
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({ plan: "essencial", plan_source: "direct", partner_id: null })
+        .eq("partner_id", deleteTarget.id);
+      // Delete partner
+      const { error } = await supabase.from("partners").delete().eq("id", deleteTarget.id);
+      if (error) throw error;
+      toast.success(`Parceiro ${deleteTarget.name} removido`);
+      setDeleteTarget(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao remover parceiro");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -268,6 +298,15 @@ const AdminPartners = () => {
                           >
                             {partner.active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
                             {partner.active ? "Desativar" : "Ativar"}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTarget(partner);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-status-negative/30 text-status-negative text-xs font-medium hover:bg-status-negative/10 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Remover
                           </button>
                         </div>
 
@@ -415,6 +454,28 @@ const AdminPartners = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Partner Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover parceiro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao remover <strong>{deleteTarget?.name}</strong>, todos os convites serão eliminados e os utilizadores associados perderão o plano Casa Segura Plus (revertidos para Essencial).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePartner}
+              disabled={deleting}
+              className="bg-status-negative text-white hover:bg-status-negative/90"
+            >
+              {deleting ? "A remover..." : "Remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
