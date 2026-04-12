@@ -16,7 +16,7 @@ const fmt = (v: number) =>
   v.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
 const MinhaCasa = () => {
-  const { user } = useAuth();
+  const { user, partnerBranding } = useAuth();
   const [data, setData] = useState<HouseData>({
     house_value: 0,
     monthly_payment: 0,
