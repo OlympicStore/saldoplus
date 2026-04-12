@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, Info } from "lucide-react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, Info, MessageCircle, Phone, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
