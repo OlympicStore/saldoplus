@@ -434,6 +434,52 @@ const AdminPartners = () => {
                           )}
                         </div>
 
+                        {/* Branding */}
+                        <div className="rounded-lg bg-surface border border-border-subtle/60 p-3 space-y-3">
+                          <div className="flex items-center gap-2 text-sm text-text-muted">
+                            <Palette className="h-4 w-4" />
+                            <span className="font-semibold uppercase text-[10px]">Branding</span>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            {/* Logo */}
+                            <div className="flex items-center gap-3">
+                              {partner.brand_logo_url ? (
+                                <img src={partner.brand_logo_url} alt="Logo" className="h-10 w-10 rounded-lg object-contain border border-border-subtle" />
+                              ) : (
+                                <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center text-text-muted">
+                                  <Building2 className="h-5 w-5" />
+                                </div>
+                              )}
+                              <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors cursor-pointer">
+                                {uploadingLogo === partner.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                                {partner.brand_logo_url ? "Alterar logo" : "Carregar logo"}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleLogoUpload(partner.id, file);
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+                            </div>
+                            {/* Color */}
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={partner.brand_color || "#10B981"}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => handleBrandColorChange(partner.id, e.target.value)}
+                                className="h-9 w-9 rounded-lg border border-border-subtle cursor-pointer"
+                              />
+                              <span className="text-xs text-text-muted font-mono">{partner.brand_color || "Sem cor"}</span>
+                            </div>
+                          </div>
+                        </div>
+
                         {pInvites.length > 0 && (
                           <div className="rounded-lg border border-border-subtle/60 overflow-hidden">
                             <div className="px-3 py-2 bg-surface border-b border-border-subtle/40">
