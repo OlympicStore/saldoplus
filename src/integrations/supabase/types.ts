@@ -475,6 +475,10 @@ export type Database = {
       }
       partner_invites: {
         Row: {
+          consultant_email: string | null
+          consultant_name: string | null
+          consultant_phone: string | null
+          consultant_photo_url: string | null
           created_at: string
           email: string
           expires_at: string | null
@@ -483,6 +487,10 @@ export type Database = {
           status: string
         }
         Insert: {
+          consultant_email?: string | null
+          consultant_name?: string | null
+          consultant_phone?: string | null
+          consultant_photo_url?: string | null
           created_at?: string
           email: string
           expires_at?: string | null
@@ -491,6 +499,10 @@ export type Database = {
           status?: string
         }
         Update: {
+          consultant_email?: string | null
+          consultant_name?: string | null
+          consultant_phone?: string | null
+          consultant_photo_url?: string | null
           created_at?: string
           email?: string
           expires_at?: string | null
