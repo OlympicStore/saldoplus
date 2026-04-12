@@ -15,6 +15,7 @@ import { SubAccountSwitcher } from "@/components/SubAccountSwitcher";
 import { useSubAccount } from "@/contexts/SubAccountContext";
 import AccountPanel from "@/components/AccountPanel";
 import GuidedTour from "@/components/GuidedTour";
+import MinhaCasa from "@/components/MinhaCasa";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -27,7 +28,7 @@ const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julh
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
-type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "account";
+type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
 
 const allTabs: { key: Tab; label: string }[] = [
   { key: "dashboard", label: "Home" },
@@ -38,6 +39,7 @@ const allTabs: { key: Tab; label: string }[] = [
   { key: "annual", label: "Anual" },
   { key: "goals", label: "Metas" },
   { key: "budgets", label: "Orçamentos" },
+  { key: "minha_casa", label: "Minha Casa" },
   { key: "account", label: "Conta" },
 ];
 
@@ -45,6 +47,7 @@ const planTabs: Record<string, Tab[]> = {
   essencial: ["dashboard", "balance", "entries", "expenses", "account"],
   casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
   pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
+  casa_segura_plus: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
 };
 
 const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
@@ -211,7 +214,7 @@ const Index = () => {
                 {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
-            {userPlan === "pro" && <SubAccountSwitcher />}
+            {(userPlan === "pro" || userPlan === "casa_segura_plus") && <SubAccountSwitcher />}
             <SuggestionsDialog />
             <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
               className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
@@ -332,7 +335,7 @@ const Index = () => {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === "dashboard" && (
           <>
-            {userPlan === "pro" && (
+            {(userPlan === "pro" || userPlan === "casa_segura_plus") && (
               <div className="mb-6 flex justify-end">
                 <AISuggestions
                   fixedExpenses={yearFixedExpenses}
@@ -416,6 +419,7 @@ const Index = () => {
             selectedYear={selectedYear}
           />
         )}
+        {activeTab === "minha_casa" && <MinhaCasa />}
         {activeTab === "account" && <AccountPanel onShowTour={handleShowTour} />}
       </main>
     </div>
