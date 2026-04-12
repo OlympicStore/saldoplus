@@ -5,8 +5,7 @@ Dark theme, Apple-like minimal. Primary hsl(160,84%,39%), bg hsl(210,40%,98%).
 IBM Plex Sans headings/body, IBM Plex Mono numbers. Never serif.
 Moeda: Euro (€), locale pt-PT. Idioma da app: Português.
 Lovable Cloud (Supabase) for auth + DB. Email + Google login.
-Planos: Essencial, Casa, Pro com feature gating.
-Tabs: Home, Saldo, Entradas, Despesas, Investimentos, Anual, Metas, Orçamentos.
+Planos: Essencial, Casa, Pro, Casa Segura Plus (partner). Tabela plans substitui enum.
 
 ## Memories
 - [Currency & locale](mem://style/currency-locale) — Euro €, pt-PT formatting
@@ -20,7 +19,7 @@ Tabs: Home, Saldo, Entradas, Despesas, Investimentos, Anual, Metas, Orçamentos.
 - [Divisão despesas](mem://features/divisao-despesas) — Fair share calculation (no settlements section)
 - [Resumo anual](mem://features/resumo-anual) — Annual bill tracking
 - [Metas financeiras](mem://features/metas-financeiras) — Goals with accounts
-- [Project identity](mem://project/identity) — App name: Saldo+
+- [Project identity](mem://project/identity) — App name: Dashboard Financeiro
 - [Auth & Plans](mem://features/auth-plans) — Email+Google auth, 3 plans, groups, feature gating
-- [Feature gating](mem://features/feature-gating) — Tabs por plano, expiração 1 ano
-- [App restructure](mem://features/app-restructure) — Merged expenses, entries, investments, categories, multi-account balance
+- [Feature gating](mem://features/feature-gating) — Tabs visíveis por plano
+- [Casa Segura Plus](mem://features/casa-segura-plus) — B2B partner plan, Minha Casa tab, auto-activation
