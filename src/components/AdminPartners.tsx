@@ -588,6 +588,7 @@ const AdminPartners = () => {
                           </div>
                         </div>
 
+                        {pInvites.length > 0 && (
                           <div className="rounded-lg border border-border-subtle/60 overflow-hidden">
                             <div className="px-3 py-2 bg-surface border-b border-border-subtle/40">
                               <span className="text-xs font-semibold text-text-muted uppercase">Convites</span>
