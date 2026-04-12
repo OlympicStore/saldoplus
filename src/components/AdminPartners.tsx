@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Building2, Plus, Mail, Users, Send, Loader2, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette,
+  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -22,6 +22,10 @@ interface Partner {
   created_at: string;
   brand_color: string | null;
   brand_logo_url: string | null;
+  consultant_name: string | null;
+  consultant_phone: string | null;
+  consultant_email: string | null;
+  consultant_photo_url: string | null;
 }
 
 interface Invite {
@@ -59,6 +63,7 @@ const AdminPartners = () => {
   const [editLimitValue, setEditLimitValue] = useState(0);
   const [creating, setCreating] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
 
   const [newPartner, setNewPartner] = useState({ name: "", email: "", plan_limit: 25, plan_type: "starter" });
