@@ -530,7 +530,64 @@ const AdminPartners = () => {
                           </div>
                         </div>
 
-                        {pInvites.length > 0 && (
+                        {/* Consultor */}
+                        <div className="rounded-lg bg-surface border border-border-subtle/60 p-3 space-y-3">
+                          <div className="flex items-center gap-2 text-sm text-text-muted">
+                            <User className="h-4 w-4" />
+                            <span className="font-semibold uppercase text-[10px]">Consultor Imobiliário</span>
+                          </div>
+                          <div className="flex items-center gap-3 mb-2">
+                            {partner.consultant_photo_url ? (
+                              <img src={partner.consultant_photo_url} alt="Consultor" className="h-12 w-12 rounded-full object-cover border border-border-subtle" />
+                            ) : (
+                              <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center text-text-muted">
+                                <User className="h-6 w-6" />
+                              </div>
+                            )}
+                            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors cursor-pointer">
+                              {uploadingPhoto === partner.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                              {partner.consultant_photo_url ? "Alterar foto" : "Carregar foto"}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleConsultantPhotoUpload(partner.id, file);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <input
+                              placeholder="Nome do consultor"
+                              value={partner.consultant_name || ""}
+                              onClick={(e) => e.stopPropagation()}
+                              onBlur={(e) => handleConsultantFieldChange(partner.id, "consultant_name", e.target.value)}
+                              onChange={(e) => setPartners((prev) => prev.map((p) => p.id === partner.id ? { ...p, consultant_name: e.target.value } : p))}
+                              className="px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                            <input
+                              placeholder="Telefone"
+                              value={partner.consultant_phone || ""}
+                              onClick={(e) => e.stopPropagation()}
+                              onBlur={(e) => handleConsultantFieldChange(partner.id, "consultant_phone", e.target.value)}
+                              onChange={(e) => setPartners((prev) => prev.map((p) => p.id === partner.id ? { ...p, consultant_phone: e.target.value } : p))}
+                              className="px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                            <input
+                              placeholder="Email do consultor"
+                              value={partner.consultant_email || ""}
+                              onClick={(e) => e.stopPropagation()}
+                              onBlur={(e) => handleConsultantFieldChange(partner.id, "consultant_email", e.target.value)}
+                              onChange={(e) => setPartners((prev) => prev.map((p) => p.id === partner.id ? { ...p, consultant_email: e.target.value } : p))}
+                              className="px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                          </div>
+                        </div>
+
                           <div className="rounded-lg border border-border-subtle/60 overflow-hidden">
                             <div className="px-3 py-2 bg-surface border-b border-border-subtle/40">
                               <span className="text-xs font-semibold text-text-muted uppercase">Convites</span>

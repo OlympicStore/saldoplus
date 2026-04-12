@@ -8,6 +8,10 @@ interface PartnerBranding {
   name: string;
   brand_color: string | null;
   brand_logo_url: string | null;
+  consultant_name: string | null;
+  consultant_phone: string | null;
+  consultant_email: string | null;
+  consultant_photo_url: string | null;
 }
 
 interface Profile {
@@ -59,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchPartnerBranding = useCallback(async (partnerId: string | null): Promise<PartnerBranding | null> => {
     if (!partnerId) return null;
-    const { data } = await supabase.from("partners").select("name, brand_color, brand_logo_url").eq("id", partnerId).maybeSingle();
+    const { data } = await supabase.from("partners").select("name, brand_color, brand_logo_url, consultant_name, consultant_phone, consultant_email, consultant_photo_url").eq("id", partnerId).maybeSingle();
     return data as PartnerBranding | null;
   }, []);
 
