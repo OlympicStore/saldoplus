@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Building2, Plus, Mail, Users, Send, Loader2, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check,
+  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -20,6 +20,8 @@ interface Partner {
   plan_type: string;
   active: boolean;
   created_at: string;
+  brand_color: string | null;
+  brand_logo_url: string | null;
 }
 
 interface Invite {
