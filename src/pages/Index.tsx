@@ -102,6 +102,7 @@ const Index = () => {
     }
   }, [partnerBranding]);
 
+  useEffect(() => {
     const nextTab = isTab(requestedTab) && allowedTabs.includes(requestedTab as Tab) ? (requestedTab as Tab) : "dashboard";
     setActiveTab(nextTab);
   }, [requestedTab, userPlan]);
