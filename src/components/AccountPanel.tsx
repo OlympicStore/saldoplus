@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X, ArrowUpRight, Loader2 } from "lucide-react";
@@ -40,6 +40,20 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   const [nameValue, setNameValue] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [upgradingTo, setUpgradingTo] = useState<string | null>(null);
+  const [partnerName, setPartnerName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (profile?.partner_id) {
+      supabase
+        .from("partners")
+        .select("name")
+        .eq("id", profile.partner_id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setPartnerName(data.name);
+        });
+    }
+  }, [profile?.partner_id]);
 
   if (!user || !profile) return null;
 
@@ -156,11 +170,16 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
             </div>
             <div>
               <p className="text-lg font-semibold text-foreground">Casa Segura Plus</p>
-              <p className="text-sm text-primary font-medium">Oferecido por parceiro imobiliário</p>
+              <p className="text-sm text-primary font-medium">
+                {partnerName ? `Oferecido por: ${partnerName}` : "Oferecido por parceiro imobiliário"}
+              </p>
             </div>
           </div>
           <p className="text-sm text-text-muted">
             Este acesso foi oferecido pela sua imobiliária para o ajudar na gestão financeira da sua nova casa.
+            {expiresAt !== "—" && (
+              <span className="block mt-1 font-medium text-foreground">Válido até: {expiresAt}</span>
+            )}
           </p>
         </div>
       )}
@@ -176,7 +195,7 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
               <p className="text-lg font-semibold text-foreground">{PLAN_LABELS[profile.plan] || profile.plan}</p>
               <p className="text-sm text-text-muted">
                 {profile.plan_source === "partner"
-                  ? "Oferecido por parceiro imobiliário"
+                  ? (partnerName ? `Oferecido por: ${partnerName}` : "Oferecido por parceiro imobiliário")
                   : isActive && daysRemaining !== null ? `${daysRemaining} dias restantes` : "Plano sem acesso ativo"}
               </p>
             </div>
