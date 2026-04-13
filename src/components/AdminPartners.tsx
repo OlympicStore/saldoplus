@@ -90,7 +90,7 @@ const AdminPartners = () => {
   const [inviting, setInviting] = useState(false);
   const [expandedInvite, setExpandedInvite] = useState<string | null>(null);
 
-  const [newPartner, setNewPartner] = useState({ name: "", email: "", plan_limit: 25, plan_type: "starter" });
+  const [newPartner, setNewPartner] = useState({ name: "", email: "", password: "", plan_limit: 25, plan_type: "starter" });
   const [inviteForm, setInviteForm] = useState({
     email: "",
     consultant_name: "",
@@ -131,7 +131,7 @@ const AdminPartners = () => {
       if (data?.error) throw new Error(data.error);
       toast.success(`Parceiro ${newPartner.name} criado com sucesso`);
       setShowCreatePartner(false);
-      setNewPartner({ name: "", email: "", plan_limit: 25, plan_type: "starter" });
+      setNewPartner({ name: "", email: "", password: "", plan_limit: 25, plan_type: "starter" });
       loadData();
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar parceiro");
