@@ -32,18 +32,18 @@ const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: R
   if (isPartner && allowPartnerRedirect && !isAdmin) {
     return <Navigate to="/parceiro" replace />;
   }
-  // Admins always have access; others need an active paid plan
-  if (!isAdmin) {
+  // Admins and partners always have access; others need an active paid plan
+  if (!isAdmin && !isPartner) {
     const plan = profile.plan;
-    // Essencial users created by admin may not have expiry — allow them
-    if (plan === "casa" || plan === "pro") {
+    if (plan === "imobiliaria") {
+      // Partner clients — allow access
+    } else if (plan === "casa" || plan === "pro") {
       const now = new Date();
       const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
       if (!expires || expires < now) {
         return <Navigate to="/pricing" replace />;
       }
     } else if (plan === "essencial") {
-      // Essencial requires payment too, but if admin-created with no dates, allow access
       const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
       if (expires && expires < new Date()) {
         return <Navigate to="/pricing" replace />;
