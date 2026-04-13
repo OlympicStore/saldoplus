@@ -1,9 +1,9 @@
 ---
-name: Parceiro Pro (B2B partner plan)
+name: Imobiliária (B2B partner plan)
 description: Plano invisível para parceiros imobiliários — acesso Pro + tab Minha Casa. Ativação automática via convite. Branding + consultor imobiliário por convite.
 type: feature
 ---
-- Plano `parceiro_pro` tipo `partner` — não aparece na landing page nem nas opções de upgrade
+- Plano `imobiliaria` tipo `partner` — não aparece na landing page nem nas opções de upgrade
 - Acesso equivalente a Pro + tab "Minha Casa" (indicador 🟢🟡🔴 baseado em prestação/rendimento)
 - Tabela `plans` substitui o enum app_plan (essencial, casa, pro, parceiro_pro)
 - Tabela `partners` com plan_limit, plan_type, brand_color, brand_logo_url

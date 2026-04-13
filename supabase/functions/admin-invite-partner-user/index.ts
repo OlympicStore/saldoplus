@@ -103,7 +103,7 @@ serve(async (req) => {
       await supabaseAdmin
         .from("profiles")
         .update({
-          plan: "parceiro_pro",
+          plan: "imobiliaria",
           plan_source: "partner",
           partner_id,
           plan_started_at: now.toISOString(),
