@@ -31,6 +31,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isAdmin: boolean;
+  isPartner: boolean;
   partnerBranding: PartnerBranding | null;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -38,7 +39,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null, session: null, profile: null, isAdmin: false, partnerBranding: null, loading: true,
+  user: null, session: null, profile: null, isAdmin: false, isPartner: false, partnerBranding: null, loading: true,
   signOut: async () => {}, refreshProfile: async () => {},
 });
 
@@ -49,6 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
   const [partnerBranding, setPartnerBranding] = useState<PartnerBranding | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -59,6 +61,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkAdmin = useCallback(async (userId: string) => {
     const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    return data === true;
+  }, []);
+
+  const checkPartner = useCallback(async (userId: string) => {
+    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "partner" });
     return data === true;
   }, []);
 
@@ -104,38 +111,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!nextUser) {
       setProfile(null);
       setIsAdmin(false);
+      setIsPartner(false);
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    const [nextProfile, nextIsAdmin] = await Promise.all([
+    const [nextProfile, nextIsAdmin, nextIsPartner] = await Promise.all([
       fetchProfile(nextUser.id),
       checkAdmin(nextUser.id),
+      checkPartner(nextUser.id),
     ]);
 
     const branding = await fetchPartnerBranding(nextProfile);
     setProfile(nextProfile);
     setIsAdmin(nextIsAdmin);
+    setIsPartner(nextIsPartner);
     setPartnerBranding(branding);
     setLoading(false);
-  }, [checkAdmin, fetchProfile, fetchPartnerBranding]);
+  }, [checkAdmin, checkPartner, fetchProfile, fetchPartnerBranding]);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
-    const [nextProfile, nextIsAdmin] = await Promise.all([
+    const [nextProfile, nextIsAdmin, nextIsPartner] = await Promise.all([
       fetchProfile(user.id),
       checkAdmin(user.id),
+      checkPartner(user.id),
     ]);
 
     const branding = await fetchPartnerBranding(nextProfile);
     setProfile(nextProfile);
     setIsAdmin(nextIsAdmin);
+    setIsPartner(nextIsPartner);
     setPartnerBranding(branding);
     setLoading(false);
-  }, [checkAdmin, fetchProfile, fetchPartnerBranding, user]);
+  }, [checkAdmin, checkPartner, fetchProfile, fetchPartnerBranding, user]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -166,11 +178,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setProfile(null);
     setIsAdmin(false);
+    setIsPartner(false);
     setPartnerBranding(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, isAdmin, partnerBranding, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, isAdmin, isPartner, partnerBranding, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
