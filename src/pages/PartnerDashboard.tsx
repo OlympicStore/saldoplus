@@ -152,8 +152,58 @@ const PartnerDashboard = () => {
       setUploadingPhoto(false);
     }
   };
+  const handleEditConsultantPhotoUpload = async (file: File) => {
+    if (!partnerId) return;
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `consultant-${partnerId}-edit-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("partner-logos")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage
+        .from("partner-logos")
+        .getPublicUrl(path);
+      setEditConsultantForm((prev) => ({ ...prev, photo_url: publicUrl }));
+      toast.success("Foto carregada");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar foto");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
-  const handleInviteUser = async () => {
+  const handleSaveConsultant = async () => {
+    if (!editingConsultant || !partnerId) return;
+    setSavingConsultant(true);
+    try {
+      // Update all invites that have this consultant name
+      const toUpdate = invites.filter(
+        (i) => i.consultant_name === editingConsultant && i.partner_id === partnerId
+      );
+      for (const inv of toUpdate) {
+        await supabase
+          .from("partner_invites")
+          .update({
+            consultant_name: editConsultantForm.name || null,
+            consultant_phone: editConsultantForm.phone || null,
+            consultant_email: editConsultantForm.email || null,
+            consultant_photo_url: editConsultantForm.photo_url || null,
+          } as any)
+          .eq("id", inv.id);
+      }
+      toast.success("Consultor atualizado");
+      setEditingConsultant(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao guardar");
+    } finally {
+      setSavingConsultant(false);
+    }
+  };
+
+
     if (!inviteForm.email || !partnerId) {
       toast.error("Email é obrigatório");
       return;
