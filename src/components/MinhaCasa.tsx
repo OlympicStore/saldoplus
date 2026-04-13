@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart } from "lucide-react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -40,6 +40,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const [saving, setSaving] = useState(false);
   const [stressExtra, setStressExtra] = useState(0);
   const [activeSection, setActiveSection] = useState<"esforco" | "progresso">("esforco");
+  const [selectedCalendarYear, setSelectedCalendarYear] = useState(new Date().getFullYear());
   const [newExpenseName, setNewExpenseName] = useState("");
   const [newExpenseValue, setNewExpenseValue] = useState("");
 
@@ -54,7 +55,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const planStartMonth = planStartDate ? planStartDate.getMonth() : currentMonth;
 
   const isMonthActive = (year: number, month: number) => {
-    if (!planStartDate) return month <= currentMonth;
+    if (!planStartDate) return true;
     if (year < planStartYear) return false;
     if (year === planStartYear && month < planStartMonth) return false;
     return true;
@@ -306,32 +307,49 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
             )}
           </button>
         </div>
-        {/* Mini annual status */}
-        <div className="mt-4 flex gap-1.5">
-          {MONTH_NAMES.map((name, i) => {
-            const key = `${currentYear}-${i}`;
-            const st = data.monthly_payment_status[key];
-            const active = isMonthActive(currentYear, i);
-            return (
-              <button
-                key={i}
-                onClick={() => active && togglePaymentStatus(key)}
-                disabled={!active}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                  !active
-                    ? "bg-secondary/50 text-text-muted/40 cursor-not-allowed"
-                    : st === "pago"
-                    ? "bg-status-paid/15 text-status-paid"
-                    : i <= currentMonth
-                    ? "bg-yellow-500/10 text-yellow-600"
-                    : "bg-secondary text-text-muted"
-                }`}
-                title={!active ? "Mês anterior ao plano" : `${name} — ${st === "pago" ? "Paga" : "Pendente"}`}
-              >
-                {name}
-              </button>
-            );
-          })}
+        {/* Year navigation + mini annual status */}
+        <div className="mt-4">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <button
+              onClick={() => setSelectedCalendarYear(y => y - 1)}
+              className="p-1 rounded-lg hover:bg-surface-hover transition-colors text-text-muted hover:text-foreground"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-sm font-semibold text-foreground min-w-[3rem] text-center">{selectedCalendarYear}</span>
+            <button
+              onClick={() => setSelectedCalendarYear(y => y + 1)}
+              className="p-1 rounded-lg hover:bg-surface-hover transition-colors text-text-muted hover:text-foreground"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="flex gap-1.5">
+            {MONTH_NAMES.map((name, i) => {
+              const key = `${selectedCalendarYear}-${i}`;
+              const st = data.monthly_payment_status[key];
+              const active = isMonthActive(selectedCalendarYear, i);
+              return (
+                <button
+                  key={i}
+                  onClick={() => active && togglePaymentStatus(key)}
+                  disabled={!active}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    !active
+                      ? "bg-secondary/50 text-text-muted/40 cursor-not-allowed"
+                      : st === "pago"
+                      ? "bg-status-paid/15 text-status-paid"
+                      : selectedCalendarYear === currentYear && i <= currentMonth
+                      ? "bg-yellow-500/10 text-yellow-600"
+                      : "bg-secondary text-text-muted"
+                  }`}
+                  title={!active ? "Mês anterior ao plano" : `${name} — ${st === "pago" ? "Paga" : "Pendente"}`}
+                >
+                  {name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
