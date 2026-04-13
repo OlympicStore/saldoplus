@@ -71,10 +71,10 @@ serve(async (req) => {
 
       if (existingUser) {
         // Link existing user to partner
-        await supabaseAdmin
-          .from("profiles")
-          .update({ partner_id: partner.id })
-          .eq("id", existingUser.id);
+74:         await supabaseAdmin
+75:           .from("profiles")
+76:           .update({ partner_id: partner.id, plan: "imobiliaria", plan_source: "partner" })
+77:           .eq("id", existingUser.id);
 
         // Assign partner role
         await supabaseAdmin
@@ -84,10 +84,10 @@ serve(async (req) => {
         throw new Error(`Failed to create user: ${createUserError.message}`);
       }
     } else if (newUser.user) {
-      // Update profile to link partner_id
+      // Update profile to link partner_id and set plan
       await supabaseAdmin
         .from("profiles")
-        .update({ partner_id: partner.id })
+        .update({ partner_id: partner.id, plan: "imobiliaria", plan_source: "partner" })
         .eq("id", newUser.user.id);
 
       // Assign partner role
