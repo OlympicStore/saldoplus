@@ -520,6 +520,39 @@ export function usePersistedData(subAccountId?: string | null) {
     syncSettings(people, variableCategories, bal);
   }, [syncSettings, people, variableCategories]);
 
+  const refetchFixedExpenses = useCallback(async () => {
+    if (!userId) return;
+    const { data: fe } = await withSub(supabase.from("fixed_expenses").select("*").eq("user_id", userId));
+    if (fe?.length) {
+      setFixedExpenses(fe.map((r: any) => {
+        const mv = r.monthly_values || {};
+        const mr = r.monthly_responsible || {};
+        const mp = r.monthly_paid || {};
+        const migrateKeys = (obj: Record<string, any>) => {
+          const result: Record<string, any> = {};
+          for (const [k, v] of Object.entries(obj)) {
+            const num = Number(k);
+            if (num >= 0 && num <= 11) {
+              result[String(2026 * 100 + num)] = v;
+            } else {
+              result[k] = v;
+            }
+          }
+          return result;
+        };
+        const needsMigration = Object.keys(mv).some(k => Number(k) >= 0 && Number(k) <= 11);
+        return {
+          id: r.id, item: r.item, dueDay: r.due_day, account: r.account || "",
+          monthlyValues: needsMigration ? migrateKeys(mv) : mv,
+          monthlyResponsible: needsMigration ? migrateKeys(mr) : mr,
+          monthlyPaid: needsMigration ? migrateKeys(mp) : mp,
+        };
+      }));
+    } else {
+      setFixedExpenses([]);
+    }
+  }, [userId, subAccountId]);
+
   return {
     loaded,
     fixedExpenses, variableExpenses, incomes, salaryConfigs,
@@ -535,5 +568,6 @@ export function usePersistedData(subAccountId?: string | null) {
     addInvestment, updateInvestment, deleteInvestment,
     addCategoryItem, updateCategoryItem, deleteCategoryItem,
     addTransfer, deleteTransfer,
+    refetchFixedExpenses,
   };
 }
