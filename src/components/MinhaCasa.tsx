@@ -55,7 +55,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const planStartMonth = planStartDate ? planStartDate.getMonth() : currentMonth;
 
   const isMonthActive = (year: number, month: number) => {
-    if (!planStartDate) return month <= currentMonth;
+    if (!planStartDate) return true;
     if (year < planStartYear) return false;
     if (year === planStartYear && month < planStartMonth) return false;
     return true;
