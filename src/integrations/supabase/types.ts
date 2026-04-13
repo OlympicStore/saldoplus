@@ -343,7 +343,9 @@ export type Database = {
       house_data: {
         Row: {
           created_at: string
+          down_payment: number
           estimated_expenses: number
+          extra_expenses: Json
           house_value: number
           id: string
           monthly_income: number
@@ -354,7 +356,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          down_payment?: number
           estimated_expenses?: number
+          extra_expenses?: Json
           house_value?: number
           id?: string
           monthly_income?: number
@@ -365,7 +369,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          down_payment?: number
           estimated_expenses?: number
+          extra_expenses?: Json
           house_value?: number
           id?: string
           monthly_income?: number
