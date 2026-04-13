@@ -713,6 +713,94 @@ const AdminPartners = () => {
                             </div>
                           </div>
                         )}
+
+                        {/* Client House Dashboard */}
+                        {(() => {
+                          const partnerClients = clientProfiles.filter(p => p.partner_id === partner.id);
+                          if (partnerClients.length === 0) return null;
+                          const currentYear = new Date().getFullYear();
+                          const currentMonth = new Date().getMonth();
+                          const MONTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+                          const fmtVal = (v: number) => v.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
+
+                          return (
+                            <div className="rounded-lg border border-border-subtle/60 overflow-hidden">
+                              <div className="px-3 py-2 bg-surface border-b border-border-subtle/40 flex items-center gap-2">
+                                <Home className="h-3.5 w-3.5 text-primary" />
+                                <span className="text-xs font-semibold text-text-muted uppercase">Dashboard Clientes — Habitação</span>
+                              </div>
+                              <div className="divide-y divide-border-subtle/20">
+                                {partnerClients.map(client => {
+                                  const hd = clientHouseData.find(h => h.user_id === client.id);
+                                  const paymentStatus = (hd?.monthly_payment_status || {}) as Record<string, string>;
+                                  const paidCount = Object.values(paymentStatus).filter(s => s === "pago").length;
+                                  const currentKey = `${currentYear}-${currentMonth}`;
+                                  const currentSt = paymentStatus[currentKey] || "pendente";
+                                  const ratio = hd && hd.monthly_payment > 0 && (hd as any).monthly_payment
+                                    ? 0 : 0;
+
+                                  return (
+                                    <div key={client.id} className="px-3 py-3">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div>
+                                          <p className="text-sm font-semibold text-foreground">{client.full_name || client.email}</p>
+                                          {client.full_name && <p className="text-xs text-text-muted">{client.email}</p>}
+                                        </div>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                          currentSt === "pago" ? "bg-status-paid/10 text-status-paid" : "bg-yellow-500/10 text-yellow-500"
+                                        }`}>
+                                          {MONTHS[currentMonth]}: {currentSt === "pago" ? "Paga" : "Pendente"}
+                                        </span>
+                                      </div>
+                                      {hd ? (
+                                        <div className="space-y-2">
+                                          <div className="grid grid-cols-3 gap-2 text-xs">
+                                            <div className="bg-secondary rounded-lg p-2">
+                                              <span className="text-text-muted block">Valor casa</span>
+                                              <span className="font-semibold text-foreground font-mono">{fmtVal(hd.house_value)}</span>
+                                            </div>
+                                            <div className="bg-secondary rounded-lg p-2">
+                                              <span className="text-text-muted block">Prestação</span>
+                                              <span className="font-semibold text-foreground font-mono">{fmtVal(hd.monthly_payment)}</span>
+                                            </div>
+                                            <div className="bg-secondary rounded-lg p-2">
+                                              <span className="text-text-muted block">Meses pagos</span>
+                                              <span className="font-semibold text-status-paid">{paidCount}</span>
+                                            </div>
+                                          </div>
+                                          {/* Mini month grid */}
+                                          <div className="flex gap-1">
+                                            {MONTHS.map((name, i) => {
+                                              const key = `${currentYear}-${i}`;
+                                              const st = paymentStatus[key];
+                                              return (
+                                                <div
+                                                  key={i}
+                                                  className={`flex-1 py-1 rounded text-[9px] text-center font-medium ${
+                                                    st === "pago"
+                                                      ? "bg-status-paid/15 text-status-paid"
+                                                      : i <= currentMonth
+                                                      ? "bg-yellow-500/10 text-yellow-500"
+                                                      : "bg-secondary text-text-muted/50"
+                                                  }`}
+                                                  title={`${name}: ${st === "pago" ? "Paga" : "Pendente"}`}
+                                                >
+                                                  {name}
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-text-muted italic">Sem dados de habitação preenchidos</p>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </motion.div>
                   )}
