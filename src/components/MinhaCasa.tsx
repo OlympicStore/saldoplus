@@ -178,15 +178,15 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         estimated_expenses: data.estimated_expenses,
         monthly_income: data.monthly_income,
         down_payment: data.down_payment,
-        extra_expenses: data.extra_expenses,
-        monthly_payment_status: data.monthly_payment_status,
+        extra_expenses: data.extra_expenses as any,
+        monthly_payment_status: data.monthly_payment_status as any,
       };
 
       if (data.id) {
-        const { error } = await supabase.from("house_data").update(payload).eq("id", data.id);
+        const { error } = await supabase.from("house_data").update(payload as any).eq("id", data.id);
         if (error) throw error;
       } else {
-        const { data: row, error } = await supabase.from("house_data").insert({ ...payload, user_id: user.id }).select().single();
+        const { data: row, error } = await supabase.from("house_data").insert({ ...payload, user_id: user.id } as any).select().single();
         if (error) throw error;
         setData((prev) => ({ ...prev, id: row.id }));
       }
