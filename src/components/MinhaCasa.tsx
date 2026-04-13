@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, Info, MessageCircle, Phone, Mail } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, Plus, Minus, CheckCircle2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -10,10 +10,13 @@ interface HouseData {
   monthly_payment: number;
   estimated_expenses: number;
   monthly_income: number;
+  monthly_payment_status: Record<string, string>; // "2026-0": "pago" | "pendente"
 }
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
+
+const MONTH_NAMES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
 const MinhaCasa = () => {
   const { user, partnerBranding } = useAuth();
@@ -22,9 +25,16 @@ const MinhaCasa = () => {
     monthly_payment: 0,
     estimated_expenses: 0,
     monthly_income: 0,
+    monthly_payment_status: {},
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [stressExtra, setStressExtra] = useState(0);
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const statusKey = `${currentYear}-${currentMonth}`;
 
   useEffect(() => {
     if (!user) return;
@@ -41,6 +51,7 @@ const MinhaCasa = () => {
           monthly_payment: Number(row.monthly_payment) || 0,
           estimated_expenses: Number(row.estimated_expenses) || 0,
           monthly_income: Number(row.monthly_income) || 0,
+          monthly_payment_status: (row as any).monthly_payment_status || {},
         });
       }
       setLoading(false);
@@ -48,36 +59,87 @@ const MinhaCasa = () => {
     load();
   }, [user]);
 
+  // Auto-sync fixed expense for "Prestação Casa"
+  const syncFixedExpense = async (payment: number, status: Record<string, string>) => {
+    if (!user) return;
+
+    // Check if a fixed expense named "Prestação Casa" exists
+    const { data: existing } = await supabase
+      .from("fixed_expenses")
+      .select("id, monthly_values, monthly_paid")
+      .eq("user_id", user.id)
+      .eq("item", "Prestação Casa")
+      .maybeSingle();
+
+    // Build monthly_values and monthly_paid from status
+    const monthlyValues: Record<string, number> = {};
+    const monthlyPaid: Record<string, boolean> = {};
+
+    for (const [key, val] of Object.entries(status)) {
+      // key format: "2026-0" → composite key for yearMonth
+      const [y, m] = key.split("-").map(Number);
+      const compositeKey = y * 100 + m;
+      monthlyValues[compositeKey] = payment;
+      monthlyPaid[compositeKey] = val === "pago";
+    }
+
+    if (existing) {
+      // Merge with existing values
+      const existingValues = (existing.monthly_values as Record<string, number>) || {};
+      const existingPaid = (existing.monthly_paid as Record<string, boolean>) || {};
+      await supabase
+        .from("fixed_expenses")
+        .update({
+          monthly_values: { ...existingValues, ...monthlyValues },
+          monthly_paid: { ...existingPaid, ...monthlyPaid },
+        })
+        .eq("id", existing.id);
+    } else if (Object.keys(status).length > 0) {
+      await supabase
+        .from("fixed_expenses")
+        .insert({
+          user_id: user.id,
+          item: "Prestação Casa",
+          due_day: 1,
+          account: "",
+          monthly_values: monthlyValues,
+          monthly_responsible: {},
+          monthly_paid: monthlyPaid,
+        });
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
     try {
+      const payload = {
+        house_value: data.house_value,
+        monthly_payment: data.monthly_payment,
+        estimated_expenses: data.estimated_expenses,
+        monthly_income: data.monthly_income,
+        monthly_payment_status: data.monthly_payment_status,
+      };
+
       if (data.id) {
         const { error } = await supabase
           .from("house_data")
-          .update({
-            house_value: data.house_value,
-            monthly_payment: data.monthly_payment,
-            estimated_expenses: data.estimated_expenses,
-            monthly_income: data.monthly_income,
-          })
+          .update(payload)
           .eq("id", data.id);
         if (error) throw error;
       } else {
         const { data: row, error } = await supabase
           .from("house_data")
-          .insert({
-            user_id: user.id,
-            house_value: data.house_value,
-            monthly_payment: data.monthly_payment,
-            estimated_expenses: data.estimated_expenses,
-            monthly_income: data.monthly_income,
-          })
+          .insert({ ...payload, user_id: user.id })
           .select()
           .single();
         if (error) throw error;
         setData((prev) => ({ ...prev, id: row.id }));
       }
+
+      // Sync to fixed expenses
+      await syncFixedExpense(data.monthly_payment, data.monthly_payment_status);
+
       toast.success("Dados guardados com sucesso.");
     } catch (err: any) {
       toast.error(err.message || "Erro ao guardar.");
@@ -86,22 +148,44 @@ const MinhaCasa = () => {
     }
   };
 
-  const ratio =
-    data.monthly_income > 0
-      ? (data.monthly_payment / data.monthly_income) * 100
-      : 0;
+  const togglePaymentStatus = (key: string) => {
+    setData((prev) => {
+      const current = prev.monthly_payment_status[key];
+      const next = current === "pago" ? "pendente" : "pago";
+      return {
+        ...prev,
+        monthly_payment_status: { ...prev.monthly_payment_status, [key]: next },
+      };
+    });
+  };
 
-  const totalHousing = data.monthly_payment + data.estimated_expenses;
+  const currentStatus = data.monthly_payment_status[statusKey] || "pendente";
+
+  // Calculations
+  const effectivePayment = data.monthly_payment + stressExtra;
+  const ratio = data.monthly_income > 0 ? (effectivePayment / data.monthly_income) * 100 : 0;
+  const baseRatio = data.monthly_income > 0 ? (data.monthly_payment / data.monthly_income) * 100 : 0;
+  const totalHousing = effectivePayment + data.estimated_expenses;
   const margin = data.monthly_income - totalHousing;
+  const marginToRisk = data.monthly_income > 0 ? (data.monthly_income * 0.3) - data.monthly_payment : 0;
+  const marginDiff = 30 - baseRatio;
 
-  const getStatus = () => {
-    if (ratio < 30) return { label: "Seguro", color: "text-status-paid", bg: "bg-status-paid/10", icon: ShieldCheck };
-    if (ratio <= 40) return { label: "Atenção", color: "text-yellow-500", bg: "bg-yellow-500/10", icon: AlertTriangle };
+  const getStatus = (r: number) => {
+    if (r < 30) return { label: "Seguro", color: "text-status-paid", bg: "bg-status-paid/10", icon: ShieldCheck };
+    if (r <= 40) return { label: "Atenção", color: "text-yellow-500", bg: "bg-yellow-500/10", icon: AlertTriangle };
     return { label: "Risco", color: "text-status-negative", bg: "bg-status-negative/10", icon: AlertTriangle };
   };
 
-  const status = getStatus();
+  const status = getStatus(ratio);
   const StatusIcon = status.icon;
+
+  const interpretiveMessage = useMemo(() => {
+    if (baseRatio === 0) return null;
+    if (baseRatio < 20) return "A sua prestação tem um peso muito baixo no orçamento. Excelente posição financeira.";
+    if (baseRatio < 30) return "A sua prestação está dentro de uma margem confortável. Existe espaço para lidar com imprevistos.";
+    if (baseRatio < 40) return "A prestação começa a pesar no orçamento. Considere renegociar ou reduzir outras despesas.";
+    return "A prestação ultrapassa o limite recomendado. O risco financeiro é elevado — procure ajuda profissional.";
+  }, [baseRatio]);
 
   if (loading) {
     return (
@@ -123,26 +207,63 @@ const MinhaCasa = () => {
         </div>
       </div>
 
-      {/* Info banner */}
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex gap-3">
-        <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-        <div className="text-sm text-text-muted">
-          <p className="font-medium text-foreground mb-1">Nota importante</p>
-          <p>
-            Esta secção serve apenas para <strong>acompanhar o impacto da habitação no seu orçamento</strong>.
-            As despesas da casa (prestação, condomínio, seguros, etc.) devem também ser registadas na aba <strong>"Despesas"</strong> para
-            serem incluídas no saldo, balanço mensal e resumo anual.
-          </p>
+      {/* Payment status for current month */}
+      <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="label-caps mb-1 block">Prestação de {MONTH_NAMES[currentMonth]} {currentYear}</span>
+            <p className="text-xl font-semibold text-foreground font-mono tabular-nums">{fmt(data.monthly_payment)}</p>
+          </div>
+          <button
+            onClick={() => { togglePaymentStatus(statusKey); }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              currentStatus === "pago"
+                ? "bg-status-paid/10 text-status-paid border border-status-paid/20"
+                : "bg-yellow-500/10 text-yellow-600 border border-yellow-500/20"
+            }`}
+          >
+            {currentStatus === "pago" ? (
+              <><CheckCircle2 className="h-4 w-4" /> Paga</>
+            ) : (
+              <><Clock className="h-4 w-4" /> Pendente</>
+            )}
+          </button>
+        </div>
+        {/* Mini annual status */}
+        <div className="mt-4 flex gap-1.5">
+          {MONTH_NAMES.map((name, i) => {
+            const key = `${currentYear}-${i}`;
+            const st = data.monthly_payment_status[key];
+            return (
+              <button
+                key={i}
+                onClick={() => togglePaymentStatus(key)}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                  st === "pago"
+                    ? "bg-status-paid/15 text-status-paid"
+                    : i <= currentMonth
+                    ? "bg-yellow-500/10 text-yellow-600"
+                    : "bg-secondary text-text-muted"
+                }`}
+                title={`${name} — ${st === "pago" ? "Paga" : "Pendente"}`}
+              >
+                {name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Indicator */}
+      {/* Enhanced capacity indicator */}
       <div className={`rounded-xl border border-border-subtle/60 p-5 ${status.bg}`}>
         <div className="flex items-center gap-3">
           <StatusIcon className={`h-8 w-8 ${status.color}`} />
-          <div>
+          <div className="flex-1">
             <p className={`text-2xl font-bold ${status.color} font-mono tabular-nums`}>
               {ratio.toFixed(1)}%
+              {stressExtra > 0 && (
+                <span className="text-sm font-normal ml-2 text-text-muted">(+{fmt(stressExtra)} stress test)</span>
+              )}
             </p>
             <p className="text-sm text-text-muted">
               do rendimento gasto em prestação · Estado: <span className={`font-semibold ${status.color}`}>{status.label}</span>
@@ -163,7 +284,79 @@ const MinhaCasa = () => {
           <span className="text-yellow-500">40%</span>
           <span className="text-status-negative">100%</span>
         </div>
+
+        {/* Context details */}
+        {data.monthly_income > 0 && (
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+            <div className="bg-background/60 rounded-lg p-3">
+              <span className="text-text-muted text-xs block mb-0.5">Recomendado</span>
+              <span className="font-semibold text-foreground">até 30%</span>
+            </div>
+            <div className="bg-background/60 rounded-lg p-3">
+              <span className="text-text-muted text-xs block mb-0.5">Margem disponível</span>
+              <span className={`font-semibold ${marginDiff >= 0 ? "text-status-paid" : "text-status-negative"}`}>
+                {marginDiff >= 0 ? "+" : ""}{marginDiff.toFixed(1)}%
+              </span>
+            </div>
+            <div className="bg-background/60 rounded-lg p-3">
+              <span className="text-text-muted text-xs block mb-0.5">Dependência habitação</span>
+              <span className="font-semibold text-foreground">{baseRatio.toFixed(1)}% do rendimento</span>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Interpretive message */}
+      {interpretiveMessage && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+          <p>💡 {interpretiveMessage}</p>
+        </div>
+      )}
+
+      {/* Stress test */}
+      {data.monthly_income > 0 && (
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-1">Stress Test</h3>
+          <p className="text-xs text-text-muted mb-4">E se a prestação subir?</p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[0, 50, 100, 200].map((val) => (
+              <button
+                key={val}
+                onClick={() => setStressExtra(val)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  stressExtra === val
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-foreground hover:bg-surface-hover"
+                }`}
+              >
+                {val === 0 ? "Atual" : `+${fmt(val)}`}
+              </button>
+            ))}
+          </div>
+          {stressExtra > 0 && (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-secondary rounded-lg p-3">
+                <span className="text-text-muted text-xs block mb-0.5">Nova prestação</span>
+                <span className="font-semibold text-foreground font-mono">{fmt(effectivePayment)}</span>
+              </div>
+              <div className="bg-secondary rounded-lg p-3">
+                <span className="text-text-muted text-xs block mb-0.5">Novo esforço</span>
+                <span className={`font-semibold font-mono ${getStatus(ratio).color}`}>{ratio.toFixed(1)}% ({getStatus(ratio).label})</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Room to maneuver */}
+      {data.monthly_income > 0 && baseRatio < 30 && (
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-1">Espaço de Manobra</h3>
+          <p className="text-sm text-text-muted">
+            Pode suportar até <span className="font-semibold text-status-paid font-mono">{fmt(Math.max(0, marginToRisk))}</span>/mês a mais de prestação antes de entrar em risco.
+          </p>
+        </div>
+      )}
 
       {/* Consultant bot warning when ratio >= 30% */}
       {ratio >= 30 && partnerBranding?.consultant_name && (
@@ -174,6 +367,7 @@ const MinhaCasa = () => {
                 src={partnerBranding.consultant_photo_url}
                 alt={partnerBranding.consultant_name}
                 className="h-12 w-12 rounded-full object-cover border-2 border-primary/30 shrink-0"
+                style={{ objectPosition: partnerBranding.consultant_photo_position || "center" }}
               />
             ) : (
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

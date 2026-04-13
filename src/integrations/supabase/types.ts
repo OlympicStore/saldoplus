@@ -348,6 +348,7 @@ export type Database = {
           id: string
           monthly_income: number
           monthly_payment: number
+          monthly_payment_status: Json
           updated_at: string
           user_id: string
         }
@@ -358,6 +359,7 @@ export type Database = {
           id?: string
           monthly_income?: number
           monthly_payment?: number
+          monthly_payment_status?: Json
           updated_at?: string
           user_id: string
         }
@@ -368,6 +370,7 @@ export type Database = {
           id?: string
           monthly_income?: number
           monthly_payment?: number
+          monthly_payment_status?: Json
           updated_at?: string
           user_id?: string
         }

@@ -21,7 +21,7 @@ const ExpirationBanner = () => {
   if (!isExpired && !isWarning) return null;
 
   const isPartner = profile.plan_source === "partner";
-  const planLabel = profile.plan === "casa_segura_plus" ? "Casa Segura Plus" : profile.plan;
+  const planLabel = profile.plan === "parceiro_pro" ? "Parceiro Pro" : profile.plan;
 
   return (
     <div className={`border-b ${isExpired ? "bg-status-negative/5 border-status-negative/20" : "bg-yellow-500/5 border-yellow-500/20"}`}>

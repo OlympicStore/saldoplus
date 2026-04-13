@@ -11,7 +11,7 @@ const PartnerOnboarding = () => {
 
   useEffect(() => {
     if (
-      profile?.plan === "casa_segura_plus" &&
+      profile?.plan === "parceiro_pro" &&
       profile?.plan_source === "partner" &&
       !localStorage.getItem(STORAGE_KEY)
     ) {
@@ -54,7 +54,7 @@ const PartnerOnboarding = () => {
                 🏠
               </div>
               <h2 className="text-xl font-bold text-foreground mb-2">
-                Bem-vindo ao Casa Segura Plus
+                Bem-vindo ao Parceiro Pro
               </h2>
               <p className="text-sm text-text-muted leading-relaxed mb-6">
                 Este acesso foi oferecido pela sua imobiliária para o ajudar na gestão financeira da sua nova casa.
