@@ -63,6 +63,9 @@ const PartnerDashboard = () => {
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [editingConsultant, setEditingConsultant] = useState<string | null>(null);
+  const [editConsultantForm, setEditConsultantForm] = useState({ name: "", phone: "", email: "", photo_url: "" });
+  const [savingConsultant, setSavingConsultant] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     email: "",
     consultant_name: "",
@@ -147,6 +150,56 @@ const PartnerDashboard = () => {
       toast.error(err.message || "Erro ao carregar foto");
     } finally {
       setUploadingPhoto(false);
+    }
+  };
+  const handleEditConsultantPhotoUpload = async (file: File) => {
+    if (!partnerId) return;
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `consultant-${partnerId}-edit-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("partner-logos")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage
+        .from("partner-logos")
+        .getPublicUrl(path);
+      setEditConsultantForm((prev) => ({ ...prev, photo_url: publicUrl }));
+      toast.success("Foto carregada");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar foto");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleSaveConsultant = async () => {
+    if (!editingConsultant || !partnerId) return;
+    setSavingConsultant(true);
+    try {
+      // Update all invites that have this consultant name
+      const toUpdate = invites.filter(
+        (i) => i.consultant_name === editingConsultant && i.partner_id === partnerId
+      );
+      for (const inv of toUpdate) {
+        await supabase
+          .from("partner_invites")
+          .update({
+            consultant_name: editConsultantForm.name || null,
+            consultant_phone: editConsultantForm.phone || null,
+            consultant_email: editConsultantForm.email || null,
+            consultant_photo_url: editConsultantForm.photo_url || null,
+          } as any)
+          .eq("id", inv.id);
+      }
+      toast.success("Consultor atualizado");
+      setEditingConsultant(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao guardar");
+    } finally {
+      setSavingConsultant(false);
     }
   };
 
@@ -322,18 +375,29 @@ const PartnerDashboard = () => {
             </div>
             <div className="divide-y divide-border-subtle/40">
               {existingConsultants.map((c) => (
-                <div key={c.name} className="p-4 flex items-center gap-3">
-                  {c.photo_url ? (
-                    <img src={c.photo_url} alt={c.name} className="h-10 w-10 rounded-full object-cover border border-border-subtle" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-text-muted">
-                      <User className="h-5 w-5" />
+                <div key={c.name} className="p-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {c.photo_url ? (
+                      <img src={c.photo_url} alt={c.name} className="h-10 w-10 rounded-full object-cover border border-border-subtle" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-text-muted">
+                        <User className="h-5 w-5" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{c.name}</p>
+                      <p className="text-xs text-text-muted">{[c.phone, c.email].filter(Boolean).join(" · ")}</p>
                     </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{c.name}</p>
-                    <p className="text-xs text-text-muted">{[c.phone, c.email].filter(Boolean).join(" · ")}</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      setEditingConsultant(c.name);
+                      setEditConsultantForm({ name: c.name, phone: c.phone, email: c.email, photo_url: c.photo_url });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors"
+                  >
+                    <Camera className="h-3.5 w-3.5" /> Editar
+                  </button>
                 </div>
               ))}
             </div>
@@ -478,6 +542,76 @@ const PartnerDashboard = () => {
               className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
               {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               {inviting ? "A enviar..." : "Enviar Convite"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Consultant Dialog */}
+      <Dialog open={!!editingConsultant} onOpenChange={(open) => !open && setEditingConsultant(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Consultor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            {/* Photo */}
+            <div className="flex items-center gap-3">
+              {editConsultantForm.photo_url ? (
+                <img src={editConsultantForm.photo_url} alt="Consultor" className="h-16 w-16 rounded-full object-cover border border-border-subtle" />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center text-text-muted">
+                  <User className="h-7 w-7" />
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors cursor-pointer">
+                  {uploadingPhoto ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                  {editConsultantForm.photo_url ? "Alterar foto" : "Adicionar foto"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleEditConsultantPhotoUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {editConsultantForm.photo_url && (
+                  <button
+                    onClick={() => setEditConsultantForm((p) => ({ ...p, photo_url: "" }))}
+                    className="text-[10px] text-status-negative hover:underline text-left"
+                  >
+                    Remover foto
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Nome</label>
+              <input value={editConsultantForm.name}
+                onChange={(e) => setEditConsultantForm((p) => ({ ...p, name: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Telefone</label>
+              <input value={editConsultantForm.phone}
+                onChange={(e) => setEditConsultantForm((p) => ({ ...p, phone: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Email</label>
+              <input type="email" value={editConsultantForm.email}
+                onChange={(e) => setEditConsultantForm((p) => ({ ...p, email: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+
+            <button onClick={handleSaveConsultant} disabled={savingConsultant}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+              {savingConsultant ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              {savingConsultant ? "A guardar..." : "Guardar Alterações"}
             </button>
           </div>
         </DialogContent>
