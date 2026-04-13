@@ -397,6 +397,74 @@ const AdminPartners = () => {
         </div>
       </div>
 
+      {/* New Clients Report per Partner */}
+      <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-border-subtle/60 flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-primary" />
+          <span className="label-caps">Novos Clientes por Imobiliária (Últimos 30 dias)</span>
+        </div>
+        <div className="divide-y divide-border-subtle/40">
+          {partners.length === 0 ? (
+            <div className="px-5 py-8 text-center text-sm text-text-muted">Nenhum parceiro.</div>
+          ) : (
+            partners.map((partner) => {
+              const thirtyDaysAgo = new Date();
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+              const recentClients = clientProfiles.filter(
+                (c) => c.partner_id === partner.id
+              );
+              const recentInvites = invites.filter(
+                (i) => i.partner_id === partner.id && i.status === "accepted" && new Date(i.created_at) >= thirtyDaysAgo
+              );
+              const currentMonth = new Date().getMonth();
+              const currentYear = new Date().getFullYear();
+              const monthStart = new Date(currentYear, currentMonth, 1);
+              const thisMonthInvites = invites.filter(
+                (i) => i.partner_id === partner.id && new Date(i.created_at) >= monthStart
+              );
+
+              return (
+                <div key={partner.id} className="p-4 hover:bg-surface-hover transition-colors">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm shrink-0">🏠</div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{partner.name}</p>
+                        <p className="text-xs text-text-muted">{recentClients.length} clientes total</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-status-paid">{recentInvites.length}</p>
+                        <p className="text-text-muted">Novos (30d)</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-primary">{thisMonthInvites.length}/{partner.plan_limit}</p>
+                        <p className="text-text-muted">Este mês</p>
+                      </div>
+                    </div>
+                  </div>
+                  {recentInvites.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {recentInvites.slice(0, 5).map((inv) => (
+                        <span key={inv.id} className="px-2 py-0.5 rounded-full text-[10px] bg-status-paid/10 text-status-paid font-medium">
+                          {inv.email.split("@")[0]} · {new Date(inv.created_at).toLocaleDateString("pt-PT")}
+                        </span>
+                      ))}
+                      {recentInvites.length > 5 && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] bg-secondary text-text-muted">
+                          +{recentInvites.length - 5} mais
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
       {/* Partners list */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
         <div className="p-4 sm:p-5 border-b border-border-subtle/60 flex items-center justify-between">

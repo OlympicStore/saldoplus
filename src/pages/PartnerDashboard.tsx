@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Building2, Users, Send, Loader2, Mail, ArrowLeft, Upload, Palette,
-  User, Phone, X, Home, ChevronDown, ChevronUp, Trash2, Check,
+  User, Phone, X, Home, ChevronDown, ChevronUp, Trash2, Check, Camera,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -62,11 +62,13 @@ const PartnerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [inviting, setInviting] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     email: "",
     consultant_name: "",
     consultant_phone: "",
     consultant_email: "",
+    consultant_photo_url: "",
   });
 
   const partnerId = profile?.partner_id;
@@ -95,15 +97,16 @@ const PartnerDashboard = () => {
     setLoading(false);
   };
 
-  // Find existing consultants from this partner's invites for auto-fill
+  // Extract unique consultants from invites (with photo)
   const existingConsultants = useMemo(() => {
-    const map = new Map<string, { name: string; phone: string; email: string }>();
+    const map = new Map<string, { name: string; phone: string; email: string; photo_url: string }>();
     invites.forEach((inv) => {
       if (inv.consultant_name && !map.has(inv.consultant_name)) {
         map.set(inv.consultant_name, {
           name: inv.consultant_name,
           phone: inv.consultant_phone || "",
           email: inv.consultant_email || "",
+          photo_url: inv.consultant_photo_url || "",
         });
       }
     });
@@ -118,7 +121,32 @@ const PartnerDashboard = () => {
         consultant_name: c.name,
         consultant_phone: c.phone,
         consultant_email: c.email,
+        consultant_photo_url: c.photo_url,
       }));
+    }
+  };
+
+  const handleConsultantPhotoUpload = async (file: File) => {
+    if (!partnerId) return;
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `consultant-${partnerId}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("partner-logos")
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("partner-logos")
+        .getPublicUrl(path);
+
+      setInviteForm((prev) => ({ ...prev, consultant_photo_url: publicUrl }));
+      toast.success("Foto carregada");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar foto");
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -136,6 +164,7 @@ const PartnerDashboard = () => {
           consultant_name: inviteForm.consultant_name || null,
           consultant_phone: inviteForm.consultant_phone || null,
           consultant_email: inviteForm.consultant_email || null,
+          consultant_photo_url: inviteForm.consultant_photo_url || null,
         },
       });
       if (error) throw error;
@@ -146,7 +175,7 @@ const PartnerDashboard = () => {
           : `Convite criado para ${inviteForm.email}. O utilizador deve criar uma conta com esse email.`
       );
       setShowInviteUser(false);
-      setInviteForm({ email: "", consultant_name: "", consultant_phone: "", consultant_email: "" });
+      setInviteForm({ email: "", consultant_name: "", consultant_phone: "", consultant_email: "", consultant_photo_url: "" });
       loadData();
     } catch (err: any) {
       toast.error(err.message || "Erro ao enviar convite");
@@ -157,6 +186,13 @@ const PartnerDashboard = () => {
 
   const partnerInvites = invites.filter((i) => i.partner_id === partnerId);
   const acceptedCount = partnerInvites.filter((i) => i.status === "accepted").length;
+
+  // Monthly usage
+  const currentMonthInvites = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    return partnerInvites.filter((i) => new Date(i.created_at) >= monthStart).length;
+  }, [partnerInvites]);
 
   if (loading) {
     return (
@@ -194,18 +230,22 @@ const PartnerDashboard = () => {
 
       <main className="max-w-5xl mx-auto px-4 py-6">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 text-center">
             <p className="text-2xl font-bold text-foreground">{partnerInvites.length}</p>
-            <p className="label-caps mt-1">Convites</p>
+            <p className="label-caps mt-1">Convites Total</p>
           </div>
           <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 text-center">
             <p className="text-2xl font-bold text-foreground">{acceptedCount}</p>
             <p className="label-caps mt-1">Ativos</p>
           </div>
           <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 text-center">
-            <p className="text-2xl font-bold text-foreground">{partner?.plan_limit ?? 25}</p>
-            <p className="label-caps mt-1">Limite</p>
+            <p className="text-2xl font-bold text-primary">{currentMonthInvites}/{partner?.plan_limit ?? 50}</p>
+            <p className="label-caps mt-1">Este Mês</p>
+          </div>
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 text-center">
+            <p className="text-2xl font-bold text-foreground">{partner?.plan_limit ?? 50}</p>
+            <p className="label-caps mt-1">Limite Mensal</p>
           </div>
         </div>
 
@@ -242,7 +282,12 @@ const PartnerDashboard = () => {
                         <p className="text-xs text-text-muted truncate">{client.email}</p>
                       </div>
                       {invite?.consultant_name && (
-                        <span className="text-xs text-text-muted">· {invite.consultant_name}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {invite.consultant_photo_url && (
+                            <img src={invite.consultant_photo_url} alt="" className="h-6 w-6 rounded-full object-cover" />
+                          )}
+                          <span className="text-xs text-text-muted">· {invite.consultant_name}</span>
+                        </div>
                       )}
                     </div>
                     {house && (
@@ -268,6 +313,33 @@ const PartnerDashboard = () => {
           </div>
         </div>
 
+        {/* Consultores */}
+        {existingConsultants.length > 0 && (
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden mb-6">
+            <div className="p-4 border-b border-border-subtle/60 flex items-center gap-2">
+              <User className="h-4 w-4 text-primary" />
+              <span className="label-caps">Consultores ({existingConsultants.length})</span>
+            </div>
+            <div className="divide-y divide-border-subtle/40">
+              {existingConsultants.map((c) => (
+                <div key={c.name} className="p-4 flex items-center gap-3">
+                  {c.photo_url ? (
+                    <img src={c.photo_url} alt={c.name} className="h-10 w-10 rounded-full object-cover border border-border-subtle" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-text-muted">
+                      <User className="h-5 w-5" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{c.name}</p>
+                    <p className="text-xs text-text-muted">{[c.phone, c.email].filter(Boolean).join(" · ")}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Invites list */}
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
           <div className="p-4 border-b border-border-subtle/60 flex items-center gap-2">
@@ -280,11 +352,16 @@ const PartnerDashboard = () => {
             ) : (
               partnerInvites.map((inv) => (
                 <div key={inv.id} className="p-4 hover:bg-surface-hover transition-colors flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">{inv.email}</p>
-                    {inv.consultant_name && (
-                      <p className="text-xs text-text-muted">· {inv.consultant_name}</p>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {inv.consultant_photo_url && (
+                      <img src={inv.consultant_photo_url} alt="" className="h-6 w-6 rounded-full object-cover shrink-0" />
                     )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{inv.email}</p>
+                      {inv.consultant_name && (
+                        <p className="text-xs text-text-muted">· {inv.consultant_name}</p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${STATUS_COLORS[inv.status] || ""}`}>
@@ -338,6 +415,41 @@ const PartnerDashboard = () => {
               )}
 
               <div className="space-y-3">
+                {/* Consultant Photo */}
+                <div className="flex items-center gap-3">
+                  {inviteForm.consultant_photo_url ? (
+                    <img src={inviteForm.consultant_photo_url} alt="Consultor" className="h-14 w-14 rounded-full object-cover border border-border-subtle" />
+                  ) : (
+                    <div className="h-14 w-14 rounded-full bg-secondary flex items-center justify-center text-text-muted">
+                      <User className="h-6 w-6" />
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors cursor-pointer">
+                      {uploadingPhoto ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                      {inviteForm.consultant_photo_url ? "Alterar foto" : "Adicionar foto"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleConsultantPhotoUpload(file);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                    {inviteForm.consultant_photo_url && (
+                      <button
+                        onClick={() => setInviteForm((p) => ({ ...p, consultant_photo_url: "" }))}
+                        className="text-[10px] text-status-negative hover:underline text-left"
+                      >
+                        Remover foto
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Nome</label>
                   <input value={inviteForm.consultant_name}
