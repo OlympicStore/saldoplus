@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, ReactNode 
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type Plan = "essencial" | "casa" | "pro" | "parceiro_pro";
+type Plan = "essencial" | "casa" | "pro" | "imobiliaria";
 
 interface PartnerBranding {
   name: string;
