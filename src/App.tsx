@@ -19,8 +19,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, profile, isAdmin, loading } = useAuth();
+const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: React.ReactNode; allowPartnerRedirect?: boolean }) => {
+  const { user, profile, isAdmin, isPartner, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
