@@ -375,18 +375,29 @@ const PartnerDashboard = () => {
             </div>
             <div className="divide-y divide-border-subtle/40">
               {existingConsultants.map((c) => (
-                <div key={c.name} className="p-4 flex items-center gap-3">
-                  {c.photo_url ? (
-                    <img src={c.photo_url} alt={c.name} className="h-10 w-10 rounded-full object-cover border border-border-subtle" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-text-muted">
-                      <User className="h-5 w-5" />
+                <div key={c.name} className="p-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {c.photo_url ? (
+                      <img src={c.photo_url} alt={c.name} className="h-10 w-10 rounded-full object-cover border border-border-subtle" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-text-muted">
+                        <User className="h-5 w-5" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{c.name}</p>
+                      <p className="text-xs text-text-muted">{[c.phone, c.email].filter(Boolean).join(" · ")}</p>
                     </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{c.name}</p>
-                    <p className="text-xs text-text-muted">{[c.phone, c.email].filter(Boolean).join(" · ")}</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      setEditingConsultant(c.name);
+                      setEditConsultantForm({ name: c.name, phone: c.phone, email: c.email, photo_url: c.photo_url });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors"
+                  >
+                    <Camera className="h-3.5 w-3.5" /> Editar
+                  </button>
                 </div>
               ))}
             </div>
