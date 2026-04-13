@@ -63,6 +63,9 @@ const PartnerDashboard = () => {
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [editingConsultant, setEditingConsultant] = useState<string | null>(null);
+  const [editConsultantForm, setEditConsultantForm] = useState({ name: "", phone: "", email: "", photo_url: "" });
+  const [savingConsultant, setSavingConsultant] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     email: "",
     consultant_name: "",
