@@ -10,7 +10,7 @@ const PLAN_LABELS: Record<string, string> = {
   essencial: "Essencial",
   casa: "Casa",
   pro: "Pro",
-  parceiro_pro: "Parceiro Pro",
+  imobiliaria: "Imobiliária",
 };
 
 interface AccountPanelProps {

@@ -50,7 +50,7 @@ const planTabs: Record<string, Tab[]> = {
   essencial: ["dashboard", "balance", "entries", "expenses", "account"],
   casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
   pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
-  parceiro_pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
+  imobiliaria: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
 };
 
 const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
