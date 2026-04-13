@@ -19,8 +19,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, profile, isAdmin, loading } = useAuth();
+const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: React.ReactNode; allowPartnerRedirect?: boolean }) => {
+  const { user, profile, isAdmin, isPartner, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
@@ -28,18 +28,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   );
   if (!user) return <Navigate to="/auth" replace />;
   if (!profile) return <Navigate to="/" replace />;
-  // Admins always have access; others need an active paid plan
-  if (!isAdmin) {
+  // Auto-redirect partners to their dashboard (unless already on /parceiro)
+  if (isPartner && allowPartnerRedirect && !isAdmin) {
+    return <Navigate to="/parceiro" replace />;
+  }
+  // Admins and partners always have access; others need an active paid plan
+  if (!isAdmin && !isPartner) {
     const plan = profile.plan;
-    // Essencial users created by admin may not have expiry — allow them
-    if (plan === "casa" || plan === "pro") {
+    if (plan === "imobiliaria") {
+      // Partner clients — allow access
+    } else if (plan === "casa" || plan === "pro") {
       const now = new Date();
       const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
       if (!expires || expires < now) {
         return <Navigate to="/pricing" replace />;
       }
     } else if (plan === "essencial") {
-      // Essencial requires payment too, but if admin-created with no dates, allow access
       const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
       if (expires && expires < new Date()) {
         return <Navigate to="/pricing" replace />;
@@ -75,7 +79,7 @@ const App = () => (
               <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-              <Route path="/parceiro" element={<ProtectedRoute><PartnerDashboard /></ProtectedRoute>} />
+              <Route path="/parceiro" element={<ProtectedRoute allowPartnerRedirect={false}><PartnerDashboard /></ProtectedRoute>} />
               <Route path="/pricing" element={<Navigate to="/" replace />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/termos" element={<Terms />} />
