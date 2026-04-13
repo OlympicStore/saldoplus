@@ -880,7 +880,7 @@ const AdminPartners = () => {
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <p className="text-sm text-text-muted">
-              O utilizador receberá acesso ao plano Casa Segura Plus. Se já tiver conta, o plano é ativado imediatamente.
+              O utilizador receberá acesso ao plano Imobiliária. Se já tiver conta, o plano é ativado imediatamente.
             </p>
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Email do utilizador *</label>
@@ -938,7 +938,7 @@ const AdminPartners = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover parceiro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Ao remover <strong>{deleteTarget?.name}</strong>, todos os convites serão eliminados e os utilizadores associados perderão o plano Casa Segura Plus (revertidos para Essencial).
+              Ao remover <strong>{deleteTarget?.name}</strong>, todos os convites serão eliminados e os utilizadores associados perderão o plano Imobiliária (revertidos para Essencial).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -961,7 +961,7 @@ const AdminPartners = () => {
             <AlertDialogTitle>Remover convidado?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteInviteTarget?.status === "accepted"
-                ? <>O utilizador <strong>{deleteInviteTarget?.email}</strong> perderá o plano Casa Segura Plus e será revertido para Essencial.</>
+                ? <>O utilizador <strong>{deleteInviteTarget?.email}</strong> perderá o plano Imobiliária e será revertido para Essencial.</>
                 : <>O convite para <strong>{deleteInviteTarget?.email}</strong> será eliminado.</>
               }
             </AlertDialogDescription>
