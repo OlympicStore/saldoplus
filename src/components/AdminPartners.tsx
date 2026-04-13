@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Building2, Plus, Mail, Users, Send, Loader2, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone, X,
+  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone, X, Home,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
