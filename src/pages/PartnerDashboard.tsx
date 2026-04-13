@@ -546,6 +546,76 @@ const PartnerDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Consultant Dialog */}
+      <Dialog open={!!editingConsultant} onOpenChange={(open) => !open && setEditingConsultant(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Consultor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            {/* Photo */}
+            <div className="flex items-center gap-3">
+              {editConsultantForm.photo_url ? (
+                <img src={editConsultantForm.photo_url} alt="Consultor" className="h-16 w-16 rounded-full object-cover border border-border-subtle" />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center text-text-muted">
+                  <User className="h-7 w-7" />
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-foreground text-xs font-medium hover:bg-surface-hover transition-colors cursor-pointer">
+                  {uploadingPhoto ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                  {editConsultantForm.photo_url ? "Alterar foto" : "Adicionar foto"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleEditConsultantPhotoUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {editConsultantForm.photo_url && (
+                  <button
+                    onClick={() => setEditConsultantForm((p) => ({ ...p, photo_url: "" }))}
+                    className="text-[10px] text-status-negative hover:underline text-left"
+                  >
+                    Remover foto
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Nome</label>
+              <input value={editConsultantForm.name}
+                onChange={(e) => setEditConsultantForm((p) => ({ ...p, name: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Telefone</label>
+              <input value={editConsultantForm.phone}
+                onChange={(e) => setEditConsultantForm((p) => ({ ...p, phone: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Email</label>
+              <input type="email" value={editConsultantForm.email}
+                onChange={(e) => setEditConsultantForm((p) => ({ ...p, email: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+
+            <button onClick={handleSaveConsultant} disabled={savingConsultant}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+              {savingConsultant ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              {savingConsultant ? "A guardar..." : "Guardar Alterações"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
