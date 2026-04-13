@@ -203,7 +203,7 @@ const PartnerDashboard = () => {
     }
   };
 
-
+  const handleInviteUser = async () => {
     if (!inviteForm.email || !partnerId) {
       toast.error("Email é obrigatório");
       return;
