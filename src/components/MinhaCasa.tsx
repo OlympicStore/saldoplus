@@ -147,6 +147,9 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
       // Sync to fixed expenses
       await syncFixedExpense(data.monthly_payment, data.monthly_payment_status);
 
+      // Refresh parent data so Expenses/Annual tabs update
+      if (onSave) await onSave();
+
       toast.success("Dados guardados com sucesso.");
     } catch (err: any) {
       toast.error(err.message || "Erro ao guardar.");
