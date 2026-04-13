@@ -104,12 +104,16 @@ const AdminPartners = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [partnersRes, invitesRes] = await Promise.all([
+    const [partnersRes, invitesRes, profilesRes, houseRes] = await Promise.all([
       supabase.from("partners").select("*").order("created_at", { ascending: false }),
       supabase.from("partner_invites").select("*").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("id, email, full_name, partner_id").not("partner_id", "is", null),
+      supabase.from("house_data").select("user_id, house_value, monthly_payment, monthly_payment_status, down_payment"),
     ]);
     if (partnersRes.data) setPartners(partnersRes.data as Partner[]);
     if (invitesRes.data) setInvites(invitesRes.data as Invite[]);
+    if (profilesRes.data) setClientProfiles(profilesRes.data as ClientProfile[]);
+    if (houseRes.data) setClientHouseData(houseRes.data as ClientHouseData[]);
     setLoading(false);
   };
 
