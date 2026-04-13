@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { fbTrackInitiateCheckout } from "@/lib/fbPixel";
+import { fbTrack } from "@/lib/fbPixel";
 import AccountDropdown from "@/components/AccountDropdown";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import dashboardGoals from "@/assets/dashboard-goals.png";
@@ -152,12 +153,19 @@ const Pricing = () => {
   const savingsCounter = useCounter(150);
   const timeCounter = useCounter(5);
 
+  const handleAddToCart = (planId: string) => {
+    const plan = PLANS.find((p) => p.id === planId);
+    const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
+    fbTrack("AddToCart", { content_name: planId, currency: "EUR", value });
+  };
+
   const handleSelectPlan = (planId: string) => {
     const link = PAYMENT_LINKS[planId];
     if (!link) return;
 
     const plan = PLANS.find((p) => p.id === planId);
     const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
+    handleAddToCart(planId);
     fbTrackInitiateCheckout(planId, value);
 
     const separator = link.includes("?") ? "&" : "?";

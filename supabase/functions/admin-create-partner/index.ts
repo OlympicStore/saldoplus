@@ -34,12 +34,13 @@ serve(async (req) => {
 
     if (!roleData) throw new Error("Not authorized - admin only");
 
-    const { name, email, plan_limit, plan_type } = await req.json();
+    const { name, email, password, plan_limit, plan_type } = await req.json();
     if (!name || !email) throw new Error("Name and email are required");
 
     const validPlanTypes = ["starter", "growth", "premium"];
     const selectedPlanType = validPlanTypes.includes(plan_type) ? plan_type : "starter";
 
+    // Create partner record
     const { data: partner, error: insertError } = await supabaseAdmin
       .from("partners")
       .insert({
@@ -53,6 +54,47 @@ serve(async (req) => {
       .single();
 
     if (insertError) throw new Error(`Failed to create partner: ${insertError.message}`);
+
+    // Create auth user for the partner (so they can login)
+    const partnerPassword = password || "Partner2026!";
+    const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: partnerPassword,
+      email_confirm: true,
+      user_metadata: { full_name: name },
+    });
+
+    if (createUserError) {
+      // If user already exists, try to find them
+      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = existingUsers?.users?.find((u) => u.email === email);
+
+      if (existingUser) {
+        // Link existing user to partner
+        await supabaseAdmin
+          .from("profiles")
+          .update({ partner_id: partner.id })
+          .eq("id", existingUser.id);
+
+        // Assign partner role
+        await supabaseAdmin
+          .from("user_roles")
+          .upsert({ user_id: existingUser.id, role: "partner" }, { onConflict: "user_id,role" });
+      } else {
+        throw new Error(`Failed to create user: ${createUserError.message}`);
+      }
+    } else if (newUser.user) {
+      // Update profile to link partner_id
+      await supabaseAdmin
+        .from("profiles")
+        .update({ partner_id: partner.id })
+        .eq("id", newUser.user.id);
+
+      // Assign partner role
+      await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id: newUser.user.id, role: "partner" });
+    }
 
     return new Response(
       JSON.stringify({ success: true, partner }),

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPartners from "@/components/AdminPartners";
 import {
-  Users, Crown, TrendingUp, ArrowLeft, Search,
+  Users, Crown, TrendingUp, ArrowLeft, Search, Check,
   ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
   MessageSquarePlus, ShoppingCart,
 } from "lucide-react";
@@ -30,6 +30,7 @@ interface Suggestion {
   email: string;
   message: string;
   created_at: string;
+  status: string;
 }
 
 interface Stats {
@@ -338,12 +339,41 @@ const AdminDashboard = () => {
                 <div className="px-5 py-8 text-center text-sm text-text-muted">Nenhuma sugestão recebida.</div>
               ) : (
                 suggestions.map((s) => (
-                  <div key={s.id} className="p-4 hover:bg-surface-hover transition-colors">
+                  <div key={s.id} className={`p-4 hover:bg-surface-hover transition-colors ${s.status === "resolvida" ? "opacity-60" : ""}`}>
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className="text-sm font-semibold text-foreground">{s.name || "Anónimo"}</p>
-                      <span className="text-[10px] text-text-muted shrink-0">
-                        {new Date(s.created_at).toLocaleDateString("pt-PT")} {new Date(s.created_at).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground">{s.name || "Anónimo"}</p>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${s.status === "resolvida" ? "bg-status-paid/10 text-status-paid" : "bg-yellow-500/10 text-yellow-500"}`}>
+                          {s.status === "resolvida" ? "Resolvida" : "Pendente"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={async () => {
+                            const newStatus = s.status === "resolvida" ? "pendente" : "resolvida";
+                            const { error } = await supabase.from("suggestions").update({ status: newStatus }).eq("id", s.id);
+                            if (error) { toast.error("Erro ao atualizar"); return; }
+                            setSuggestions((prev) => prev.map((x) => x.id === s.id ? { ...x, status: newStatus } : x));
+                            toast.success(newStatus === "resolvida" ? "Marcada como resolvida" : "Marcada como pendente");
+                          }}
+                          className="p-1 rounded text-text-muted hover:text-status-paid transition-colors" title={s.status === "resolvida" ? "Marcar pendente" : "Marcar resolvida"}>
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm("Remover esta sugestão?")) return;
+                            const { error } = await supabase.from("suggestions").delete().eq("id", s.id);
+                            if (error) { toast.error("Erro ao remover"); return; }
+                            setSuggestions((prev) => prev.filter((x) => x.id !== s.id));
+                            toast.success("Sugestão removida");
+                          }}
+                          className="p-1 rounded text-text-muted hover:text-status-negative transition-colors" title="Remover">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="text-[10px] text-text-muted ml-1">
+                          {new Date(s.created_at).toLocaleDateString("pt-PT")}
+                        </span>
+                      </div>
                     </div>
                     <p className="text-xs text-text-muted mb-1.5">{s.email}</p>
                     <p className="text-sm text-text-secondary leading-relaxed">{s.message}</p>

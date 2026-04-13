@@ -11,7 +11,7 @@ type: feature
 - Cada cliente pode ter um consultor diferente atribuído no momento do convite
 - Profiles têm `partner_id`, `plan_source` (direct/partner)
 - Trigger handle_new_user verifica convites pendentes e ativa plano automaticamente
-- Edge functions: admin-create-partner, admin-invite-partner-user (aceita consultant fields)
+- Edge functions: admin-create-partner (cria user + role partner), admin-invite-partner-user, partner-invite-user
 - AccountPanel mostra badge "Oferecido por parceiro imobiliário" para utilizadores partner
 - Upgrade section escondida para utilizadores partner
 - Branding: logo + cor primária do parceiro aplicados dinamicamente via CSS variables
@@ -28,3 +28,9 @@ type: feature
 - Header: mostra logo do parceiro + foto/nome do consultor
 - Admin pode remover convites individuais (reverte plano para essencial se aceite)
 - Admin: dashboard clientes por parceiro mostra estado pagamentos habitação
+- Admin: sugestões com status pendente/resolvida + opção remover
+- Dashboard parceiro: /parceiro — self-service para gerir clientes e convites
+- Role `partner` no enum app_role — parceiros fazem login e acedem ao dashboard próprio
+- Auto-fill consultores: ao convidar, parceiro pode selecionar consultor existente
+- Isolamento de dados: RLS garante que cada parceiro só vê os seus clientes/convites
+- Cart tracking: AddToCart + InitiateCheckout no Facebook Pixel na landing page

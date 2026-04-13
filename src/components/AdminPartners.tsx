@@ -90,7 +90,7 @@ const AdminPartners = () => {
   const [inviting, setInviting] = useState(false);
   const [expandedInvite, setExpandedInvite] = useState<string | null>(null);
 
-  const [newPartner, setNewPartner] = useState({ name: "", email: "", plan_limit: 25, plan_type: "starter" });
+  const [newPartner, setNewPartner] = useState({ name: "", email: "", password: "", plan_limit: 25, plan_type: "starter" });
   const [inviteForm, setInviteForm] = useState({
     email: "",
     consultant_name: "",
@@ -131,7 +131,7 @@ const AdminPartners = () => {
       if (data?.error) throw new Error(data.error);
       toast.success(`Parceiro ${newPartner.name} criado com sucesso`);
       setShowCreatePartner(false);
-      setNewPartner({ name: "", email: "", plan_limit: 25, plan_type: "starter" });
+      setNewPartner({ name: "", email: "", password: "", plan_limit: 25, plan_type: "starter" });
       loadData();
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar parceiro");
@@ -834,6 +834,16 @@ const AdminPartners = () => {
                 value={newPartner.email}
                 onChange={(e) => setNewPartner((p) => ({ ...p, email: e.target.value }))}
                 placeholder="contacto@imobiliaria.pt"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Password de acesso</label>
+              <input
+                type="password"
+                value={newPartner.password}
+                onChange={(e) => setNewPartner((p) => ({ ...p, password: e.target.value }))}
+                placeholder="Mínimo 6 caracteres (padrão: Partner2026!)"
                 className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
