@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, Download, History, BellRing } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -9,11 +9,17 @@ interface ExtraExpense {
   value: number;
 }
 
+interface PaymentHistoryEntry {
+  id: string;
+  old_value: number;
+  new_value: number;
+  changed_at: string;
+}
+
 interface HouseData {
   id?: string;
   house_value: number;
   monthly_payment: number;
-  estimated_expenses: number;
   monthly_income: number;
   down_payment: number;
   extra_expenses: ExtraExpense[];
@@ -24,13 +30,13 @@ const fmt = (v: number) =>
   v.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 
 const MONTH_NAMES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MONTH_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const { user, profile, partnerBranding } = useAuth();
   const [data, setData] = useState<HouseData>({
     house_value: 0,
     monthly_payment: 0,
-    estimated_expenses: 0,
     monthly_income: 0,
     down_payment: 0,
     extra_expenses: [],
@@ -43,10 +49,14 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const [selectedCalendarYear, setSelectedCalendarYear] = useState(new Date().getFullYear());
   const [newExpenseName, setNewExpenseName] = useState("");
   const [newExpenseValue, setNewExpenseValue] = useState("");
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [previousPayment, setPreviousPayment] = useState<number | null>(null);
 
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
+  const currentDay = now.getDate();
   const statusKey = `${currentYear}-${currentMonth}`;
 
   // Determine plan start month to disable earlier months
@@ -64,22 +74,26 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const { data: row } = await supabase
-        .from("house_data")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (row) {
+      const [houseRes, historyRes] = await Promise.all([
+        supabase.from("house_data").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("payment_history").select("*").eq("user_id", user.id).order("changed_at", { ascending: false }).limit(20),
+      ]);
+      if (houseRes.data) {
+        const row = houseRes.data;
+        const payment = Number(row.monthly_payment) || 0;
         setData({
           id: row.id,
           house_value: Number(row.house_value) || 0,
-          monthly_payment: Number(row.monthly_payment) || 0,
-          estimated_expenses: Number(row.estimated_expenses) || 0,
+          monthly_payment: payment,
           monthly_income: Number(row.monthly_income) || 0,
           down_payment: Number((row as any).down_payment) || 0,
           extra_expenses: ((row as any).extra_expenses as ExtraExpense[]) || [],
           monthly_payment_status: (row as any).monthly_payment_status || {},
         });
+        setPreviousPayment(payment);
+      }
+      if (historyRes.data) {
+        setPaymentHistory(historyRes.data as PaymentHistoryEntry[]);
       }
       setLoading(false);
     };
@@ -90,7 +104,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const syncFixedExpenses = async () => {
     if (!user) return;
 
-    // 1. Sync "Prestação Casa"
     const { data: existingPrestacao } = await supabase
       .from("fixed_expenses")
       .select("id, monthly_values, monthly_paid")
@@ -132,7 +145,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         });
     }
 
-    // 2. Sync each extra expense as a fixed expense
+    // Sync each extra expense as a fixed expense
     for (const extra of data.extra_expenses) {
       if (!extra.name || extra.value <= 0) continue;
       const { data: existingExtra } = await supabase
@@ -173,10 +186,26 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     if (!user) return;
     setSaving(true);
     try {
+      // Track payment value changes
+      if (previousPayment !== null && previousPayment !== data.monthly_payment && previousPayment > 0) {
+        await supabase.from("payment_history").insert({
+          user_id: user.id,
+          old_value: previousPayment,
+          new_value: data.monthly_payment,
+        } as any);
+        setPaymentHistory(prev => [{
+          id: crypto.randomUUID(),
+          old_value: previousPayment,
+          new_value: data.monthly_payment,
+          changed_at: new Date().toISOString(),
+        }, ...prev]);
+      }
+      setPreviousPayment(data.monthly_payment);
+
       const payload = {
         house_value: data.house_value,
         monthly_payment: data.monthly_payment,
-        estimated_expenses: data.estimated_expenses,
+        estimated_expenses: 0,
         monthly_income: data.monthly_income,
         down_payment: data.down_payment,
         extra_expenses: data.extra_expenses as any,
@@ -230,14 +259,66 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     }));
   };
 
+  const exportReport = () => {
+    const lines: string[] = [];
+    lines.push("RELATÓRIO MINHA CASA");
+    lines.push(`Data: ${now.toLocaleDateString("pt-PT")}`);
+    lines.push("");
+    lines.push(`Valor da casa: ${fmt(data.house_value)}`);
+    lines.push(`Entrada paga: ${fmt(data.down_payment)}`);
+    lines.push(`Prestação mensal: ${fmt(data.monthly_payment)}`);
+    lines.push(`Rendimento mensal: ${fmt(data.monthly_income)}`);
+    lines.push("");
+    lines.push("--- Despesas adicionais ---");
+    if (data.extra_expenses.length === 0) lines.push("Nenhuma");
+    data.extra_expenses.forEach(e => lines.push(`  ${e.name}: ${fmt(e.value)}/mês`));
+    lines.push("");
+    lines.push(`Total habitação/mês: ${fmt(totalHousing)}`);
+    lines.push(`Taxa de esforço: ${baseRatio.toFixed(1)}%`);
+    lines.push(`Margem disponível: ${fmt(margin)}`);
+    lines.push("");
+    lines.push("--- Progresso ---");
+    lines.push(`Total pago: ${fmt(totalPaid)} (${progressPct.toFixed(1)}%)`);
+    lines.push(`Falta pagar: ${fmt(remaining)}`);
+    if (data.monthly_payment > 0 && remaining > 0) {
+      lines.push(`Estimativa: ${Math.ceil(remaining / data.monthly_payment)} meses`);
+    }
+    lines.push("");
+    lines.push("--- Estado pagamentos ---");
+    const allYears = new Set<number>();
+    Object.keys(data.monthly_payment_status).forEach(k => allYears.add(Number(k.split("-")[0])));
+    allYears.add(currentYear);
+    for (const year of [...allYears].sort()) {
+      lines.push(`  ${year}:`);
+      for (let m = 0; m < 12; m++) {
+        const st = data.monthly_payment_status[`${year}-${m}`] || "pendente";
+        if (isMonthActive(year, m)) {
+          lines.push(`    ${MONTH_FULL[m]}: ${st === "pago" ? "✅ Paga" : "⏳ Pendente"}`);
+        }
+      }
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `relatorio-casa-${now.toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Relatório exportado.");
+  };
+
   const currentStatus = data.monthly_payment_status[statusKey] || "pendente";
+
+  // Payment due reminder
+  const showPaymentReminder = currentDay >= 20 && currentStatus !== "pago" && data.monthly_payment > 0;
 
   // Calculations
   const effectivePayment = data.monthly_payment + stressExtra;
   const extraTotal = data.extra_expenses.reduce((s, e) => s + e.value, 0);
   const ratio = data.monthly_income > 0 ? (effectivePayment / data.monthly_income) * 100 : 0;
   const baseRatio = data.monthly_income > 0 ? (data.monthly_payment / data.monthly_income) * 100 : 0;
-  const totalHousing = effectivePayment + data.estimated_expenses + extraTotal;
+  const totalHousing = effectivePayment + extraTotal;
   const margin = data.monthly_income - totalHousing;
   const marginToRisk = data.monthly_income > 0 ? (data.monthly_income * 0.3) - data.monthly_payment : 0;
   const marginDiff = 30 - baseRatio;
@@ -275,15 +356,39 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-          <Home className="h-5 w-5" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            <Home className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Minha Casa</h2>
+            <p className="text-sm text-text-muted">Acompanhe o impacto da sua habitação no orçamento</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Minha Casa</h2>
-          <p className="text-sm text-text-muted">Acompanhe o impacto da sua habitação no orçamento</p>
-        </div>
+        <button
+          onClick={exportReport}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover text-xs font-medium transition-colors"
+        >
+          <Download className="h-3.5 w-3.5" /> Exportar
+        </button>
       </div>
+
+      {/* Payment reminder banner */}
+      {showPaymentReminder && (
+        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 flex items-center gap-3">
+          <BellRing className="h-5 w-5 text-yellow-600 shrink-0" />
+          <p className="text-sm text-foreground">
+            ⚠️ A prestação de <strong>{MONTH_FULL[currentMonth]}</strong> ainda está pendente. Não se esqueça de efetuar o pagamento.
+          </p>
+          <button
+            onClick={() => togglePaymentStatus(statusKey)}
+            className="ml-auto shrink-0 px-3 py-1.5 rounded-lg bg-status-paid/15 text-status-paid text-xs font-medium hover:bg-status-paid/25 transition-colors"
+          >
+            Marcar como paga
+          </button>
+        </div>
+      )}
 
       {/* Payment status for current month */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
@@ -603,6 +708,36 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         </div>
       </div>
 
+      {/* Payment history */}
+      {paymentHistory.length > 0 && (
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-2 text-sm font-semibold text-foreground w-full"
+          >
+            <History className="h-4 w-4 text-primary" />
+            Histórico de alterações da prestação
+            <span className="ml-auto text-xs text-text-muted">{paymentHistory.length} alterações</span>
+          </button>
+          {showHistory && (
+            <div className="mt-3 space-y-2">
+              {paymentHistory.map((entry) => (
+                <div key={entry.id} className="flex items-center justify-between bg-secondary rounded-lg px-3 py-2 text-sm">
+                  <span className="text-text-muted">
+                    {new Date(entry.changed_at).toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" })}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-text-muted line-through">{fmt(entry.old_value)}</span>
+                    <span className="text-text-muted">→</span>
+                    <span className="font-mono font-semibold text-foreground">{fmt(entry.new_value)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Form */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">Dados da habitação</h3>
@@ -611,7 +746,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
             { label: "Valor da casa (€)", key: "house_value" as const },
             { label: "Valor pago na entrada (€)", key: "down_payment" as const },
             { label: "Prestação mensal (€)", key: "monthly_payment" as const },
-            { label: "Despesas estimadas/mês (€)", key: "estimated_expenses" as const },
             { label: "Rendimento mensal (€)", key: "monthly_income" as const },
           ].map((field) => (
             <div key={field.key}>
