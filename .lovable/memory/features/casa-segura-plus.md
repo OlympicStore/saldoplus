@@ -5,7 +5,7 @@ type: feature
 ---
 - Plano `imobiliaria` tipo `partner` — não aparece na landing page nem nas opções de upgrade
 - Acesso equivalente a Pro + tab "Minha Casa" (indicador 🟢🟡🔴 baseado em prestação/rendimento)
-- Tabela `plans` substitui o enum app_plan (essencial, casa, pro, parceiro_pro)
+- Tabela `plans` substitui o enum app_plan (essencial, casa, pro, imobiliaria)
 - Tabela `partners` com plan_limit, plan_type, brand_color, brand_logo_url
 - Tabela `partner_invites` com status (pending/accepted/expired) + consultant_name/phone/email/photo_url POR CONVITE
 - Cada cliente pode ter um consultor diferente atribuído no momento do convite
@@ -19,6 +19,12 @@ type: feature
 - MinhaCasa: quando ratio ≥ 30%, aparece bolha de chat do consultor com CTA "Quer renegociar?"
 - MinhaCasa: stress test (+50/100/200€), espaço de manobra, mensagem interpretativa, capacidade esforço detalhada
 - MinhaCasa: toggle pago/pendente por mês, auto-cria "Prestação Casa" em fixed_expenses
-- house_data tem `monthly_payment_status` jsonb para estado por mês
+- MinhaCasa: navegação por ano no calendário de pagamentos
+- MinhaCasa: notificação de pagamento pendente após dia 20
+- MinhaCasa: histórico de alterações de prestação (tabela payment_history)
+- MinhaCasa: exportar relatório texto com resumo completo
+- MinhaCasa: campo estimated_expenses removido, unificado com extra_expenses
+- house_data tem `monthly_payment_status` jsonb, `down_payment`, `extra_expenses` jsonb
 - Header: mostra logo do parceiro + foto/nome do consultor
 - Admin pode remover convites individuais (reverte plano para essencial se aceite)
+- Admin: dashboard clientes por parceiro mostra estado pagamentos habitação

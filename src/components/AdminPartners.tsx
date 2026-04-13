@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Building2, Plus, Mail, Users, Send, Loader2, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone, X,
+  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone, X, Home,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -54,9 +54,26 @@ const STATUS_COLORS: Record<string, string> = {
   expired: "bg-status-negative/10 text-status-negative",
 };
 
+interface ClientHouseData {
+  user_id: string;
+  house_value: number;
+  monthly_payment: number;
+  monthly_payment_status: Record<string, string>;
+  down_payment: number;
+}
+
+interface ClientProfile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  partner_id: string | null;
+}
+
 const AdminPartners = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [clientProfiles, setClientProfiles] = useState<ClientProfile[]>([]);
+  const [clientHouseData, setClientHouseData] = useState<ClientHouseData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreatePartner, setShowCreatePartner] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
@@ -87,12 +104,16 @@ const AdminPartners = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [partnersRes, invitesRes] = await Promise.all([
+    const [partnersRes, invitesRes, profilesRes, houseRes] = await Promise.all([
       supabase.from("partners").select("*").order("created_at", { ascending: false }),
       supabase.from("partner_invites").select("*").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("id, email, full_name, partner_id").not("partner_id", "is", null),
+      supabase.from("house_data").select("user_id, house_value, monthly_payment, monthly_payment_status, down_payment"),
     ]);
     if (partnersRes.data) setPartners(partnersRes.data as Partner[]);
     if (invitesRes.data) setInvites(invitesRes.data as Invite[]);
+    if (profilesRes.data) setClientProfiles(profilesRes.data as ClientProfile[]);
+    if (houseRes.data) setClientHouseData(houseRes.data as ClientHouseData[]);
     setLoading(false);
   };
 
@@ -692,6 +713,94 @@ const AdminPartners = () => {
                             </div>
                           </div>
                         )}
+
+                        {/* Client House Dashboard */}
+                        {(() => {
+                          const partnerClients = clientProfiles.filter(p => p.partner_id === partner.id);
+                          if (partnerClients.length === 0) return null;
+                          const currentYear = new Date().getFullYear();
+                          const currentMonth = new Date().getMonth();
+                          const MONTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+                          const fmtVal = (v: number) => v.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
+
+                          return (
+                            <div className="rounded-lg border border-border-subtle/60 overflow-hidden">
+                              <div className="px-3 py-2 bg-surface border-b border-border-subtle/40 flex items-center gap-2">
+                                <Home className="h-3.5 w-3.5 text-primary" />
+                                <span className="text-xs font-semibold text-text-muted uppercase">Dashboard Clientes — Habitação</span>
+                              </div>
+                              <div className="divide-y divide-border-subtle/20">
+                                {partnerClients.map(client => {
+                                  const hd = clientHouseData.find(h => h.user_id === client.id);
+                                  const paymentStatus = (hd?.monthly_payment_status || {}) as Record<string, string>;
+                                  const paidCount = Object.values(paymentStatus).filter(s => s === "pago").length;
+                                  const currentKey = `${currentYear}-${currentMonth}`;
+                                  const currentSt = paymentStatus[currentKey] || "pendente";
+                                  const ratio = hd && hd.monthly_payment > 0 && (hd as any).monthly_payment
+                                    ? 0 : 0;
+
+                                  return (
+                                    <div key={client.id} className="px-3 py-3">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div>
+                                          <p className="text-sm font-semibold text-foreground">{client.full_name || client.email}</p>
+                                          {client.full_name && <p className="text-xs text-text-muted">{client.email}</p>}
+                                        </div>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                          currentSt === "pago" ? "bg-status-paid/10 text-status-paid" : "bg-yellow-500/10 text-yellow-500"
+                                        }`}>
+                                          {MONTHS[currentMonth]}: {currentSt === "pago" ? "Paga" : "Pendente"}
+                                        </span>
+                                      </div>
+                                      {hd ? (
+                                        <div className="space-y-2">
+                                          <div className="grid grid-cols-3 gap-2 text-xs">
+                                            <div className="bg-secondary rounded-lg p-2">
+                                              <span className="text-text-muted block">Valor casa</span>
+                                              <span className="font-semibold text-foreground font-mono">{fmtVal(hd.house_value)}</span>
+                                            </div>
+                                            <div className="bg-secondary rounded-lg p-2">
+                                              <span className="text-text-muted block">Prestação</span>
+                                              <span className="font-semibold text-foreground font-mono">{fmtVal(hd.monthly_payment)}</span>
+                                            </div>
+                                            <div className="bg-secondary rounded-lg p-2">
+                                              <span className="text-text-muted block">Meses pagos</span>
+                                              <span className="font-semibold text-status-paid">{paidCount}</span>
+                                            </div>
+                                          </div>
+                                          {/* Mini month grid */}
+                                          <div className="flex gap-1">
+                                            {MONTHS.map((name, i) => {
+                                              const key = `${currentYear}-${i}`;
+                                              const st = paymentStatus[key];
+                                              return (
+                                                <div
+                                                  key={i}
+                                                  className={`flex-1 py-1 rounded text-[9px] text-center font-medium ${
+                                                    st === "pago"
+                                                      ? "bg-status-paid/15 text-status-paid"
+                                                      : i <= currentMonth
+                                                      ? "bg-yellow-500/10 text-yellow-500"
+                                                      : "bg-secondary text-text-muted/50"
+                                                  }`}
+                                                  title={`${name}: ${st === "pago" ? "Paga" : "Pendente"}`}
+                                                >
+                                                  {name}
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-text-muted italic">Sem dados de habitação preenchidos</p>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </motion.div>
                   )}
@@ -771,7 +880,7 @@ const AdminPartners = () => {
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <p className="text-sm text-text-muted">
-              O utilizador receberá acesso ao plano Casa Segura Plus. Se já tiver conta, o plano é ativado imediatamente.
+              O utilizador receberá acesso ao plano Imobiliária. Se já tiver conta, o plano é ativado imediatamente.
             </p>
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Email do utilizador *</label>
@@ -829,7 +938,7 @@ const AdminPartners = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover parceiro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Ao remover <strong>{deleteTarget?.name}</strong>, todos os convites serão eliminados e os utilizadores associados perderão o plano Casa Segura Plus (revertidos para Essencial).
+              Ao remover <strong>{deleteTarget?.name}</strong>, todos os convites serão eliminados e os utilizadores associados perderão o plano Imobiliária (revertidos para Essencial).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -852,7 +961,7 @@ const AdminPartners = () => {
             <AlertDialogTitle>Remover convidado?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteInviteTarget?.status === "accepted"
-                ? <>O utilizador <strong>{deleteInviteTarget?.email}</strong> perderá o plano Casa Segura Plus e será revertido para Essencial.</>
+                ? <>O utilizador <strong>{deleteInviteTarget?.email}</strong> perderá o plano Imobiliária e será revertido para Essencial.</>
                 : <>O convite para <strong>{deleteInviteTarget?.email}</strong> será eliminado.</>
               }
             </AlertDialogDescription>
