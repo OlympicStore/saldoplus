@@ -837,6 +837,15 @@ const AdminPartners = () => {
                 className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Password de acesso</label>
+              <input
+                type="password"
+                value={newPartner.password}
+                onChange={(e) => setNewPartner((p) => ({ ...p, password: e.target.value }))}
+                placeholder="Mínimo 6 caracteres (padrão: Partner2026!)"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-sm font-medium text-foreground mb-1 block">Limite de clientes</label>
