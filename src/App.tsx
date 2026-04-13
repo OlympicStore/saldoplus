@@ -28,6 +28,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   );
   if (!user) return <Navigate to="/auth" replace />;
   if (!profile) return <Navigate to="/" replace />;
+  // Auto-redirect partners to their dashboard (unless already on /parceiro)
+  if (isPartner && allowPartnerRedirect && !isAdmin) {
+    return <Navigate to="/parceiro" replace />;
+  }
   // Admins always have access; others need an active paid plan
   if (!isAdmin) {
     const plan = profile.plan;
