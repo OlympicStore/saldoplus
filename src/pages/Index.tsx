@@ -305,7 +305,7 @@ const Index = () => {
                 {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
-            {(userPlan === "pro" || userPlan === "parceiro_pro") && <SubAccountSwitcher />}
+            {(userPlan === "pro" || userPlan === "imobiliaria") && <SubAccountSwitcher />}
             <SuggestionsDialog />
             <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
               className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
@@ -426,7 +426,7 @@ const Index = () => {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === "dashboard" && (
           <>
-            {(userPlan === "pro" || userPlan === "parceiro_pro") && (
+            {(userPlan === "pro" || userPlan === "imobiliaria") && (
               <div className="mb-6 flex justify-end">
                 <AISuggestions
                   fixedExpenses={yearFixedExpenses}

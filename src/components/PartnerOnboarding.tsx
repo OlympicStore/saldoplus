@@ -11,7 +11,7 @@ const PartnerOnboarding = () => {
 
   useEffect(() => {
     if (
-      profile?.plan === "parceiro_pro" &&
+      profile?.plan === "imobiliaria" &&
       profile?.plan_source === "partner" &&
       !localStorage.getItem(STORAGE_KEY)
     ) {

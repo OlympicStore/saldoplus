@@ -162,7 +162,7 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   return (
     <div className="space-y-6">
       {/* Partner welcome banner */}
-      {profile.plan === "parceiro_pro" && profile.plan_source === "partner" && (
+      {profile.plan === "imobiliaria" && profile.plan_source === "partner" && (
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg">
@@ -189,7 +189,7 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
           <span className="label-caps mb-2 block">Plano atual</span>
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              {profile.plan === "parceiro_pro" ? <span className="text-lg">🏠</span> : <Shield className="h-5 w-5" />}
+              {profile.plan === "imobiliaria" ? <span className="text-lg">🏠</span> : <Shield className="h-5 w-5" />}
             </div>
             <div>
               <p className="text-lg font-semibold text-foreground">{PLAN_LABELS[profile.plan] || profile.plan}</p>
