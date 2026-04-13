@@ -25,7 +25,6 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
     if (userError || !userData.user) throw new Error("Invalid token");
 
-    // Check caller is a partner (has partner role OR is admin)
     const callerId = userData.user.id;
 
     const { data: callerProfile } = await supabaseAdmin
@@ -53,10 +52,9 @@ serve(async (req) => {
 
     if (!isAdmin && !isPartner) throw new Error("Not authorized");
 
-    const { email, partner_id, consultant_name, consultant_phone, consultant_email } = await req.json();
+    const { email, partner_id, consultant_name, consultant_phone, consultant_email, consultant_photo_url } = await req.json();
     if (!email || !partner_id) throw new Error("Email and partner_id are required");
 
-    // If partner, ensure they can only invite for their own partner_id
     if (isPartner && !isAdmin && callerProfile?.partner_id !== partner_id) {
       throw new Error("Not authorized for this partner");
     }
@@ -71,15 +69,20 @@ serve(async (req) => {
 
     if (partnerError || !partner) throw new Error("Partner not found or inactive");
 
-    // Check limit
+    // Monthly limit check: count invites created in the current month
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+
     const { count } = await supabaseAdmin
       .from("partner_invites")
       .select("*", { count: "exact", head: true })
       .eq("partner_id", partner_id)
-      .in("status", ["pending", "accepted"]);
+      .gte("created_at", monthStart)
+      .lt("created_at", monthEnd);
 
     if (count !== null && count >= partner.plan_limit) {
-      throw new Error(`Limite de convites atingido (${partner.plan_limit})`);
+      throw new Error(`Limite mensal de convites atingido (${partner.plan_limit}). O limite renova no próximo mês.`);
     }
 
     // Check existing invite
@@ -106,6 +109,7 @@ serve(async (req) => {
         consultant_name: consultant_name || null,
         consultant_phone: consultant_phone || null,
         consultant_email: consultant_email || null,
+        consultant_photo_url: consultant_photo_url || null,
       })
       .select()
       .single();
@@ -120,7 +124,6 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existingProfile) {
-      const now = new Date();
       const planExpires = new Date(now);
       planExpires.setFullYear(planExpires.getFullYear() + 1);
 
