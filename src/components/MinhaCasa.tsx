@@ -63,7 +63,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const syncFixedExpense = async (payment: number, status: Record<string, string>) => {
     if (!user) return;
 
-    // Check if a fixed expense named "Prestação Casa" exists
     const { data: existing } = await supabase
       .from("fixed_expenses")
       .select("id, monthly_values, monthly_paid")
@@ -71,20 +70,28 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
       .eq("item", "Prestação Casa")
       .maybeSingle();
 
-    // Build monthly_values and monthly_paid from status
+    // Build monthly_values and monthly_paid for ALL 12 months of each year in status
     const monthlyValues: Record<string, number> = {};
     const monthlyPaid: Record<string, boolean> = {};
 
-    for (const [key, val] of Object.entries(status)) {
-      // key format: "2026-0" → composite key for yearMonth
-      const [y, m] = key.split("-").map(Number);
-      const compositeKey = y * 100 + m;
-      monthlyValues[compositeKey] = payment;
-      monthlyPaid[compositeKey] = val === "pago";
+    // Collect unique years from status keys
+    const years = new Set<number>();
+    for (const key of Object.keys(status)) {
+      years.add(Number(key.split("-")[0]));
+    }
+    // Always include current year
+    years.add(new Date().getFullYear());
+
+    for (const year of years) {
+      for (let m = 0; m < 12; m++) {
+        const compositeKey = year * 100 + m;
+        const statusKey = `${year}-${m}`;
+        monthlyValues[compositeKey] = payment;
+        monthlyPaid[compositeKey] = status[statusKey] === "pago";
+      }
     }
 
     if (existing) {
-      // Merge with existing values
       const existingValues = (existing.monthly_values as Record<string, number>) || {};
       const existingPaid = (existing.monthly_paid as Record<string, boolean>) || {};
       await supabase
@@ -94,7 +101,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
           monthly_paid: { ...existingPaid, ...monthlyPaid },
         })
         .eq("id", existing.id);
-    } else if (Object.keys(status).length > 0) {
+    } else {
       await supabase
         .from("fixed_expenses")
         .insert({
