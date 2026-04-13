@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const checkPartner = useCallback(async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "partner" });
+    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "partner" as any });
     return data === true;
   }, []);
 
