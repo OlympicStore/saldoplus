@@ -54,9 +54,26 @@ const STATUS_COLORS: Record<string, string> = {
   expired: "bg-status-negative/10 text-status-negative",
 };
 
+interface ClientHouseData {
+  user_id: string;
+  house_value: number;
+  monthly_payment: number;
+  monthly_payment_status: Record<string, string>;
+  down_payment: number;
+}
+
+interface ClientProfile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  partner_id: string | null;
+}
+
 const AdminPartners = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [clientProfiles, setClientProfiles] = useState<ClientProfile[]>([]);
+  const [clientHouseData, setClientHouseData] = useState<ClientHouseData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreatePartner, setShowCreatePartner] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
