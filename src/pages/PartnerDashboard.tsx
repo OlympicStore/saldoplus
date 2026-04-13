@@ -143,7 +143,7 @@ const PartnerDashboard = () => {
       toast.success(
         data?.user_existed
           ? `Plano ativado para ${inviteForm.email}`
-          : `Convite enviado para ${inviteForm.email}`
+          : `Convite criado para ${inviteForm.email}. O utilizador deve criar uma conta com esse email.`
       );
       setShowInviteUser(false);
       setInviteForm({ email: "", consultant_name: "", consultant_phone: "", consultant_email: "" });
