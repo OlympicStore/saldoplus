@@ -580,6 +580,30 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_history: {
+        Row: {
+          changed_at: string
+          id: string
+          new_value: number
+          old_value: number
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          id?: string
+          new_value?: number
+          old_value?: number
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          id?: string
+          new_value?: number
+          old_value?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
           created_at: string
