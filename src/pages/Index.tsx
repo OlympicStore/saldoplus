@@ -510,7 +510,7 @@ const Index = () => {
             selectedYear={selectedYear}
           />
         )}
-        {activeTab === "minha_casa" && <MinhaCasa />}
+        {activeTab === "minha_casa" && <MinhaCasa onSave={data.refetchFixedExpenses} />}
         {activeTab === "account" && <AccountPanel onShowTour={handleShowTour} />}
       </main>
     </div>

@@ -18,7 +18,7 @@ const fmt = (v: number) =>
 
 const MONTH_NAMES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
-const MinhaCasa = () => {
+const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const { user, partnerBranding } = useAuth();
   const [data, setData] = useState<HouseData>({
     house_value: 0,
