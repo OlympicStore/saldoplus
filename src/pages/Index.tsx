@@ -50,7 +50,7 @@ const planTabs: Record<string, Tab[]> = {
   essencial: ["dashboard", "balance", "entries", "expenses", "account"],
   casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
   pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
-  casa_segura_plus: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
+  parceiro_pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
 };
 
 const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
@@ -305,7 +305,7 @@ const Index = () => {
                 {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
-            {(userPlan === "pro" || userPlan === "casa_segura_plus") && <SubAccountSwitcher />}
+            {(userPlan === "pro" || userPlan === "parceiro_pro") && <SubAccountSwitcher />}
             <SuggestionsDialog />
             <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
               className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
@@ -426,7 +426,7 @@ const Index = () => {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === "dashboard" && (
           <>
-            {(userPlan === "pro" || userPlan === "casa_segura_plus") && (
+            {(userPlan === "pro" || userPlan === "parceiro_pro") && (
               <div className="mb-6 flex justify-end">
                 <AISuggestions
                   fixedExpenses={yearFixedExpenses}

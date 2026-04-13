@@ -10,7 +10,7 @@ const PLAN_LABELS: Record<string, string> = {
   essencial: "Essencial",
   casa: "Casa",
   pro: "Pro",
-  casa_segura_plus: "Casa Segura Plus",
+  parceiro_pro: "Parceiro Pro",
 };
 
 interface AccountPanelProps {
@@ -162,14 +162,14 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   return (
     <div className="space-y-6">
       {/* Partner welcome banner */}
-      {profile.plan === "casa_segura_plus" && profile.plan_source === "partner" && (
+      {profile.plan === "parceiro_pro" && profile.plan_source === "partner" && (
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg">
               🏠
             </div>
             <div>
-              <p className="text-lg font-semibold text-foreground">Casa Segura Plus</p>
+              <p className="text-lg font-semibold text-foreground">Parceiro Pro</p>
               <p className="text-sm text-primary font-medium">
                 {partnerName ? `Oferecido por: ${partnerName}` : "Oferecido por parceiro imobiliário"}
               </p>
@@ -189,7 +189,7 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
           <span className="label-caps mb-2 block">Plano atual</span>
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              {profile.plan === "casa_segura_plus" ? <span className="text-lg">🏠</span> : <Shield className="h-5 w-5" />}
+              {profile.plan === "parceiro_pro" ? <span className="text-lg">🏠</span> : <Shield className="h-5 w-5" />}
             </div>
             <div>
               <p className="text-lg font-semibold text-foreground">{PLAN_LABELS[profile.plan] || profile.plan}</p>
