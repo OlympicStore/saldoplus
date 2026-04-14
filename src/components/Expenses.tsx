@@ -126,23 +126,19 @@ export const Expenses = ({
 
   return (
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
-      <div className="flex items-center justify-between mb-6 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Despesas</h2>
           <p className="text-sm text-text-muted mt-0.5">{filtered.length} registros este mês</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 bg-secondary rounded-lg p-0.5">
             {(["all", "fixo", "variavel"] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${filter === f ? "bg-background text-foreground shadow-sm" : "text-text-muted hover:text-foreground"}`}>
+                className={`px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${filter === f ? "bg-background text-foreground shadow-sm" : "text-text-muted hover:text-foreground"}`}>
                 {f === "all" ? "Todos" : f === "fixo" ? "Fixos" : "Variáveis"}
               </button>
             ))}
-          </div>
-          <div className="text-right hidden sm:block">
-            <span className="label-caps">Total</span>
-            <p className="text-xl font-semibold text-foreground font-mono tabular-nums tracking-tight">{fmt(totalExpenses)}</p>
           </div>
           <button onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
@@ -151,9 +147,15 @@ export const Expenses = ({
         </div>
       </div>
 
-      <div className="sm:hidden mb-4 text-right">
-        <span className="label-caps">Total</span>
-        <p className="text-xl font-semibold text-foreground font-mono tabular-nums tracking-tight">{fmt(totalExpenses)}</p>
+      <div className="flex items-center justify-between mb-4">
+        <div className="hidden sm:block">
+          <span className="label-caps">Total</span>
+          <p className="text-xl font-semibold text-foreground font-mono tabular-nums tracking-tight">{fmt(totalExpenses)}</p>
+        </div>
+        <div className="sm:hidden w-full text-right">
+          <span className="label-caps">Total</span>
+          <p className="text-xl font-semibold text-foreground font-mono tabular-nums tracking-tight">{fmt(totalExpenses)}</p>
+        </div>
       </div>
 
       {showForm && (
