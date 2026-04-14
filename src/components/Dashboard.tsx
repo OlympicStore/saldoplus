@@ -289,7 +289,7 @@ export const Dashboard = ({
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="mb-6">
         {/* Pie Chart - Gastos por categoria */}
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <span className="label-caps mb-3 block">Gastos por Categoria</span>
@@ -319,18 +319,16 @@ export const Dashboard = ({
           )}
         </div>
 
-        {/* Placeholder for grid balance */}
-        <div />
       </div>
 
       {/* Comparação com mês anterior - formato compacto */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
         <span className="label-caps mb-3 block">Comparação com Mês Anterior</span>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
             <span className="text-xs text-text-muted">Entradas</span>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalIncome)}</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalIncome)}</p>
               {(() => {
                 if (prev.totalIncome === 0 && current.totalIncome === 0) return null;
                 const pct = prev.totalIncome > 0 ? ((current.totalIncome - prev.totalIncome) / prev.totalIncome) * 100 : 0;
@@ -346,7 +344,7 @@ export const Dashboard = ({
           <div>
             <span className="text-xs text-text-muted">Saídas</span>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalExpenses)}</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalExpenses)}</p>
               {(() => {
                 if (prev.totalExpenses === 0 && current.totalExpenses === 0) return null;
                 const pct = prev.totalExpenses > 0 ? ((current.totalExpenses - prev.totalExpenses) / prev.totalExpenses) * 100 : 0;
@@ -362,14 +360,14 @@ export const Dashboard = ({
           <div>
             <span className="text-xs text-text-muted">Fixos</span>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalFixed)}</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalFixed)}</p>
               <ComparisonBadge current={current.totalFixed} previous={prev.totalFixed} />
             </div>
           </div>
           <div>
             <span className="text-xs text-text-muted">Variáveis</span>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalVariable)}</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalVariable)}</p>
               <ComparisonBadge current={current.totalVariable} previous={prev.totalVariable} />
             </div>
           </div>
