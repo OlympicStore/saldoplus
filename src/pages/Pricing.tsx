@@ -269,18 +269,18 @@ const Pricing = () => {
       {/* Trust bar with animated counters */}
       <section className="border-y border-border-subtle/60 bg-surface py-8">
         <div className="max-w-4xl mx-auto px-4">
-          <div className="grid grid-cols-3 gap-8 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
             <div ref={usersCounter.ref}>
-              <p className="text-3xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">+{usersCounter.count}</p>
-              <p className="text-sm text-text-muted mt-1">portugueses já controlam o seu dinheiro</p>
+              <p className="text-2xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">+{usersCounter.count}</p>
+              <p className="text-xs sm:text-sm text-text-muted mt-1">portugueses já controlam o seu dinheiro</p>
             </div>
             <div ref={savingsCounter.ref}>
-              <p className="text-3xl sm:text-4xl font-bold text-primary font-mono tabular-nums">€{savingsCounter.count}/mês</p>
-              <p className="text-sm text-text-muted mt-1">Em média, os utilizadores poupam</p>
+              <p className="text-2xl sm:text-4xl font-bold text-primary font-mono tabular-nums">€{savingsCounter.count}/mês</p>
+              <p className="text-xs sm:text-sm text-text-muted mt-1">Em média, os utilizadores poupam</p>
             </div>
             <div ref={timeCounter.ref}>
-              <p className="text-3xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">{timeCounter.count} min</p>
-              <p className="text-sm text-text-muted mt-1">por semana é suficiente</p>
+              <p className="text-2xl sm:text-4xl font-bold text-foreground font-mono tabular-nums">{timeCounter.count} min</p>
+              <p className="text-xs sm:text-sm text-text-muted mt-1">por semana é suficiente</p>
             </div>
           </div>
         </div>
