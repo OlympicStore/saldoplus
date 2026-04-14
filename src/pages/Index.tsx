@@ -406,11 +406,11 @@ const Index = () => {
         </div>
       )}
 
-      <nav className="border-b border-border-subtle/60 bg-surface overflow-x-auto">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex gap-0">
+      <nav className="border-b border-border-subtle/60 bg-surface overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="max-w-5xl mx-auto px-2 sm:px-6 flex gap-0">
           {tabs.map((tab) => (
             <button key={tab.key} onClick={() => handleTabChange(tab.key)}
-              className={`relative px-3 sm:px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`relative px-2.5 sm:px-4 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.key ? "text-foreground" : "text-text-muted hover:text-text-secondary"
               }`}>
               {tab.label}
