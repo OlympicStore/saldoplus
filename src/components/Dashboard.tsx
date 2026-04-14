@@ -289,7 +289,7 @@ export const Dashboard = ({
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="mb-6">
         {/* Pie Chart - Gastos por categoria */}
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <span className="label-caps mb-3 block">Gastos por Categoria</span>
@@ -319,18 +319,16 @@ export const Dashboard = ({
           )}
         </div>
 
-        {/* Placeholder for grid balance */}
-        <div />
       </div>
 
       {/* Comparação com mês anterior - formato compacto */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
         <span className="label-caps mb-3 block">Comparação com Mês Anterior</span>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
             <span className="text-xs text-text-muted">Entradas</span>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalIncome)}</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalIncome)}</p>
               {(() => {
                 if (prev.totalIncome === 0 && current.totalIncome === 0) return null;
                 const pct = prev.totalIncome > 0 ? ((current.totalIncome - prev.totalIncome) / prev.totalIncome) * 100 : 0;
@@ -346,7 +344,7 @@ export const Dashboard = ({
           <div>
             <span className="text-xs text-text-muted">Saídas</span>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalExpenses)}</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalExpenses)}</p>
               {(() => {
                 if (prev.totalExpenses === 0 && current.totalExpenses === 0) return null;
                 const pct = prev.totalExpenses > 0 ? ((current.totalExpenses - prev.totalExpenses) / prev.totalExpenses) * 100 : 0;
@@ -362,14 +360,14 @@ export const Dashboard = ({
           <div>
             <span className="text-xs text-text-muted">Fixos</span>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalFixed)}</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalFixed)}</p>
               <ComparisonBadge current={current.totalFixed} previous={prev.totalFixed} />
             </div>
           </div>
           <div>
             <span className="text-xs text-text-muted">Variáveis</span>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalVariable)}</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground font-mono tabular-nums">{fmt(current.totalVariable)}</p>
               <ComparisonBadge current={current.totalVariable} previous={prev.totalVariable} />
             </div>
           </div>
@@ -468,24 +466,24 @@ export const Dashboard = ({
             const pct = (details.total / maxVal) * 100;
             return (
               <div key={person}>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium w-20 text-center shrink-0 ${colors.bg} ${colors.text}`}>{person}</span>
+                <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                  <span className={`px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium w-16 sm:w-20 text-center shrink-0 ${colors.bg} ${colors.text} truncate`}>{person}</span>
                   <div className="flex-1 h-3 bg-background rounded-full overflow-hidden">
                     <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }}
                       className={`h-full rounded-full ${colors.bar}`} />
                   </div>
-                  <span className="font-mono text-sm text-foreground tabular-nums w-24 text-right shrink-0 font-semibold">{fmt(details.total)}</span>
+                  <span className="font-mono text-xs sm:text-sm text-foreground tabular-nums text-right shrink-0 font-semibold">{fmt(details.total)}</span>
                 </div>
-                <div className="ml-[92px] flex flex-wrap gap-x-4 gap-y-1">
-                  <span className="text-xs text-text-muted">
+                <div className="ml-0 sm:ml-[92px] pl-2 flex flex-wrap gap-x-3 sm:gap-x-4 gap-y-1">
+                  <span className="text-[11px] sm:text-xs text-text-muted">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-status-paid mr-1 align-middle" />
                     Pagou: {fmt(details.totalPaid)}
                   </span>
-                  <span className="text-xs text-text-muted">
+                  <span className="text-[11px] sm:text-xs text-text-muted">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-status-pending mr-1 align-middle" />
                     Deve: {fmt(details.totalOwed)}
                   </span>
-                  <span className={`text-xs font-semibold ${pb.diff >= 0 ? "text-status-paid" : "text-status-negative"}`}>
+                  <span className={`text-[11px] sm:text-xs font-semibold ${pb.diff >= 0 ? "text-status-paid" : "text-status-negative"}`}>
                     {pb.diff >= 0 ? `Pagou ${fmt(pb.diff)} a mais` : `Falta pagar ${fmt(Math.abs(pb.diff))}`}
                   </span>
                 </div>
