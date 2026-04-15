@@ -57,6 +57,7 @@ const ConsultantDashboard = () => {
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClientEmail, setNewClientEmail] = useState("");
   const [addingClient, setAddingClient] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Profile editing
   const [editingProfile, setEditingProfile] = useState(false);
