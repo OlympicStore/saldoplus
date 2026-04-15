@@ -563,8 +563,8 @@ const ConsultantDashboard = () => {
                     )}
                   </div>
                 );
-              })
-            )}
+              });
+            })()}
           </div>
         </div>
       </main>
