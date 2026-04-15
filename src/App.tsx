@@ -16,11 +16,12 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
+import ConsultantDashboard from "./pages/ConsultantDashboard";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: React.ReactNode; allowPartnerRedirect?: boolean }) => {
-  const { user, profile, isAdmin, isPartner, loading } = useAuth();
+  const { user, profile, isAdmin, isPartner, isConsultant, loading } = useAuth();
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
@@ -28,12 +29,16 @@ const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: R
   );
   if (!user) return <Navigate to="/auth" replace />;
   if (!profile) return <Navigate to="/" replace />;
+  // Auto-redirect consultants to their dashboard
+  if (isConsultant && allowPartnerRedirect && !isAdmin && !isPartner) {
+    return <Navigate to="/consultor" replace />;
+  }
   // Auto-redirect partners to their dashboard (unless already on /parceiro)
   if (isPartner && allowPartnerRedirect && !isAdmin) {
     return <Navigate to="/parceiro" replace />;
   }
-  // Admins and partners always have access; others need an active paid plan
-  if (!isAdmin && !isPartner) {
+  // Admins, partners, and consultants always have access; others need an active paid plan
+  if (!isAdmin && !isPartner && !isConsultant) {
     const plan = profile.plan;
     if (plan === "imobiliaria") {
       // Partner clients — allow access
