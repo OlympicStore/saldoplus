@@ -72,8 +72,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const checkConsultant = useCallback(async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "consultant" as any });
-    return data === true;
+    try {
+      const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "consultant" as any });
+      return data === true;
+    } catch {
+      return false;
+    }
   }, []);
 
   const fetchPartnerBranding = useCallback(async (prof: Profile | null): Promise<PartnerBranding | null> => {
