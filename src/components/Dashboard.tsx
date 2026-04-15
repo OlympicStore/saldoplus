@@ -98,8 +98,8 @@ export const Dashboard = ({
   const categoryData = useMemo(() => {
     const cats: Record<string, number> = {};
     // Fixed expenses as one category
-    if (current.totalFixed > 0) cats["Gastos Fixos"] = current.totalFixed;
-    // Variable by category
+    if (current.totalFixed > 0) cats["Despesas Fixas"] = current.totalFixed;
+    // Inevitáveis + Não-essenciais by category
     current.monthVars.forEach((e) => {
       cats[e.category] = (cats[e.category] || 0) + e.value;
     });

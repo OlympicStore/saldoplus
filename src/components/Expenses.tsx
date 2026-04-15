@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { PersonSelector } from "./PersonSelector";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
-import type { Category } from "@/types/category";
+import type { Category, CategoryType } from "@/types/category";
+import { CATEGORY_TYPE_LABELS, CATEGORY_TYPE_SHORT, CATEGORY_TYPE_COLORS } from "@/types/category";
 import type { Account } from "@/types/account";
 
 interface ExpensesProps {
@@ -33,11 +34,18 @@ type ExpenseRow = {
   value: number;
   status: "pago" | "pendente";
   dueDay: number;
-  type: "Fixo" | "Variável";
+  type: CategoryType;
   description: string;
   responsible: string | null;
   recurring: boolean;
 };
+
+const filterOptions: { key: "all" | CategoryType; label: string }[] = [
+  { key: "all", label: "Todos" },
+  { key: "fixo", label: "Fixas" },
+  { key: "inevitavel", label: "Inevitáveis" },
+  { key: "nao_essencial", label: "Não-essenciais" },
+];
 
 export const Expenses = ({
   fixedExpenses, variableExpenses, categories, accounts, people, selectedMonth,
@@ -45,25 +53,25 @@ export const Expenses = ({
   onAddVariable, onUpdateVariable, onDeleteVariable,
 }: ExpensesProps) => {
   const [showForm, setShowForm] = useState(false);
-  const [filter, setFilter] = useState<"all" | "fixo" | "variavel">("all");
+  const [filter, setFilter] = useState<"all" | CategoryType>("all");
   const [newExpense, setNewExpense] = useState({
     category: "", customCategory: "", account: "", date: "", value: "", dueDay: "1", description: "",
     responsible: null as string | null, recurring: false,
   });
 
-  const getCategoryType = (catName: string): "Fixo" | "Variável" => {
+  const getCategoryType = (catName: string): CategoryType => {
     const cat = categories.find(c => c.name === catName);
-    return cat?.type === "fixo" ? "Fixo" : "Variável";
+    return cat?.type ?? "inevitavel";
   };
 
-  const selectedCatType = newExpense.category === "__custom" ? "Variável" : newExpense.category ? getCategoryType(newExpense.category) : null;
+  const selectedCatType: CategoryType | null = newExpense.category === "__custom" ? "inevitavel" : newExpense.category ? getCategoryType(newExpense.category) : null;
 
   const rows: ExpenseRow[] = [
     ...fixedExpenses.map((e): ExpenseRow => ({
       id: e.id, kind: "fixed", category: e.item,
       account: "", date: "", value: e.monthlyValues[selectedMonth] ?? 0,
       status: e.monthlyPaid[selectedMonth] ? "pago" : "pendente",
-      dueDay: e.dueDay, type: "Fixo", description: e.item,
+      dueDay: e.dueDay, type: "fixo", description: e.item,
       responsible: e.monthlyResponsible[selectedMonth] ?? null, recurring: false,
     })),
     ...variableExpenses
@@ -77,9 +85,7 @@ export const Expenses = ({
       })),
   ];
 
-  const filtered = filter === "all" ? rows
-    : filter === "fixo" ? rows.filter(r => r.type === "Fixo")
-    : rows.filter(r => r.type === "Variável");
+  const filtered = filter === "all" ? rows : rows.filter(r => r.type === filter);
 
   const totalExpenses = filtered.reduce((s, r) => s + r.value, 0);
   const categoryNames = categories.map(c => c.name);
@@ -90,7 +96,7 @@ export const Expenses = ({
     if (!finalCategory || isNaN(val)) return;
     const catType = getCategoryType(finalCategory);
 
-    if (catType === "Fixo") {
+    if (catType === "fixo") {
       onAddFixed({
         id: crypto.randomUUID(),
         item: newExpense.description || finalCategory,
@@ -124,6 +130,8 @@ export const Expenses = ({
     }
   };
 
+  const getTypeColors = (type: CategoryType) => CATEGORY_TYPE_COLORS[type];
+
   return (
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
@@ -132,11 +140,11 @@ export const Expenses = ({
           <p className="text-sm text-text-muted mt-0.5">{filtered.length} registros este mês</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 bg-secondary rounded-lg p-0.5">
-            {(["all", "fixo", "variavel"] as const).map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className={`px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${filter === f ? "bg-background text-foreground shadow-sm" : "text-text-muted hover:text-foreground"}`}>
-                {f === "all" ? "Todos" : f === "fixo" ? "Fixos" : "Variáveis"}
+          <div className="flex items-center gap-0.5 bg-secondary rounded-lg p-0.5 overflow-x-auto scrollbar-hide">
+            {filterOptions.map(f => (
+              <button key={f.key} onClick={() => setFilter(f.key)}
+                className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-medium rounded-md transition-colors whitespace-nowrap ${filter === f.key ? "bg-background text-foreground shadow-sm" : "text-text-muted hover:text-foreground"}`}>
+                {f.label}
               </button>
             ))}
           </div>
@@ -196,7 +204,7 @@ export const Expenses = ({
                 placeholder="0,00"
                 className="w-full text-sm font-mono bg-background border border-border-subtle rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            {selectedCatType === "Fixo" ? (
+            {selectedCatType === "fixo" ? (
               <div className="sm:col-span-1">
                 <label className="label-caps mb-1.5 block">Dia Venc.</label>
                 <input type="number" min={1} max={31} value={newExpense.dueDay} onChange={(e) => setNewExpense({ ...newExpense, dueDay: e.target.value })}
@@ -213,7 +221,7 @@ export const Expenses = ({
               <label className="label-caps mb-1.5 block">Quem</label>
               <PersonSelector value={newExpense.responsible} onChange={(p) => setNewExpense({ ...newExpense, responsible: p })} people={people} />
             </div>
-            {selectedCatType === "Variável" && (
+            {selectedCatType && selectedCatType !== "fixo" && (
               <div className="sm:col-span-1 flex items-end pb-1">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={newExpense.recurring}
@@ -246,66 +254,69 @@ export const Expenses = ({
           <div className="px-4 py-8 text-center text-sm text-text-muted">
             Nenhuma despesa neste mês. Clique em "Nova Despesa" para adicionar.
           </div>
-        ) : filtered.map(row => (
-          <div key={`${row.kind}-${row.id}`} className="px-4 py-3 hover:bg-surface-hover transition-colors">
-            {/* Desktop */}
-            <div className="hidden sm:grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-2 text-sm font-semibold text-foreground truncate">{row.category}</div>
-              <div className="col-span-2 text-sm text-text-muted truncate">{row.description !== row.category ? row.description : "—"}</div>
-              <div className="col-span-2 text-sm text-text-secondary">
-                {row.kind === "fixed" ? `Dia ${row.dueDay}` : new Date(row.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" })}
-              </div>
-              <div className="col-span-2 text-right font-mono text-sm text-text-secondary tabular-nums">{fmt(row.value)}</div>
-              <div className="col-span-2">
-                <button onClick={() => toggleStatus(row)} className="flex items-center gap-1.5 group">
-                  <div className={`h-2.5 w-2.5 rounded-full transition-colors ${row.status === "pago" ? "bg-status-paid" : "bg-status-pending"}`} />
-                  <span className="text-xs text-text-muted group-hover:text-foreground transition-colors capitalize">{row.status}</span>
-                </button>
-              </div>
-              <div className="col-span-2 flex items-center justify-end gap-2">
-                <span className={`text-xs px-2 py-0.5 rounded-full ${row.type === "Fixo" ? "bg-blue-500/10 text-blue-600" : "bg-amber-500/10 text-amber-600"}`}>
-                  {row.type}
-                </span>
-                {row.recurring && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Recorrente</span>
-                )}
-                <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Mobile */}
-            <div className="sm:hidden space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm font-semibold text-foreground truncate">{row.category}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${row.type === "Fixo" ? "bg-blue-500/10 text-blue-600" : "bg-amber-500/10 text-amber-600"}`}>
-                    {row.type}
-                  </span>
+        ) : filtered.map(row => {
+          const colors = getTypeColors(row.type);
+          return (
+            <div key={`${row.kind}-${row.id}`} className="px-4 py-3 hover:bg-surface-hover transition-colors">
+              {/* Desktop */}
+              <div className="hidden sm:grid grid-cols-12 gap-2 items-center">
+                <div className="col-span-2 text-sm font-semibold text-foreground truncate">{row.category}</div>
+                <div className="col-span-2 text-sm text-text-muted truncate">{row.description !== row.category ? row.description : "—"}</div>
+                <div className="col-span-2 text-sm text-text-secondary">
+                  {row.kind === "fixed" ? `Dia ${row.dueDay}` : new Date(row.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" })}
                 </div>
-                <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              {row.description !== row.category && (
-                <p className="text-xs text-text-muted truncate">{row.description}</p>
-              )}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-text-muted">
-                    {row.kind === "fixed" ? `Dia ${row.dueDay}` : new Date(row.date).toLocaleDateString("pt-PT")}
-                  </span>
-                  <button onClick={() => toggleStatus(row)} className="flex items-center gap-1">
-                    <div className={`h-2 w-2 rounded-full ${row.status === "pago" ? "bg-status-paid" : "bg-status-pending"}`} />
-                    <span className="text-xs text-text-muted capitalize">{row.status}</span>
+                <div className="col-span-2 text-right font-mono text-sm text-text-secondary tabular-nums">{fmt(row.value)}</div>
+                <div className="col-span-2">
+                  <button onClick={() => toggleStatus(row)} className="flex items-center gap-1.5 group">
+                    <div className={`h-2.5 w-2.5 rounded-full transition-colors ${row.status === "pago" ? "bg-status-paid" : "bg-status-pending"}`} />
+                    <span className="text-xs text-text-muted group-hover:text-foreground transition-colors capitalize">{row.status}</span>
                   </button>
                 </div>
-                <span className="font-mono text-sm text-text-secondary tabular-nums">{fmt(row.value)}</span>
+                <div className="col-span-2 flex items-center justify-end gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text}`}>
+                    {CATEGORY_TYPE_SHORT[row.type]}
+                  </span>
+                  {row.recurring && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Rec</span>
+                  )}
+                  <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile */}
+              <div className="sm:hidden space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm font-semibold text-foreground truncate">{row.category}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${colors.bg} ${colors.text}`}>
+                      {CATEGORY_TYPE_SHORT[row.type]}
+                    </span>
+                  </div>
+                  <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {row.description !== row.category && (
+                  <p className="text-xs text-text-muted truncate">{row.description}</p>
+                )}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-text-muted">
+                      {row.kind === "fixed" ? `Dia ${row.dueDay}` : new Date(row.date).toLocaleDateString("pt-PT")}
+                    </span>
+                    <button onClick={() => toggleStatus(row)} className="flex items-center gap-1">
+                      <div className={`h-2 w-2 rounded-full ${row.status === "pago" ? "bg-status-paid" : "bg-status-pending"}`} />
+                      <span className="text-xs text-text-muted capitalize">{row.status}</span>
+                    </button>
+                  </div>
+                  <span className="font-mono text-sm text-text-secondary tabular-nums">{fmt(row.value)}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </motion.div>
   );
