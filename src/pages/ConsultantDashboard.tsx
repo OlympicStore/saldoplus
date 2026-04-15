@@ -346,6 +346,9 @@ const ConsultantDashboard = () => {
                   <input value={editName} onChange={e => setEditName(e.target.value)}
                     className="w-full bg-background border border-border-subtle rounded-lg px-3 py-1.5 text-sm text-foreground"
                     placeholder="Nome" />
+                  <input value={consultant.email} disabled
+                    className="w-full bg-background border border-border-subtle rounded-lg px-3 py-1.5 text-sm text-text-muted cursor-not-allowed"
+                    placeholder="Email" />
                   <input value={editPhone} onChange={e => setEditPhone(e.target.value)}
                     className="w-full bg-background border border-border-subtle rounded-lg px-3 py-1.5 text-sm text-foreground"
                     placeholder="Telefone" />
