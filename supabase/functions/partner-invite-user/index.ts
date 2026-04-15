@@ -52,7 +52,7 @@ serve(async (req) => {
 
     if (!isAdmin && !isPartner) throw new Error("Not authorized");
 
-    const { email, partner_id, consultant_name, consultant_phone, consultant_email, consultant_photo_url } = await req.json();
+    const { email, partner_id, consultant_name, consultant_phone, consultant_email, consultant_photo_url, consultant_id } = await req.json();
     if (!email || !partner_id) throw new Error("Email and partner_id are required");
 
     if (isPartner && !isAdmin && callerProfile?.partner_id !== partner_id) {
@@ -110,6 +110,7 @@ serve(async (req) => {
         consultant_phone: consultant_phone || null,
         consultant_email: consultant_email || null,
         consultant_photo_url: consultant_photo_url || null,
+        consultant_id: consultant_id || null,
       })
       .select()
       .single();
