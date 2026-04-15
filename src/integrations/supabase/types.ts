@@ -1028,6 +1028,10 @@ export type Database = {
     }
     Functions: {
       get_admin_stats: { Args: never; Returns: Json }
+      get_consultant_client_ids: {
+        Args: { _consultant_user_id: string }
+        Returns: string[]
+      }
       get_consultant_partner_id: { Args: never; Returns: string }
       get_my_partner_id: { Args: never; Returns: string }
       has_role: {
