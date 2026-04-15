@@ -159,8 +159,9 @@ export function usePersistedData(subAccountId?: string | null) {
           { name: "Água", type: "fixo" },
           { name: "Gás", type: "fixo" },
           { name: "Internet", type: "fixo" },
-          { name: "Supermercado", type: "variavel" },
-          { name: "Outros", type: "variavel" },
+          { name: "Supermercado", type: "inevitavel" },
+          { name: "Restaurantes", type: "nao_essencial" },
+          { name: "Outros", type: "inevitavel" },
         ];
         const inserted: Category[] = [];
         for (const d of defaults) {

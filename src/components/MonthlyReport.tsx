@@ -57,7 +57,7 @@ export const MonthlyReport = ({
     });
     csv += `\n`;
 
-    csv += `DESPESAS FIXAS\n`;
+    csv += `DESPESAS FIXAS (F)\n`;
     csv += `Item;Valor;Dia Venc.;Status\n`;
     fixedExpenses.forEach(e => {
       const val = e.monthlyValues[selectedMonth] ?? 0;
@@ -65,7 +65,7 @@ export const MonthlyReport = ({
     });
     csv += `\n`;
 
-    csv += `DESPESAS VARIÁVEIS\n`;
+    csv += `DESPESAS INEVITÁVEIS (I) + NÃO-ESSENCIAIS (N)\n`;
     csv += `Descrição;Categoria;Conta;Valor;Data\n`;
     monthVariable.forEach(e => {
       csv += `${e.description};${e.category};${e.account};${fmt(e.value)};${e.date}\n`;

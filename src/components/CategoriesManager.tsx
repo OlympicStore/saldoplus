@@ -1,7 +1,7 @@
-import { motion } from "framer-motion";
 import { useState } from "react";
-import { Plus, Trash2, Tag } from "lucide-react";
-import type { Category } from "@/types/category";
+import { Plus, Tag } from "lucide-react";
+import type { Category, CategoryType } from "@/types/category";
+import { CATEGORY_TYPE_LABELS, CATEGORY_TYPE_COLORS } from "@/types/category";
 
 interface CategoriesManagerProps {
   categories: Category[];
@@ -10,9 +10,11 @@ interface CategoriesManagerProps {
   onDelete: (id: string) => void;
 }
 
+const typeOrder: CategoryType[] = ["fixo", "inevitavel", "nao_essencial"];
+
 export const CategoriesManager = ({ categories, onAdd, onUpdate, onDelete }: CategoriesManagerProps) => {
   const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<"fixo" | "variavel">("variavel");
+  const [newType, setNewType] = useState<CategoryType>("inevitavel");
 
   const handleAdd = () => {
     if (!newName.trim()) return;
@@ -21,15 +23,17 @@ export const CategoriesManager = ({ categories, onAdd, onUpdate, onDelete }: Cat
     setNewName("");
   };
 
-  const fixedCats = categories.filter(c => c.type === "fixo");
-  const variableCats = categories.filter(c => c.type === "variavel");
+  const nextType = (current: CategoryType): CategoryType => {
+    const idx = typeOrder.indexOf(current);
+    return typeOrder[(idx + 1) % typeOrder.length];
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Categorias</h3>
-          <p className="text-xs text-text-muted mt-0.5">Define o tipo (Fixo/Variável) para cada categoria. Isto controla automaticamente relatórios e gráficos.</p>
+          <p className="text-xs text-text-muted mt-0.5">Define o tipo para cada categoria. Isto controla automaticamente relatórios e gráficos.</p>
         </div>
       </div>
 
@@ -41,49 +45,37 @@ export const CategoriesManager = ({ categories, onAdd, onUpdate, onDelete }: Cat
             placeholder="Nova categoria (ex: Netflix, Gasolina)"
             className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
         </div>
-        <select value={newType} onChange={(e) => setNewType(e.target.value as "fixo" | "variavel")}
+        <select value={newType} onChange={(e) => setNewType(e.target.value as CategoryType)}
           className="text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
-          <option value="fixo">Fixo</option>
-          <option value="variavel">Variável</option>
+          {typeOrder.map(t => <option key={t} value={t}>{CATEGORY_TYPE_LABELS[t]}</option>)}
         </select>
         <button onClick={handleAdd} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
           <Plus className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Fixed categories */}
-      <div>
-        <span className="label-caps mb-2 block">Fixos</span>
-        <div className="flex flex-wrap gap-2">
-          {fixedCats.length === 0 && <p className="text-xs text-text-muted">Nenhuma categoria fixa</p>}
-          {fixedCats.map(cat => (
-            <span key={cat.id} className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 text-blue-600 px-2.5 py-1.5 rounded-lg border border-blue-500/20">
-              <Tag className="h-3 w-3" />
-              {cat.name}
-              <button onClick={() => onUpdate(cat.id, { type: "variavel" })}
-                className="text-blue-400 hover:text-amber-500 transition-colors text-[10px] font-bold ml-1" title="Mudar para variável">⇄</button>
-              <button onClick={() => onDelete(cat.id)} className="text-blue-400 hover:text-status-negative transition-colors">×</button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Variable categories */}
-      <div>
-        <span className="label-caps mb-2 block">Variáveis</span>
-        <div className="flex flex-wrap gap-2">
-          {variableCats.length === 0 && <p className="text-xs text-text-muted">Nenhuma categoria variável</p>}
-          {variableCats.map(cat => (
-            <span key={cat.id} className="inline-flex items-center gap-1.5 text-xs bg-amber-500/10 text-amber-600 px-2.5 py-1.5 rounded-lg border border-amber-500/20">
-              <Tag className="h-3 w-3" />
-              {cat.name}
-              <button onClick={() => onUpdate(cat.id, { type: "fixo" })}
-                className="text-amber-400 hover:text-blue-500 transition-colors text-[10px] font-bold ml-1" title="Mudar para fixo">⇄</button>
-              <button onClick={() => onDelete(cat.id)} className="text-amber-400 hover:text-status-negative transition-colors">×</button>
-            </span>
-          ))}
-        </div>
-      </div>
+      {/* Categories by type */}
+      {typeOrder.map(type => {
+        const cats = categories.filter(c => c.type === type);
+        const colors = CATEGORY_TYPE_COLORS[type];
+        return (
+          <div key={type}>
+            <span className="label-caps mb-2 block">{CATEGORY_TYPE_LABELS[type]}</span>
+            <div className="flex flex-wrap gap-2">
+              {cats.length === 0 && <p className="text-xs text-text-muted">Nenhuma categoria</p>}
+              {cats.map(cat => (
+                <span key={cat.id} className={`inline-flex items-center gap-1.5 text-xs ${colors.bg} ${colors.text} px-2.5 py-1.5 rounded-lg border ${colors.border}`}>
+                  <Tag className="h-3 w-3" />
+                  {cat.name}
+                  <button onClick={() => onUpdate(cat.id, { type: nextType(cat.type) })}
+                    className="hover:opacity-70 transition-opacity text-[10px] font-bold ml-1" title={`Mudar para ${CATEGORY_TYPE_LABELS[nextType(cat.type)]}`}>⇄</button>
+                  <button onClick={() => onDelete(cat.id)} className="hover:text-status-negative transition-colors">×</button>
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

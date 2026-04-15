@@ -1,0 +1,1 @@
+UPDATE public.categories SET type = 'inevitavel' WHERE type = 'variavel';
