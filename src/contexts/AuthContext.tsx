@@ -72,8 +72,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const checkConsultant = useCallback(async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "consultant" as any });
-    return data === true;
+    try {
+      const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "consultant" as any });
+      return data === true;
+    } catch {
+      return false;
+    }
   }, []);
 
   const fetchPartnerBranding = useCallback(async (prof: Profile | null): Promise<PartnerBranding | null> => {
@@ -124,20 +128,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    setLoading(true);
-    const [nextProfile, nextIsAdmin, nextIsPartner, nextIsConsultant] = await Promise.all([
-      fetchProfile(nextUser.id),
-      checkAdmin(nextUser.id),
-      checkPartner(nextUser.id),
-      checkConsultant(nextUser.id),
-    ]);
+    try {
+      const [nextProfile, nextIsAdmin, nextIsPartner, nextIsConsultant] = await Promise.all([
+        fetchProfile(nextUser.id),
+        checkAdmin(nextUser.id),
+        checkPartner(nextUser.id),
+        checkConsultant(nextUser.id),
+      ]);
 
-    const branding = await fetchPartnerBranding(nextProfile);
-    setProfile(nextProfile);
-    setIsAdmin(nextIsAdmin);
-    setIsPartner(nextIsPartner);
-    setIsConsultant(nextIsConsultant);
-    setPartnerBranding(branding);
+      const branding = await fetchPartnerBranding(nextProfile);
+      setProfile(nextProfile);
+      setIsAdmin(nextIsAdmin);
+      setIsPartner(nextIsPartner);
+      setIsConsultant(nextIsConsultant);
+      setPartnerBranding(branding);
+    } catch (err) {
+      console.error("syncAuthState error:", err);
+    }
     setLoading(false);
   }, [checkAdmin, checkPartner, checkConsultant, fetchProfile, fetchPartnerBranding]);
 
