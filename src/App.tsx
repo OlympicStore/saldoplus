@@ -28,7 +28,11 @@ const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: R
     </div>
   );
   if (!user) return <Navigate to="/auth" replace />;
-  if (!profile) return <Navigate to="/" replace />;
+  if (!profile) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+    </div>
+  );
   // Auto-redirect consultants to their dashboard
   if (isConsultant && allowPartnerRedirect && !isAdmin && !isPartner) {
     return <Navigate to="/consultor" replace />;
