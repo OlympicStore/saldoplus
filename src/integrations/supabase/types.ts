@@ -482,9 +482,60 @@ export type Database = {
           },
         ]
       }
+      partner_consultants: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          name: string
+          partner_id: string
+          phone: string | null
+          photo_position: string | null
+          photo_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          partner_id: string
+          phone?: string | null
+          photo_position?: string | null
+          photo_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          partner_id?: string
+          phone?: string | null
+          photo_position?: string | null
+          photo_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_consultants_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_invites: {
         Row: {
           consultant_email: string | null
+          consultant_id: string | null
           consultant_name: string | null
           consultant_phone: string | null
           consultant_photo_position: string | null
@@ -498,6 +549,7 @@ export type Database = {
         }
         Insert: {
           consultant_email?: string | null
+          consultant_id?: string | null
           consultant_name?: string | null
           consultant_phone?: string | null
           consultant_photo_position?: string | null
@@ -511,6 +563,7 @@ export type Database = {
         }
         Update: {
           consultant_email?: string | null
+          consultant_id?: string | null
           consultant_name?: string | null
           consultant_phone?: string | null
           consultant_photo_position?: string | null
@@ -523,6 +576,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "partner_invites_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "partner_consultants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "partner_invites_partner_id_fkey"
             columns: ["partner_id"]
@@ -968,6 +1028,7 @@ export type Database = {
     }
     Functions: {
       get_admin_stats: { Args: never; Returns: Json }
+      get_consultant_partner_id: { Args: never; Returns: string }
       get_my_partner_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -986,7 +1047,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "partner"
+      app_role: "admin" | "moderator" | "user" | "partner" | "consultant"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1114,7 +1175,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "partner"],
+      app_role: ["admin", "moderator", "user", "partner", "consultant"],
     },
   },
 } as const

@@ -5,7 +5,7 @@ Dark theme, Apple-like minimal. Primary hsl(160,84%,39%), bg hsl(210,40%,98%).
 IBM Plex Sans headings/body, IBM Plex Mono numbers. Never serif.
 Moeda: Euro (€), locale pt-PT. Idioma da app: Português.
 Lovable Cloud (Supabase) for auth + DB. Email + Google login.
-Planos: Essencial, Casa, Pro, Casa Segura Plus (partner). Tabela plans substitui enum.
+Planos: Essencial, Casa, Pro com feature gating.
 
 ## Memories
 - [Currency & locale](mem://style/currency-locale) — Euro €, pt-PT formatting
@@ -21,5 +21,6 @@ Planos: Essencial, Casa, Pro, Casa Segura Plus (partner). Tabela plans substitui
 - [Metas financeiras](mem://features/metas-financeiras) — Goals with accounts
 - [Project identity](mem://project/identity) — App name: Dashboard Financeiro
 - [Auth & Plans](mem://features/auth-plans) — Email+Google auth, 3 plans, groups, feature gating
-- [Feature gating](mem://features/feature-gating) — Tabs visíveis por plano
-- [Casa Segura Plus](mem://features/casa-segura-plus) — B2B partner plan, Minha Casa tab, auto-activation
+- [Casa Segura+](mem://features/casa-segura-plus) — Plano imobiliária B2B, MinhaCasa, branding parceiro
+- [Consultants](mem://features/consultants) — Perfis de consultor com dashboard, criados pela imobiliária
+- [App restructure](mem://features/app-restructure) — Despesas F/I/N (Fixas, Inevitáveis, Não-essenciais)

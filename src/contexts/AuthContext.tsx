@@ -32,6 +32,7 @@ interface AuthContextType {
   profile: Profile | null;
   isAdmin: boolean;
   isPartner: boolean;
+  isConsultant: boolean;
   partnerBranding: PartnerBranding | null;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -39,7 +40,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null, session: null, profile: null, isAdmin: false, isPartner: false, partnerBranding: null, loading: true,
+  user: null, session: null, profile: null, isAdmin: false, isPartner: false, isConsultant: false, partnerBranding: null, loading: true,
   signOut: async () => {}, refreshProfile: async () => {},
 });
 
@@ -51,6 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPartner, setIsPartner] = useState(false);
+  const [isConsultant, setIsConsultant] = useState(false);
   const [partnerBranding, setPartnerBranding] = useState<PartnerBranding | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -66,6 +68,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkPartner = useCallback(async (userId: string) => {
     const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "partner" as any });
+    return data === true;
+  }, []);
+
+  const checkConsultant = useCallback(async (userId: string) => {
+    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "consultant" as any });
     return data === true;
   }, []);
 
@@ -112,42 +119,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfile(null);
       setIsAdmin(false);
       setIsPartner(false);
+      setIsConsultant(false);
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    const [nextProfile, nextIsAdmin, nextIsPartner] = await Promise.all([
+    const [nextProfile, nextIsAdmin, nextIsPartner, nextIsConsultant] = await Promise.all([
       fetchProfile(nextUser.id),
       checkAdmin(nextUser.id),
       checkPartner(nextUser.id),
+      checkConsultant(nextUser.id),
     ]);
 
     const branding = await fetchPartnerBranding(nextProfile);
     setProfile(nextProfile);
     setIsAdmin(nextIsAdmin);
     setIsPartner(nextIsPartner);
+    setIsConsultant(nextIsConsultant);
     setPartnerBranding(branding);
     setLoading(false);
-  }, [checkAdmin, checkPartner, fetchProfile, fetchPartnerBranding]);
+  }, [checkAdmin, checkPartner, checkConsultant, fetchProfile, fetchPartnerBranding]);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
-    const [nextProfile, nextIsAdmin, nextIsPartner] = await Promise.all([
+    const [nextProfile, nextIsAdmin, nextIsPartner, nextIsConsultant] = await Promise.all([
       fetchProfile(user.id),
       checkAdmin(user.id),
       checkPartner(user.id),
+      checkConsultant(user.id),
     ]);
 
     const branding = await fetchPartnerBranding(nextProfile);
     setProfile(nextProfile);
     setIsAdmin(nextIsAdmin);
     setIsPartner(nextIsPartner);
+    setIsConsultant(nextIsConsultant);
     setPartnerBranding(branding);
     setLoading(false);
-  }, [checkAdmin, checkPartner, fetchProfile, fetchPartnerBranding, user]);
+  }, [checkAdmin, checkPartner, checkConsultant, fetchProfile, fetchPartnerBranding, user]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -179,11 +191,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(null);
     setIsAdmin(false);
     setIsPartner(false);
+    setIsConsultant(false);
     setPartnerBranding(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, isAdmin, isPartner, partnerBranding, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, isAdmin, isPartner, isConsultant, partnerBranding, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
