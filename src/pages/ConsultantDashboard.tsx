@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Users, ChevronDown, ChevronUp, Home, UserPlus, UserMinus, Pencil, X, Check, Camera,
-  TrendingUp, TrendingDown, Minus as MinusIcon,
+  TrendingUp, TrendingDown, Minus as MinusIcon, Search,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
@@ -57,6 +57,7 @@ const ConsultantDashboard = () => {
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClientEmail, setNewClientEmail] = useState("");
   const [addingClient, setAddingClient] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Profile editing
   const [editingProfile, setEditingProfile] = useState(false);
@@ -408,6 +409,21 @@ const ConsultantDashboard = () => {
             </button>
           </div>
 
+          {/* Search */}
+          {clients.length > 0 && (
+            <div className="px-4 py-3 border-b border-border-subtle/40">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted" />
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Pesquisar por nome ou email..."
+                  className="w-full bg-background border border-border-subtle rounded-lg pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-text-muted"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Add client form */}
           {showAddClient && (
             <div className="px-4 py-3 border-b border-border-subtle/40 bg-background">
@@ -432,8 +448,24 @@ const ConsultantDashboard = () => {
               <div className="px-5 py-8 text-center text-sm text-text-muted">
                 Ainda não tem clientes atribuídos.
               </div>
-            ) : (
-              clients.map((client) => {
+            ) : (() => {
+              const q = searchQuery.toLowerCase().trim();
+              const filtered = q
+                ? clients.filter(c =>
+                    (c.full_name || "").toLowerCase().includes(q) ||
+                    c.email.toLowerCase().includes(q)
+                  )
+                : clients;
+              
+              if (filtered.length === 0) {
+                return (
+                  <div className="px-5 py-8 text-center text-sm text-text-muted">
+                    Nenhum cliente encontrado para "{searchQuery}"
+                  </div>
+                );
+              }
+
+              return filtered.map((client) => {
                 const isExpanded = expandedClient === client.id;
                 const house = houseData.find(h => h.user_id === client.id);
                 const paymentStats = house ? getPaymentStats(house.monthly_payment_status) : null;
@@ -531,8 +563,8 @@ const ConsultantDashboard = () => {
                     )}
                   </div>
                 );
-              })
-            )}
+              });
+            })()}
           </div>
         </div>
       </main>
