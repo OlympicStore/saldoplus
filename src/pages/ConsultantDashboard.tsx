@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
-  Users, Loader2, User, ChevronDown, ChevronUp, Home, Phone, Mail,
+  Users, ChevronDown, ChevronUp, Home, UserPlus, UserMinus, Pencil, X, Check, Camera,
+  TrendingUp, TrendingDown, Minus as MinusIcon,
 } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 interface ConsultantRecord {
   id: string;
@@ -14,6 +16,7 @@ interface ConsultantRecord {
   phone: string | null;
   email: string;
   photo_url: string | null;
+  photo_position: string | null;
 }
 
 interface ClientProfile {
@@ -22,6 +25,7 @@ interface ClientProfile {
   full_name: string | null;
   plan: string;
   plan_expires_at: string | null;
+  created_at: string;
 }
 
 interface ClientHouseData {
@@ -49,6 +53,22 @@ const ConsultantDashboard = () => {
   const [houseData, setHouseData] = useState<ClientHouseData[]>([]);
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
 
+  // Add client
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [newClientEmail, setNewClientEmail] = useState("");
+  const [addingClient, setAddingClient] = useState(false);
+
+  // Profile editing
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  // Month comparison
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
   useEffect(() => {
     if (!user) return;
     loadData();
@@ -58,7 +78,6 @@ const ConsultantDashboard = () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Get consultant record
       const { data: consultantData } = await supabase
         .from("partner_consultants")
         .select("*")
@@ -66,53 +85,176 @@ const ConsultantDashboard = () => {
         .eq("active", true)
         .maybeSingle();
 
-      if (!consultantData) {
-        setLoading(false);
-        return;
-      }
-      setConsultant(consultantData as ConsultantRecord);
+      if (!consultantData) { setLoading(false); return; }
+      const c = consultantData as ConsultantRecord;
+      setConsultant(c);
+      setEditName(c.name);
+      setEditPhone(c.phone || "");
 
-      // Get partner info
       const { data: partnerData } = await supabase
         .from("partners")
         .select("name, brand_logo_url, brand_color")
-        .eq("id", consultantData.partner_id)
+        .eq("id", c.partner_id)
         .single();
       if (partnerData) setPartner(partnerData as PartnerInfo);
 
-      // Get invites assigned to this consultant
       const { data: invites } = await supabase
         .from("partner_invites")
         .select("email")
-        .eq("consultant_id", consultantData.id)
+        .eq("consultant_id", c.id)
         .eq("status", "accepted");
 
-      const clientEmails = (invites || []).map((i: any) => i.email);
-
-      if (clientEmails.length > 0) {
-        // Get client profiles
+      const emails = (invites || []).map((i: any) => i.email);
+      if (emails.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, email, full_name, plan, plan_expires_at")
-          .in("email", clientEmails);
+          .select("id, email, full_name, plan, plan_expires_at, created_at")
+          .in("email", emails);
         if (profilesData) setClients(profilesData as ClientProfile[]);
 
-        // Get house data for clients
-        const clientIds = (profilesData || []).map((p: any) => p.id);
-        if (clientIds.length > 0) {
+        const ids = (profilesData || []).map((p: any) => p.id);
+        if (ids.length > 0) {
           const { data: hData } = await supabase
             .from("house_data")
             .select("user_id, house_value, monthly_payment, monthly_income, monthly_payment_status, down_payment")
-            .in("user_id", clientIds);
+            .in("user_id", ids);
           if (hData) setHouseData(hData as ClientHouseData[]);
         }
+      } else {
+        setClients([]);
+        setHouseData([]);
       }
-    } catch (err: any) {
+    } catch {
       toast.error("Erro ao carregar dados");
     } finally {
       setLoading(false);
     }
   };
+
+  // --- Add client (create invite) ---
+  const handleAddClient = async () => {
+    if (!consultant || !newClientEmail.trim()) return;
+    setAddingClient(true);
+    try {
+      // Check if invite already exists
+      const { data: existing } = await supabase
+        .from("partner_invites")
+        .select("id")
+        .eq("email", newClientEmail.trim().toLowerCase())
+        .eq("partner_id", consultant.partner_id)
+        .maybeSingle();
+
+      if (existing) {
+        // Just update consultant_id
+        await supabase
+          .from("partner_invites")
+          .update({ consultant_id: consultant.id })
+          .eq("id", existing.id);
+        toast.success("Cliente atribuído com sucesso");
+      } else {
+        // Create new invite
+        const { error } = await supabase.from("partner_invites").insert({
+          email: newClientEmail.trim().toLowerCase(),
+          partner_id: consultant.partner_id,
+          consultant_id: consultant.id,
+          status: "pending",
+        });
+        if (error) throw error;
+        toast.success("Convite enviado com sucesso");
+      }
+      setNewClientEmail("");
+      setShowAddClient(false);
+      await loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao adicionar cliente");
+    } finally {
+      setAddingClient(false);
+    }
+  };
+
+  // --- Remove client (unassign consultant from invite) ---
+  const handleRemoveClient = async (clientEmail: string) => {
+    if (!consultant) return;
+    if (!confirm(`Remover ${clientEmail} da sua lista de clientes?`)) return;
+    try {
+      await supabase
+        .from("partner_invites")
+        .update({ consultant_id: null })
+        .eq("email", clientEmail)
+        .eq("consultant_id", consultant.id);
+      toast.success("Cliente removido");
+      await loadData();
+    } catch {
+      toast.error("Erro ao remover cliente");
+    }
+  };
+
+  // --- Save profile ---
+  const handleSaveProfile = async () => {
+    if (!consultant) return;
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from("partner_consultants")
+        .update({ name: editName.trim(), phone: editPhone.trim() || null })
+        .eq("id", consultant.id);
+      if (error) throw error;
+      setConsultant({ ...consultant, name: editName.trim(), phone: editPhone.trim() || null });
+      setEditingProfile(false);
+      toast.success("Perfil atualizado");
+    } catch {
+      toast.error("Erro ao atualizar perfil");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  // --- Photo upload ---
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!consultant || !e.target.files?.[0]) return;
+    const file = e.target.files[0];
+    const ext = file.name.split(".").pop();
+    const path = `consultants/${consultant.id}.${ext}`;
+    try {
+      const { error: uploadError } = await supabase.storage.from("partner-logos").upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("partner-logos").getPublicUrl(path);
+      const photo_url = urlData.publicUrl + "?t=" + Date.now();
+      await supabase.from("partner_consultants").update({ photo_url }).eq("id", consultant.id);
+      setConsultant({ ...consultant, photo_url });
+      toast.success("Foto atualizada");
+    } catch {
+      toast.error("Erro ao enviar foto");
+    }
+  };
+
+  // --- Month comparison chart data ---
+  const getMonthLabel = (m: number) => {
+    const labels = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    return labels[m - 1] || "";
+  };
+  const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+
+  const clientsThisMonth = clients.filter(c => {
+    const d = new Date(c.created_at);
+    return d.getMonth() + 1 <= currentMonth && d.getFullYear() <= currentYear;
+  }).length;
+
+  const clientsPrevMonth = clients.filter(c => {
+    const d = new Date(c.created_at);
+    return d.getMonth() + 1 <= prevMonth && d.getFullYear() <= prevYear;
+  }).length;
+
+  const chartData = [
+    { name: getMonthLabel(prevMonth), clientes: clientsPrevMonth },
+    { name: getMonthLabel(currentMonth), clientes: clientsThisMonth },
+  ];
+
+  const diff = clientsThisMonth - clientsPrevMonth;
+  const TrendIcon = diff > 0 ? TrendingUp : diff < 0 ? TrendingDown : MinusIcon;
+  const trendColor = diff > 0 ? "text-status-paid" : diff < 0 ? "text-status-negative" : "text-text-muted";
 
   const getPaymentStats = (status: Record<string, string>) => {
     const entries = Object.entries(status || {});
@@ -163,30 +305,125 @@ const ConsultantDashboard = () => {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 text-center">
-            <p className="text-2xl font-bold text-foreground">{clients.length}</p>
-            <p className="label-caps mt-1">Clientes Ativos</p>
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        {/* Profile Card */}
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <span className="label-caps">O Meu Perfil</span>
+            {!editingProfile ? (
+              <button onClick={() => setEditingProfile(true)} className="text-xs text-primary flex items-center gap-1 hover:underline">
+                <Pencil className="h-3 w-3" /> Editar
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={() => setEditingProfile(false)} className="text-xs text-text-muted hover:text-foreground"><X className="h-4 w-4" /></button>
+                <button onClick={handleSaveProfile} disabled={savingProfile} className="text-xs text-primary hover:underline flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Guardar
+                </button>
+              </div>
+            )}
           </div>
-          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 text-center">
-            <p className="text-2xl font-bold text-foreground">
-              {clients.filter(c => {
-                const h = houseData.find(hd => hd.user_id === c.id);
-                return h && h.monthly_payment > 0;
-              }).length}
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center">
+                {consultant.photo_url ? (
+                  <img src={consultant.photo_url} alt="" className="w-full h-full object-cover" style={{ objectPosition: consultant.photo_position || "center" }} />
+                ) : (
+                  <span className="text-xl font-bold text-primary">{consultant.name.charAt(0)}</span>
+                )}
+              </div>
+              {editingProfile && (
+                <button onClick={() => fileInputRef.current?.click()}
+                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                  <Camera className="h-3 w-3" />
+                </button>
+              )}
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+            </div>
+            <div className="flex-1 min-w-0">
+              {editingProfile ? (
+                <div className="space-y-2">
+                  <input value={editName} onChange={e => setEditName(e.target.value)}
+                    className="w-full bg-background border border-border-subtle rounded-lg px-3 py-1.5 text-sm text-foreground"
+                    placeholder="Nome" />
+                  <input value={editPhone} onChange={e => setEditPhone(e.target.value)}
+                    className="w-full bg-background border border-border-subtle rounded-lg px-3 py-1.5 text-sm text-foreground"
+                    placeholder="Telefone" />
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-foreground">{consultant.name}</p>
+                  <p className="text-xs text-text-muted">{consultant.email}</p>
+                  {consultant.phone && <p className="text-xs text-text-muted">{consultant.phone}</p>}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats + Chart */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+            <div className="flex items-center justify-between mb-2">
+              <p className="label-caps">Clientes Ativos</p>
+              <TrendIcon className={`h-4 w-4 ${trendColor}`} />
+            </div>
+            <p className="text-3xl font-bold text-foreground">{clientsThisMonth}</p>
+            <p className="text-xs text-text-muted mt-1">
+              {diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : "Igual"} vs {getMonthLabel(prevMonth)}
             </p>
-            <p className="label-caps mt-1">Com Habitação</p>
+          </div>
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+            <p className="label-caps mb-3">Comparação Mensal</p>
+            <div className="h-24">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} barSize={32}>
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis hide allowDecimals={false} />
+                  <Tooltip formatter={(v: number) => [`${v} clientes`, ""]} />
+                  <Bar dataKey="clientes" radius={[6, 6, 0, 0]}>
+                    {chartData.map((_, i) => (
+                      <Cell key={i} fill={i === 1 ? "hsl(var(--primary))" : "hsl(var(--muted))"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
         {/* Clients List */}
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden">
-          <div className="p-4 border-b border-border-subtle/60 flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" />
-            <span className="label-caps">Meus Clientes ({clients.length})</span>
+          <div className="p-4 border-b border-border-subtle/60 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="label-caps">Meus Clientes ({clients.length})</span>
+            </div>
+            <button onClick={() => setShowAddClient(!showAddClient)}
+              className="text-xs text-primary flex items-center gap-1 hover:underline">
+              <UserPlus className="h-3.5 w-3.5" /> Adicionar
+            </button>
           </div>
+
+          {/* Add client form */}
+          {showAddClient && (
+            <div className="px-4 py-3 border-b border-border-subtle/40 bg-background">
+              <div className="flex gap-2">
+                <input
+                  value={newClientEmail}
+                  onChange={e => setNewClientEmail(e.target.value)}
+                  placeholder="Email do cliente"
+                  className="flex-1 bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-text-muted"
+                  onKeyDown={e => e.key === "Enter" && handleAddClient()}
+                />
+                <button onClick={handleAddClient} disabled={addingClient || !newClientEmail.trim()}
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50">
+                  {addingClient ? "..." : "Adicionar"}
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="divide-y divide-border-subtle/40">
             {clients.length === 0 ? (
               <div className="px-5 py-8 text-center text-sm text-text-muted">
@@ -195,11 +432,10 @@ const ConsultantDashboard = () => {
             ) : (
               clients.map((client) => {
                 const isExpanded = expandedClient === client.id;
-                const house = houseData.find((h) => h.user_id === client.id);
+                const house = houseData.find(h => h.user_id === client.id);
                 const paymentStats = house ? getPaymentStats(house.monthly_payment_status) : null;
                 const ratio = house && house.monthly_income > 0
-                  ? ((house.monthly_payment / house.monthly_income) * 100)
-                  : null;
+                  ? ((house.monthly_payment / house.monthly_income) * 100) : null;
 
                 return (
                   <div key={client.id}>
@@ -219,7 +455,6 @@ const ConsultantDashboard = () => {
 
                     {isExpanded && (
                       <div className="px-4 pb-4 space-y-3">
-                        {/* Plan info */}
                         <div className="grid grid-cols-2 gap-3">
                           <div className="bg-background rounded-lg p-3">
                             <p className="text-[10px] text-text-muted uppercase">Plano</p>
@@ -228,14 +463,11 @@ const ConsultantDashboard = () => {
                           <div className="bg-background rounded-lg p-3">
                             <p className="text-[10px] text-text-muted uppercase">Expira</p>
                             <p className="text-sm font-mono text-foreground">
-                              {client.plan_expires_at
-                                ? new Date(client.plan_expires_at).toLocaleDateString("pt-PT")
-                                : "—"}
+                              {client.plan_expires_at ? new Date(client.plan_expires_at).toLocaleDateString("pt-PT") : "—"}
                             </p>
                           </div>
                         </div>
 
-                        {/* House data */}
                         {house ? (
                           <>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -262,8 +494,6 @@ const ConsultantDashboard = () => {
                                 </p>
                               </div>
                             </div>
-
-                            {/* Payment status */}
                             {paymentStats && paymentStats.total > 0 && (
                               <div className="bg-background rounded-lg p-3">
                                 <p className="text-[10px] text-text-muted uppercase mb-2">Pagamentos Habitação</p>
@@ -285,6 +515,15 @@ const ConsultantDashboard = () => {
                             <p className="text-xs text-text-muted">Sem dados de habitação</p>
                           </div>
                         )}
+
+                        <div className="flex justify-end">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleRemoveClient(client.email); }}
+                            className="text-xs text-status-negative flex items-center gap-1 hover:underline"
+                          >
+                            <UserMinus className="h-3.5 w-3.5" /> Remover cliente
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
