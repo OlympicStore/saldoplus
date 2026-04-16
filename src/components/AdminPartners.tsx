@@ -1323,6 +1323,88 @@ const AdminPartners = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create Consultant Dialog */}
+      <Dialog open={showCreateConsultant} onOpenChange={(open) => { setShowCreateConsultant(open); if (!open) setConsultantPartnerId(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Consultor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <p className="text-xs text-text-muted">
+              O consultor recebe acesso completo à app + painel próprio em /consultor.
+            </p>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Nome *</label>
+              <input
+                value={newConsultant.name}
+                onChange={(e) => setNewConsultant(p => ({ ...p, name: e.target.value }))}
+                placeholder="Nome do consultor"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Email *</label>
+              <input
+                type="email"
+                value={newConsultant.email}
+                onChange={(e) => setNewConsultant(p => ({ ...p, email: e.target.value }))}
+                placeholder="consultor@email.com"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Password *</label>
+              <input
+                type="text"
+                value={newConsultant.password}
+                onChange={(e) => setNewConsultant(p => ({ ...p, password: e.target.value }))}
+                placeholder="Mínimo 6 caracteres"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Telefone</label>
+              <input
+                value={newConsultant.phone}
+                onChange={(e) => setNewConsultant(p => ({ ...p, phone: e.target.value }))}
+                placeholder="912 345 678"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <button
+              onClick={handleCreateConsultant}
+              disabled={creatingConsultant}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            >
+              {creatingConsultant ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {creatingConsultant ? "A criar..." : "Criar Consultor"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Consultant Confirmation */}
+      <AlertDialog open={!!deleteConsultantTarget} onOpenChange={(open) => !open && setDeleteConsultantTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar consultor?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A conta de <strong>{deleteConsultantTarget?.name}</strong> ({deleteConsultantTarget?.email}) será eliminada permanentemente. Os clientes atribuídos serão desassociados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConsultant}
+              disabled={deleting}
+              className="bg-status-negative text-white hover:bg-status-negative/90"
+            >
+              {deleting ? "A eliminar..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
