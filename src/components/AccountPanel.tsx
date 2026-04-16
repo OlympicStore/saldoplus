@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X, ArrowUpRight, Loader2 } from "lucide-react";
+import { CalendarClock, KeyRound, LogOut, Mail, Pencil, Shield, UserRound, Check, X, ArrowUpRight, Loader2, Briefcase, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +31,7 @@ const UPGRADE_DIFF: Record<string, Record<string, number>> = {
 const PLAN_ORDER = ["essencial", "casa", "pro"];
 
 const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
-  const { user, profile, isAdmin, signOut, refreshProfile } = useAuth();
+  const { user, profile, isAdmin, isConsultant, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -161,6 +161,25 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Consultant panel access */}
+      {isConsultant && (
+        <button
+          onClick={() => navigate("/consultor")}
+          className="w-full bg-surface rounded-xl shadow-card border border-primary/30 p-5 flex items-center justify-between hover:border-primary/60 hover:bg-primary/5 transition-colors text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <Briefcase className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-foreground">Painel do Consultor</p>
+              <p className="text-sm text-text-muted">Gerir os seus clientes, perfil profissional e estatísticas</p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-text-muted group-hover:text-primary transition-colors" />
+        </button>
+      )}
+
       {/* Partner welcome banner */}
       {profile.plan === "imobiliaria" && profile.plan_source === "partner" && (
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-5">
