@@ -6,7 +6,6 @@ import { lovable } from "@/integrations/lovable";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { fbTrackLead } from "@/lib/fbPixel";
-import saldoLogo from "@/assets/saldo-plus-logo.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -78,7 +77,7 @@ const Auth = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <img src={saldoLogo} alt="Saldo+" className="h-14 w-auto mx-auto mb-3" />
+          <h1 className="text-4xl font-bold tracking-tight"><span className="text-foreground">Saldo</span><span className="text-primary text-5xl font-black">+</span></h1>
           <p className="text-sm text-text-muted mt-1">
             {isLogin ? "Entre na sua conta" : "Crie a sua conta"}
           </p>

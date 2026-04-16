@@ -18,7 +18,6 @@ import GuidedTour from "@/components/GuidedTour";
 import MinhaCasa from "@/components/MinhaCasa";
 import ExpirationBanner from "@/components/ExpirationBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
-import saldoLogo from "@/assets/saldo-plus-logo.png";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -288,8 +287,11 @@ const Index = () => {
                 </PopoverContent>
               </Popover>
             )}
-            <div className="flex items-center gap-2">
-              <img src={saldoLogo} alt="Saldo+" className="h-9 sm:h-10 w-auto" />
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none">
+                <span className="text-foreground">Saldo</span>
+                <span className="text-primary text-3xl sm:text-4xl font-black leading-none">+</span>
+              </h1>
               {partnerBranding?.consultant_name && (
                 <p className="text-[10px] text-text-muted leading-tight mt-0.5">
                   {partnerBranding.consultant_name} · {partnerBranding.name}
