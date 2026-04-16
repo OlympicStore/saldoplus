@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Building2, Plus, Mail, Users, Send, Loader2, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone, X, Home,
+  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone, X, Home, UserCog,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -69,11 +69,24 @@ interface ClientProfile {
   partner_id: string | null;
 }
 
+interface Consultant {
+  id: string;
+  user_id: string;
+  partner_id: string;
+  name: string;
+  phone: string | null;
+  email: string;
+  photo_url: string | null;
+  active: boolean;
+  created_at: string;
+}
+
 const AdminPartners = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [clientProfiles, setClientProfiles] = useState<ClientProfile[]>([]);
   const [clientHouseData, setClientHouseData] = useState<ClientHouseData[]>([]);
+  const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreatePartner, setShowCreatePartner] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
@@ -90,6 +103,16 @@ const AdminPartners = () => {
   const [inviting, setInviting] = useState(false);
   const [expandedInvite, setExpandedInvite] = useState<string | null>(null);
 
+  // Consultant management
+  const [showCreateConsultant, setShowCreateConsultant] = useState(false);
+  const [consultantPartnerId, setConsultantPartnerId] = useState<string | null>(null);
+  const [creatingConsultant, setCreatingConsultant] = useState(false);
+  const [newConsultant, setNewConsultant] = useState({ name: "", email: "", password: "", phone: "" });
+  const [editingConsultant, setEditingConsultant] = useState<string | null>(null);
+  const [editConsultantData, setEditConsultantData] = useState({ name: "", phone: "" });
+  const [deleteConsultantTarget, setDeleteConsultantTarget] = useState<Consultant | null>(null);
+  const [uploadingConsultantPhoto, setUploadingConsultantPhoto] = useState<string | null>(null);
+
   const [newPartner, setNewPartner] = useState({ name: "", email: "", password: "", plan_limit: 25, plan_type: "starter" });
   const [inviteForm, setInviteForm] = useState({
     email: "",
@@ -104,18 +127,125 @@ const AdminPartners = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [partnersRes, invitesRes, profilesRes, houseRes] = await Promise.all([
+    const [partnersRes, invitesRes, profilesRes, houseRes, consultantsRes] = await Promise.all([
       supabase.from("partners").select("*").order("created_at", { ascending: false }),
       supabase.from("partner_invites").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("id, email, full_name, partner_id").not("partner_id", "is", null),
       supabase.from("house_data").select("user_id, house_value, monthly_payment, monthly_payment_status, down_payment"),
+      supabase.from("partner_consultants").select("*").order("created_at", { ascending: false }),
     ]);
     if (partnersRes.data) setPartners(partnersRes.data as Partner[]);
     if (invitesRes.data) setInvites(invitesRes.data as Invite[]);
     if (profilesRes.data) setClientProfiles(profilesRes.data as ClientProfile[]);
     if (houseRes.data) setClientHouseData(houseRes.data as ClientHouseData[]);
+    if (consultantsRes.data) setConsultants(consultantsRes.data as Consultant[]);
     setLoading(false);
   };
+
+  // ============ CONSULTANT MANAGEMENT ============
+  const handleCreateConsultant = async () => {
+    if (!consultantPartnerId) return;
+    if (!newConsultant.name.trim() || !newConsultant.email.trim() || !newConsultant.password.trim()) {
+      toast.error("Nome, email e password são obrigatórios");
+      return;
+    }
+    if (newConsultant.password.length < 6) {
+      toast.error("Password deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setCreatingConsultant(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("partner-create-consultant", {
+        body: {
+          partner_id: consultantPartnerId,
+          name: newConsultant.name.trim(),
+          email: newConsultant.email.trim().toLowerCase(),
+          password: newConsultant.password,
+          phone: newConsultant.phone.trim() || null,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Consultor ${newConsultant.name} criado`);
+      setShowCreateConsultant(false);
+      setNewConsultant({ name: "", email: "", password: "", phone: "" });
+      setConsultantPartnerId(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar consultor");
+    } finally {
+      setCreatingConsultant(false);
+    }
+  };
+
+  const toggleConsultantActive = async (c: Consultant) => {
+    const { error } = await supabase
+      .from("partner_consultants")
+      .update({ active: !c.active })
+      .eq("id", c.id);
+    if (error) {
+      toast.error("Erro ao atualizar consultor");
+    } else {
+      setConsultants(prev => prev.map(x => x.id === c.id ? { ...x, active: !x.active } : x));
+      toast.success(`Consultor ${!c.active ? "ativado" : "desativado"}`);
+    }
+  };
+
+  const handleSaveConsultantEdit = async (id: string) => {
+    const { error } = await supabase
+      .from("partner_consultants")
+      .update({ name: editConsultantData.name.trim(), phone: editConsultantData.phone.trim() || null })
+      .eq("id", id);
+    if (error) {
+      toast.error("Erro ao guardar");
+    } else {
+      setConsultants(prev => prev.map(x => x.id === id ? { ...x, name: editConsultantData.name.trim(), phone: editConsultantData.phone.trim() || null } : x));
+      setEditingConsultant(null);
+      toast.success("Consultor atualizado");
+    }
+  };
+
+  const handleConsultantPhotoUpload = async (consultantId: string, file: File) => {
+    setUploadingConsultantPhoto(consultantId);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `consultants/${consultantId}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("partner-logos").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from("partner-logos").getPublicUrl(path);
+      const photoUrl = publicUrl + "?t=" + Date.now();
+      const { error } = await supabase.from("partner_consultants").update({ photo_url: photoUrl }).eq("id", consultantId);
+      if (error) throw error;
+      setConsultants(prev => prev.map(x => x.id === consultantId ? { ...x, photo_url: photoUrl } : x));
+      toast.success("Foto atualizada");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar foto");
+    } finally {
+      setUploadingConsultantPhoto(null);
+    }
+  };
+
+  const handleDeleteConsultant = async () => {
+    if (!deleteConsultantTarget) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-delete-consultant", {
+        body: { consultant_id: deleteConsultantTarget.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Consultor ${deleteConsultantTarget.name} removido`);
+      setDeleteConsultantTarget(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao remover consultor");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const getPartnerConsultants = (partnerId: string) => consultants.filter(c => c.partner_id === partnerId);
+
 
   const handleCreatePartner = async () => {
     if (!newPartner.name || !newPartner.email) {
@@ -664,6 +794,143 @@ const AdminPartners = () => {
                           </div>
                         </div>
 
+                        {/* Consultants management */}
+                        {(() => {
+                          const pConsultants = getPartnerConsultants(partner.id);
+                          return (
+                            <div className="rounded-lg border border-border-subtle/60 overflow-hidden">
+                              <div className="px-3 py-2 bg-surface border-b border-border-subtle/40 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <UserCog className="h-3.5 w-3.5 text-primary" />
+                                  <span className="text-xs font-semibold text-text-muted uppercase">Consultores ({pConsultants.length})</span>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setConsultantPartnerId(partner.id);
+                                    setShowCreateConsultant(true);
+                                  }}
+                                  className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary text-primary-foreground text-[11px] font-medium hover:opacity-90 transition-opacity"
+                                >
+                                  <Plus className="h-3 w-3" /> Novo
+                                </button>
+                              </div>
+                              {pConsultants.length === 0 ? (
+                                <div className="px-3 py-4 text-center text-xs text-text-muted">Sem consultores.</div>
+                              ) : (
+                                <div className="divide-y divide-border-subtle/20">
+                                  {pConsultants.map((c) => {
+                                    const isEditing = editingConsultant === c.id;
+                                    return (
+                                      <div key={c.id} className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                                        <div className="flex items-center gap-3">
+                                          <div className="relative shrink-0">
+                                            {c.photo_url ? (
+                                              <img src={c.photo_url} alt={c.name} className="h-10 w-10 rounded-full object-cover border border-border-subtle" />
+                                            ) : (
+                                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                                                {c.name.charAt(0).toUpperCase()}
+                                              </div>
+                                            )}
+                                            <label className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:opacity-90">
+                                              {uploadingConsultantPhoto === c.id ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Upload className="h-2.5 w-2.5" />}
+                                              <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (file) handleConsultantPhotoUpload(c.id, file);
+                                                  e.target.value = "";
+                                                }}
+                                              />
+                                            </label>
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            {isEditing ? (
+                                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <input
+                                                  value={editConsultantData.name}
+                                                  onChange={(e) => setEditConsultantData(d => ({ ...d, name: e.target.value }))}
+                                                  placeholder="Nome"
+                                                  className="px-2 py-1 text-xs bg-background border border-border-subtle rounded-md"
+                                                />
+                                                <input
+                                                  value={editConsultantData.phone}
+                                                  onChange={(e) => setEditConsultantData(d => ({ ...d, phone: e.target.value }))}
+                                                  placeholder="Telefone"
+                                                  className="px-2 py-1 text-xs bg-background border border-border-subtle rounded-md"
+                                                />
+                                              </div>
+                                            ) : (
+                                              <>
+                                                <div className="flex items-center gap-2">
+                                                  <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
+                                                  {!c.active && (
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-status-negative/10 text-status-negative">Inativo</span>
+                                                  )}
+                                                </div>
+                                                <p className="text-[11px] text-text-muted truncate">{c.email}{c.phone ? ` · ${c.phone}` : ""}</p>
+                                              </>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center gap-1 shrink-0">
+                                            {isEditing ? (
+                                              <>
+                                                <button
+                                                  onClick={() => handleSaveConsultantEdit(c.id)}
+                                                  className="p-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90"
+                                                  title="Guardar"
+                                                >
+                                                  <Check className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                  onClick={() => setEditingConsultant(null)}
+                                                  className="p-1.5 rounded-md border border-border-subtle text-text-muted hover:bg-surface-hover"
+                                                  title="Cancelar"
+                                                >
+                                                  <X className="h-3 w-3" />
+                                                </button>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <button
+                                                  onClick={() => {
+                                                    setEditingConsultant(c.id);
+                                                    setEditConsultantData({ name: c.name, phone: c.phone || "" });
+                                                  }}
+                                                  className="p-1.5 rounded-md border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover"
+                                                  title="Editar"
+                                                >
+                                                  <Pencil className="h-3 w-3" />
+                                                </button>
+                                                <button
+                                                  onClick={() => toggleConsultantActive(c)}
+                                                  className="p-1.5 rounded-md border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover"
+                                                  title={c.active ? "Desativar" : "Ativar"}
+                                                >
+                                                  {c.active ? <ToggleRight className="h-3 w-3" /> : <ToggleLeft className="h-3 w-3" />}
+                                                </button>
+                                                <button
+                                                  onClick={() => setDeleteConsultantTarget(c)}
+                                                  className="p-1.5 rounded-md border border-status-negative/30 text-status-negative hover:bg-status-negative/10"
+                                                  title="Eliminar"
+                                                >
+                                                  <Trash2 className="h-3 w-3" />
+                                                </button>
+                                              </>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+
                         {/* Invites list with per-invite consultant */}
                         {pInvites.length > 0 && (
                           <div className="rounded-lg border border-border-subtle/60 overflow-hidden">
@@ -1052,6 +1319,88 @@ const AdminPartners = () => {
               className="bg-status-negative text-white hover:bg-status-negative/90"
             >
               {deleting ? "A remover..." : "Remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create Consultant Dialog */}
+      <Dialog open={showCreateConsultant} onOpenChange={(open) => { setShowCreateConsultant(open); if (!open) setConsultantPartnerId(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Consultor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <p className="text-xs text-text-muted">
+              O consultor recebe acesso completo à app + painel próprio em /consultor.
+            </p>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Nome *</label>
+              <input
+                value={newConsultant.name}
+                onChange={(e) => setNewConsultant(p => ({ ...p, name: e.target.value }))}
+                placeholder="Nome do consultor"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Email *</label>
+              <input
+                type="email"
+                value={newConsultant.email}
+                onChange={(e) => setNewConsultant(p => ({ ...p, email: e.target.value }))}
+                placeholder="consultor@email.com"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Password *</label>
+              <input
+                type="text"
+                value={newConsultant.password}
+                onChange={(e) => setNewConsultant(p => ({ ...p, password: e.target.value }))}
+                placeholder="Mínimo 6 caracteres"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Telefone</label>
+              <input
+                value={newConsultant.phone}
+                onChange={(e) => setNewConsultant(p => ({ ...p, phone: e.target.value }))}
+                placeholder="912 345 678"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <button
+              onClick={handleCreateConsultant}
+              disabled={creatingConsultant}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            >
+              {creatingConsultant ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {creatingConsultant ? "A criar..." : "Criar Consultor"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Consultant Confirmation */}
+      <AlertDialog open={!!deleteConsultantTarget} onOpenChange={(open) => !open && setDeleteConsultantTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar consultor?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A conta de <strong>{deleteConsultantTarget?.name}</strong> ({deleteConsultantTarget?.email}) será eliminada permanentemente. Os clientes atribuídos serão desassociados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConsultant}
+              disabled={deleting}
+              className="bg-status-negative text-white hover:bg-status-negative/90"
+            >
+              {deleting ? "A eliminar..." : "Eliminar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
