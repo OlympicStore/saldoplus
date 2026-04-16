@@ -33,11 +33,8 @@ const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: R
       <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
     </div>
   );
-  // Auto-redirect consultants to their dashboard
-  if (isConsultant && allowPartnerRedirect && !isAdmin && !isPartner) {
-    return <Navigate to="/consultor" replace />;
-  }
   // Auto-redirect partners to their dashboard (unless already on /parceiro)
+  // Consultants now access the app normally and reach their panel via the Account section.
   if (isPartner && allowPartnerRedirect && !isAdmin) {
     return <Navigate to="/parceiro" replace />;
   }
