@@ -181,9 +181,8 @@ const Pricing = () => {
       {/* Header */}
       <header className="border-b border-border-subtle/60 bg-surface/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button onClick={() => navigate("/")} className="flex items-center gap-0.5">
-            <span className="text-xl font-bold tracking-tight text-foreground">Saldo</span>
-            <span className="text-2xl font-black text-primary leading-none">+</span>
+          <button onClick={() => navigate("/")} className="flex items-center">
+            <img src={saldoLogo} alt="Saldo+" className="h-10 w-auto" />
           </button>
           <div className="flex items-center gap-3">
             <a href="#funcionalidades" className="text-sm text-text-muted hover:text-foreground transition-colors hidden sm:inline">Funcionalidades</a>
