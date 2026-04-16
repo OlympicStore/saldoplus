@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Building2, Plus, Mail, Users, Send, Loader2, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone, X, Home,
+  ChevronDown, ChevronUp, BarChart3, Trash2, Pencil, Check, Upload, Palette, User, Phone, X, Home, UserCog,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -69,11 +69,24 @@ interface ClientProfile {
   partner_id: string | null;
 }
 
+interface Consultant {
+  id: string;
+  user_id: string;
+  partner_id: string;
+  name: string;
+  phone: string | null;
+  email: string;
+  photo_url: string | null;
+  active: boolean;
+  created_at: string;
+}
+
 const AdminPartners = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [clientProfiles, setClientProfiles] = useState<ClientProfile[]>([]);
   const [clientHouseData, setClientHouseData] = useState<ClientHouseData[]>([]);
+  const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreatePartner, setShowCreatePartner] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
@@ -89,6 +102,16 @@ const AdminPartners = () => {
   const [uploadingInvitePhoto, setUploadingInvitePhoto] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
   const [expandedInvite, setExpandedInvite] = useState<string | null>(null);
+
+  // Consultant management
+  const [showCreateConsultant, setShowCreateConsultant] = useState(false);
+  const [consultantPartnerId, setConsultantPartnerId] = useState<string | null>(null);
+  const [creatingConsultant, setCreatingConsultant] = useState(false);
+  const [newConsultant, setNewConsultant] = useState({ name: "", email: "", password: "", phone: "" });
+  const [editingConsultant, setEditingConsultant] = useState<string | null>(null);
+  const [editConsultantData, setEditConsultantData] = useState({ name: "", phone: "" });
+  const [deleteConsultantTarget, setDeleteConsultantTarget] = useState<Consultant | null>(null);
+  const [uploadingConsultantPhoto, setUploadingConsultantPhoto] = useState<string | null>(null);
 
   const [newPartner, setNewPartner] = useState({ name: "", email: "", password: "", plan_limit: 25, plan_type: "starter" });
   const [inviteForm, setInviteForm] = useState({
