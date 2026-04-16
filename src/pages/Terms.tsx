@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import saldoLogo from "@/assets/saldo-plus-logo.png";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const Terms = () => {
           <button onClick={() => navigate(-1)} className="text-text-muted hover:text-foreground transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <span className="text-lg font-bold text-foreground">Saldo<span className="text-primary">+</span></span>
+          <img src={saldoLogo} alt="Saldo+" className="h-9 w-auto" />
         </div>
       </header>
 
