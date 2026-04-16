@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import saldoLogo from "@/assets/saldo-plus-logo.png";
 
 const Terms = () => {
   const navigate = useNavigate();

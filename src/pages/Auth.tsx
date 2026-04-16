@@ -6,7 +6,6 @@ import { lovable } from "@/integrations/lovable";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { fbTrackLead } from "@/lib/fbPixel";
-import saldoLogo from "@/assets/saldo-plus-logo.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);

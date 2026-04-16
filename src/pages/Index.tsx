@@ -18,7 +18,6 @@ import GuidedTour from "@/components/GuidedTour";
 import MinhaCasa from "@/components/MinhaCasa";
 import ExpirationBanner from "@/components/ExpirationBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
-import saldoLogo from "@/assets/saldo-plus-logo.png";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
