@@ -127,18 +127,125 @@ const AdminPartners = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [partnersRes, invitesRes, profilesRes, houseRes] = await Promise.all([
+    const [partnersRes, invitesRes, profilesRes, houseRes, consultantsRes] = await Promise.all([
       supabase.from("partners").select("*").order("created_at", { ascending: false }),
       supabase.from("partner_invites").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("id, email, full_name, partner_id").not("partner_id", "is", null),
       supabase.from("house_data").select("user_id, house_value, monthly_payment, monthly_payment_status, down_payment"),
+      supabase.from("partner_consultants").select("*").order("created_at", { ascending: false }),
     ]);
     if (partnersRes.data) setPartners(partnersRes.data as Partner[]);
     if (invitesRes.data) setInvites(invitesRes.data as Invite[]);
     if (profilesRes.data) setClientProfiles(profilesRes.data as ClientProfile[]);
     if (houseRes.data) setClientHouseData(houseRes.data as ClientHouseData[]);
+    if (consultantsRes.data) setConsultants(consultantsRes.data as Consultant[]);
     setLoading(false);
   };
+
+  // ============ CONSULTANT MANAGEMENT ============
+  const handleCreateConsultant = async () => {
+    if (!consultantPartnerId) return;
+    if (!newConsultant.name.trim() || !newConsultant.email.trim() || !newConsultant.password.trim()) {
+      toast.error("Nome, email e password são obrigatórios");
+      return;
+    }
+    if (newConsultant.password.length < 6) {
+      toast.error("Password deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setCreatingConsultant(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("partner-create-consultant", {
+        body: {
+          partner_id: consultantPartnerId,
+          name: newConsultant.name.trim(),
+          email: newConsultant.email.trim().toLowerCase(),
+          password: newConsultant.password,
+          phone: newConsultant.phone.trim() || null,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Consultor ${newConsultant.name} criado`);
+      setShowCreateConsultant(false);
+      setNewConsultant({ name: "", email: "", password: "", phone: "" });
+      setConsultantPartnerId(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar consultor");
+    } finally {
+      setCreatingConsultant(false);
+    }
+  };
+
+  const toggleConsultantActive = async (c: Consultant) => {
+    const { error } = await supabase
+      .from("partner_consultants")
+      .update({ active: !c.active })
+      .eq("id", c.id);
+    if (error) {
+      toast.error("Erro ao atualizar consultor");
+    } else {
+      setConsultants(prev => prev.map(x => x.id === c.id ? { ...x, active: !x.active } : x));
+      toast.success(`Consultor ${!c.active ? "ativado" : "desativado"}`);
+    }
+  };
+
+  const handleSaveConsultantEdit = async (id: string) => {
+    const { error } = await supabase
+      .from("partner_consultants")
+      .update({ name: editConsultantData.name.trim(), phone: editConsultantData.phone.trim() || null })
+      .eq("id", id);
+    if (error) {
+      toast.error("Erro ao guardar");
+    } else {
+      setConsultants(prev => prev.map(x => x.id === id ? { ...x, name: editConsultantData.name.trim(), phone: editConsultantData.phone.trim() || null } : x));
+      setEditingConsultant(null);
+      toast.success("Consultor atualizado");
+    }
+  };
+
+  const handleConsultantPhotoUpload = async (consultantId: string, file: File) => {
+    setUploadingConsultantPhoto(consultantId);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `consultants/${consultantId}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("partner-logos").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from("partner-logos").getPublicUrl(path);
+      const photoUrl = publicUrl + "?t=" + Date.now();
+      const { error } = await supabase.from("partner_consultants").update({ photo_url: photoUrl }).eq("id", consultantId);
+      if (error) throw error;
+      setConsultants(prev => prev.map(x => x.id === consultantId ? { ...x, photo_url: photoUrl } : x));
+      toast.success("Foto atualizada");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao carregar foto");
+    } finally {
+      setUploadingConsultantPhoto(null);
+    }
+  };
+
+  const handleDeleteConsultant = async () => {
+    if (!deleteConsultantTarget) return;
+    setDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-delete-consultant", {
+        body: { consultant_id: deleteConsultantTarget.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Consultor ${deleteConsultantTarget.name} removido`);
+      setDeleteConsultantTarget(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao remover consultor");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const getPartnerConsultants = (partnerId: string) => consultants.filter(c => c.partner_id === partnerId);
+
 
   const handleCreatePartner = async () => {
     if (!newPartner.name || !newPartner.email) {
