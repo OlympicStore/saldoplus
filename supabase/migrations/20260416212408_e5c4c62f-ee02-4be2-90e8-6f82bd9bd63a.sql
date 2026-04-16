@@ -1,0 +1,1 @@
+UPDATE public.profiles SET plan = 'imobiliaria' WHERE id IN (SELECT user_id FROM public.partner_consultants);
