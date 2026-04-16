@@ -12,7 +12,7 @@ const Privacy = () => {
           <button onClick={() => navigate(-1)} className="text-text-muted hover:text-foreground transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <img src={saldoLogo} alt="Saldo+" className="h-9 w-auto" />
+          <span className="text-2xl font-bold text-foreground">Saldo<span className="text-primary text-3xl font-black">+</span></span>
         </div>
       </header>
 
