@@ -287,11 +287,8 @@ const Index = () => {
                 </PopoverContent>
               </Popover>
             )}
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-none">
-                <span className="text-foreground">Saldo</span>
-                <span className="text-primary text-2xl sm:text-3xl font-black leading-none">+</span>
-              </h1>
+            <div className="flex items-center gap-2">
+              <img src={saldoLogo} alt="Saldo+" className="h-9 sm:h-10 w-auto" />
               {partnerBranding?.consultant_name && (
                 <p className="text-[10px] text-text-muted leading-tight mt-0.5">
                   {partnerBranding.consultant_name} · {partnerBranding.name}
