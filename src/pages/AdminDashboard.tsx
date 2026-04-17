@@ -7,7 +7,7 @@ import AdminPartners from "@/components/AdminPartners";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search, Check,
   ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
-  MessageSquarePlus, ShoppingCart,
+  MessageSquarePlus, ShoppingCart, Briefcase,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
