@@ -724,10 +724,51 @@ const PartnerDashboard = () => {
       <Dialog open={showCreateConsultant} onOpenChange={setShowCreateConsultant}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Criar Consultor</DialogTitle>
+            <DialogTitle>Adicionar Consultor</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-2">
-            {/* Photo */}
+
+          <div className="flex gap-1 p-1 bg-secondary rounded-lg mt-2">
+            <button
+              onClick={() => setConsultantMode("new")}
+              className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${consultantMode === "new" ? "bg-background text-foreground shadow-sm" : "text-text-muted hover:text-foreground"}`}
+            >
+              Criar novo
+            </button>
+            <button
+              onClick={() => setConsultantMode("existing")}
+              className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${consultantMode === "existing" ? "bg-background text-foreground shadow-sm" : "text-text-muted hover:text-foreground"}`}
+            >
+              Adicionar existente
+            </button>
+          </div>
+
+          {consultantMode === "existing" ? (
+            <div className="space-y-4 mt-2">
+              <p className="text-xs text-text-muted">
+                Se o utilizador já existe na plataforma, basta indicar o email para o promover a consultor desta imobiliária.
+              </p>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">Email do utilizador *</label>
+                <input type="email" value={existingForm.email}
+                  onChange={(e) => setExistingForm((p) => ({ ...p, email: e.target.value }))}
+                  placeholder="utilizador@email.com"
+                  className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">Telefone (opcional)</label>
+                <input value={existingForm.phone}
+                  onChange={(e) => setExistingForm((p) => ({ ...p, phone: e.target.value }))}
+                  placeholder="+351 912 345 678"
+                  className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+              <button onClick={handlePromoteExisting} disabled={creatingConsultant}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+                {creatingConsultant ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                {creatingConsultant ? "A promover..." : "Promover a Consultor"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4 mt-2">
             <div className="flex items-center gap-3">
               {consultantForm.photo_url ? (
                 <img src={consultantForm.photo_url} alt="Consultor" className="h-14 w-14 rounded-full object-cover border border-border-subtle" />
@@ -794,7 +835,8 @@ const PartnerDashboard = () => {
               {creatingConsultant ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               {creatingConsultant ? "A criar..." : "Criar Consultor"}
             </button>
-          </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
