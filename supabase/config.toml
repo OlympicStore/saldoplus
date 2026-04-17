@@ -1,1 +1,4 @@
 project_id = "tnaimnbayzrmsyewudtv"
+
+[functions.admin-promote-consultant]
+verify_jwt = false
