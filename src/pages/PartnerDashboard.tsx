@@ -229,6 +229,38 @@ const PartnerDashboard = () => {
     }
   };
 
+  const handlePromoteExisting = async () => {
+    if (!existingForm.email) {
+      toast.error("Email é obrigatório");
+      return;
+    }
+    setCreatingConsultant(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-promote-consultant", {
+        body: {
+          email: existingForm.email,
+          phone: existingForm.phone || null,
+          partner_id: partnerId,
+        },
+      });
+      if (error) {
+        const ctx: any = (error as any).context;
+        let detail = error.message;
+        try { const body = await ctx?.json?.(); if (body?.error) detail = body.error; } catch {}
+        throw new Error(detail);
+      }
+      if (data?.error) throw new Error(data.error);
+      toast.success("Utilizador promovido a consultor");
+      setShowCreateConsultant(false);
+      setExistingForm({ email: "", phone: "" });
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao promover utilizador");
+    } finally {
+      setCreatingConsultant(false);
+    }
+  };
+
   const handleInviteUser = async () => {
     if (!inviteForm.email || !partnerId) {
       toast.error("Email é obrigatório");
