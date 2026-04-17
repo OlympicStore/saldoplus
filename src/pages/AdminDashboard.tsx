@@ -66,6 +66,10 @@ const AdminDashboard = () => {
   const [recentPurchases, setRecentPurchases] = useState<UserProfile[]>([]);
   const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({ essencial: "", casa: "", pro: "" });
   const [savingLinks, setSavingLinks] = useState(false);
+  const [partnersList, setPartnersList] = useState<{ id: string; name: string }[]>([]);
+  const [promoteUser, setPromoteUser] = useState<UserProfile | null>(null);
+  const [promoteForm, setPromoteForm] = useState({ partner_id: "", phone: "" });
+  const [promoting, setPromoting] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
