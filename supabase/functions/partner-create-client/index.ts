@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log(`[partner-create-client] ${req.method} request received`);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
