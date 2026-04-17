@@ -41,19 +41,46 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
   const [savingName, setSavingName] = useState(false);
   const [upgradingTo, setUpgradingTo] = useState<string | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
+  const [consultant, setConsultant] = useState<{ name: string; email: string; phone: string | null; photo_url: string | null } | null>(null);
 
   useEffect(() => {
     if (profile?.partner_id) {
       supabase
         .from("partners")
-        .select("name")
+        .select("name, brand_logo_url")
         .eq("id", profile.partner_id)
         .maybeSingle()
         .then(({ data }) => {
-          if (data) setPartnerName(data.name);
+          if (data) {
+            setPartnerName(data.name);
+            setPartnerLogo(data.brand_logo_url);
+          }
         });
     }
   }, [profile?.partner_id]);
+
+  useEffect(() => {
+    if (!profile?.email || !profile?.partner_id) return;
+    (async () => {
+      const { data: invite } = await supabase
+        .from("partner_invites")
+        .select("consultant_id")
+        .eq("email", profile.email)
+        .eq("partner_id", profile.partner_id)
+        .not("consultant_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!invite?.consultant_id) { setConsultant(null); return; }
+      const { data: c } = await supabase
+        .from("partner_consultants")
+        .select("name, email, phone, photo_url")
+        .eq("id", invite.consultant_id)
+        .maybeSingle();
+      if (c) setConsultant(c);
+    })();
+  }, [profile?.email, profile?.partner_id]);
 
   if (!user || !profile) return null;
 
