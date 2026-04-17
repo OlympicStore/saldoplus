@@ -229,6 +229,8 @@ const AdminDashboard = () => {
       setPromoting(false);
     }
   };
+
+  const savePaymentLinks = async () => {
     setSavingLinks(true);
     try {
       for (const plan of PLAN_ORDER) {
