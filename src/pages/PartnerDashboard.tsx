@@ -275,6 +275,20 @@ const PartnerDashboard = () => {
     }
   };
 
+  const handleDeleteInvite = async (inv: Invite) => {
+    const msg = inv.status === "accepted"
+      ? `Eliminar o convite de ${inv.email}? O cliente já criou conta — o convite será removido mas a conta dele mantém-se.`
+      : `Eliminar o convite pendente de ${inv.email}?`;
+    if (!confirm(msg)) return;
+    const { error } = await supabase.from("partner_invites").delete().eq("id", inv.id);
+    if (error) {
+      toast.error("Erro ao eliminar convite");
+    } else {
+      toast.success("Convite eliminado");
+      loadData();
+    }
+  };
+
   const partnerInvites = invites.filter((i) => i.partner_id === partnerId);
   const acceptedCount = partnerInvites.filter((i) => i.status === "accepted").length;
 
