@@ -666,6 +666,50 @@ const AdminDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Promote to consultant Dialog */}
+      <Dialog open={!!promoteUser} onOpenChange={(o) => !o && setPromoteUser(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Promover a Consultor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="p-3 rounded-lg bg-secondary/50 text-sm">
+              <p className="font-semibold text-foreground">{promoteUser?.full_name || "—"}</p>
+              <p className="text-xs text-text-muted">{promoteUser?.email}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Imobiliária *</label>
+              <select
+                value={promoteForm.partner_id}
+                onChange={(e) => setPromoteForm((p) => ({ ...p, partner_id: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">— Selecione —</option>
+                {partnersList.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Telefone (opcional)</label>
+              <input
+                value={promoteForm.phone}
+                onChange={(e) => setPromoteForm((p) => ({ ...p, phone: e.target.value }))}
+                placeholder="+351 912 345 678"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <p className="text-xs text-text-muted">
+              O utilizador passa a ter plano Pro, role de consultor e fica associado à imobiliária. A password atual é mantida.
+            </p>
+            <button onClick={promoteToConsultant} disabled={promoting}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
+              {promoting ? "A promover..." : "Promover"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
