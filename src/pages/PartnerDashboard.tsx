@@ -293,6 +293,36 @@ const PartnerDashboard = () => {
     }
   };
 
+  const handleAssignConsultantToClient = async (client: ClientProfile, consultantId: string) => {
+    if (!partnerId) return;
+    const newConsultantId = consultantId || null;
+    const existing = invites.find((i) => i.email === client.email && i.partner_id === partnerId);
+    try {
+      if (existing) {
+        const { error } = await supabase
+          .from("partner_invites")
+          .update({ consultant_id: newConsultantId } as any)
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        // No invite exists (client created directly) — create an accepted invite to track consultant
+        const { error } = await supabase
+          .from("partner_invites")
+          .insert({
+            email: client.email,
+            partner_id: partnerId,
+            status: "accepted",
+            consultant_id: newConsultantId,
+          } as any);
+        if (error) throw error;
+      }
+      toast.success(newConsultantId ? "Consultor atribuído" : "Consultor removido");
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao atribuir consultor");
+    }
+  };
+
   const handleDeleteInvite = async (inv: Invite) => {
     const msg = inv.status === "accepted"
       ? `Eliminar o convite de ${inv.email}? O cliente já criou conta — o convite será removido mas a conta dele mantém-se.`
@@ -457,7 +487,7 @@ const PartnerDashboard = () => {
               clientProfiles.map((client) => {
                 const house = clientHouseData.find((h) => h.user_id === client.id);
                 const invite = invites.find((i) => i.email === client.email);
-                const consultantName = invite ? getConsultantName(invite) : null;
+                const currentConsultantId = invite?.consultant_id || "";
                 return (
                   <div key={client.id} className="p-4 hover:bg-surface-hover transition-colors">
                     <div className="flex items-center justify-between gap-3 mb-2">
@@ -466,9 +496,17 @@ const PartnerDashboard = () => {
                         <p className="text-xs text-text-muted truncate">{client.email}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        {consultantName && (
-                          <span className="text-xs text-text-muted">· {consultantName}</span>
-                        )}
+                        <select
+                          value={currentConsultantId}
+                          onChange={(e) => handleAssignConsultantToClient(client, e.target.value)}
+                          className="text-xs px-2 py-1 bg-background border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary max-w-[160px]"
+                          title="Atribuir consultor"
+                        >
+                          <option value="">— Sem consultor —</option>
+                          {consultants.filter(c => c.active || c.id === currentConsultantId).map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
                         <button
                           onClick={() => handleRemoveClient(client)}
                           className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
