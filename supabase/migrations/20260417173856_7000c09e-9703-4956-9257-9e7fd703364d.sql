@@ -1,0 +1,1 @@
+UPDATE public.profiles SET partner_id='a54beb24-c4b2-457d-9e15-d4d3fa1cb7e0', plan='imobiliaria', plan_source='partner', full_name='KW UNION Coimbra', plan_started_at=now(), plan_expires_at=now()+interval '100 years' WHERE id='87635498-acca-4ce2-8520-4f89a862e239';
