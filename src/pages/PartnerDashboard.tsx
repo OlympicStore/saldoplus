@@ -487,7 +487,7 @@ const PartnerDashboard = () => {
               clientProfiles.map((client) => {
                 const house = clientHouseData.find((h) => h.user_id === client.id);
                 const invite = invites.find((i) => i.email === client.email);
-                const consultantName = invite ? getConsultantName(invite) : null;
+                const currentConsultantId = invite?.consultant_id || "";
                 return (
                   <div key={client.id} className="p-4 hover:bg-surface-hover transition-colors">
                     <div className="flex items-center justify-between gap-3 mb-2">
@@ -496,9 +496,17 @@ const PartnerDashboard = () => {
                         <p className="text-xs text-text-muted truncate">{client.email}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        {consultantName && (
-                          <span className="text-xs text-text-muted">· {consultantName}</span>
-                        )}
+                        <select
+                          value={currentConsultantId}
+                          onChange={(e) => handleAssignConsultantToClient(client, e.target.value)}
+                          className="text-xs px-2 py-1 bg-background border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary max-w-[160px]"
+                          title="Atribuir consultor"
+                        >
+                          <option value="">— Sem consultor —</option>
+                          {consultants.filter(c => c.active || c.id === currentConsultantId).map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
                         <button
                           onClick={() => handleRemoveClient(client)}
                           className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
