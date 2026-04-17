@@ -130,6 +130,8 @@ const PartnerDashboard = () => {
     }
   };
 
+  const [consultantMode, setConsultantMode] = useState<"new" | "existing">("new");
+  const [existingForm, setExistingForm] = useState({ email: "", phone: "" });
   const [consultantForm, setConsultantForm] = useState({
     name: "",
     email: "",
