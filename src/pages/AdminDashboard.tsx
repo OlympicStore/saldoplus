@@ -7,7 +7,7 @@ import AdminPartners from "@/components/AdminPartners";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search, Check,
   ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
-  MessageSquarePlus, ShoppingCart,
+  MessageSquarePlus, ShoppingCart, Briefcase,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -66,6 +66,10 @@ const AdminDashboard = () => {
   const [recentPurchases, setRecentPurchases] = useState<UserProfile[]>([]);
   const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({ essencial: "", casa: "", pro: "" });
   const [savingLinks, setSavingLinks] = useState(false);
+  const [partnersList, setPartnersList] = useState<{ id: string; name: string }[]>([]);
+  const [promoteUser, setPromoteUser] = useState<UserProfile | null>(null);
+  const [promoteForm, setPromoteForm] = useState({ partner_id: "", phone: "" });
+  const [promoting, setPromoting] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -77,12 +81,14 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [statsRes, usersRes, linksRes, suggestionsRes] = await Promise.all([
+    const [statsRes, usersRes, linksRes, suggestionsRes, partnersRes] = await Promise.all([
       supabase.rpc("get_admin_stats"),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("site_settings").select("key, value").like("key", "payment_link_%"),
       supabase.from("suggestions").select("*").order("created_at", { ascending: false }).limit(20),
+      supabase.from("partners").select("id, name").order("name"),
     ]);
+    if (partnersRes.data) setPartnersList(partnersRes.data as any);
     if (statsRes.data) setStats(statsRes.data as unknown as Stats);
     if (usersRes.data) {
       setUsers(usersRes.data as UserProfile[]);
@@ -189,6 +195,38 @@ const AdminDashboard = () => {
       toast.error(err.message || "Erro ao remover utilizador");
     } finally {
       setUpdatingUser(null);
+    }
+  };
+
+  const promoteToConsultant = async () => {
+    if (!promoteUser || !promoteForm.partner_id) {
+      toast.error("Selecione uma imobiliária");
+      return;
+    }
+    setPromoting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-promote-consultant", {
+        body: {
+          user_id: promoteUser.id,
+          partner_id: promoteForm.partner_id,
+          phone: promoteForm.phone || null,
+        },
+      });
+      if (error) {
+        const ctx: any = (error as any).context;
+        let detail = error.message;
+        try { const body = await ctx?.json?.(); if (body?.error) detail = body.error; } catch {}
+        throw new Error(detail);
+      }
+      if (data?.error) throw new Error(data.error);
+      toast.success(`${promoteUser.email} promovido a consultor`);
+      setPromoteUser(null);
+      setPromoteForm({ partner_id: "", phone: "" });
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao promover utilizador");
+    } finally {
+      setPromoting(false);
     }
   };
 
@@ -506,6 +544,14 @@ const AdminDashboard = () => {
                         </button>
                         <button
                           disabled={updatingUser === u.id}
+                          onClick={() => { setPromoteUser(u); setPromoteForm({ partner_id: "", phone: "" }); }}
+                          className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-30"
+                          title="Promover a consultor"
+                        >
+                          <Briefcase className="h-4 w-4" />
+                        </button>
+                        <button
+                          disabled={updatingUser === u.id}
                           onClick={() => deleteUser(u.id, u.email)}
                           className="p-1.5 rounded-lg text-text-muted hover:text-status-negative hover:bg-[hsl(var(--status-negative)/0.1)] transition-colors disabled:opacity-30"
                           title="Remover utilizador"
@@ -616,6 +662,50 @@ const AdminDashboard = () => {
             <button onClick={createUser} disabled={creating}
               className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
               {creating ? "A criar..." : "Criar Utilizador"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Promote to consultant Dialog */}
+      <Dialog open={!!promoteUser} onOpenChange={(o) => !o && setPromoteUser(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Promover a Consultor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="p-3 rounded-lg bg-secondary/50 text-sm">
+              <p className="font-semibold text-foreground">{promoteUser?.full_name || "—"}</p>
+              <p className="text-xs text-text-muted">{promoteUser?.email}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Imobiliária *</label>
+              <select
+                value={promoteForm.partner_id}
+                onChange={(e) => setPromoteForm((p) => ({ ...p, partner_id: e.target.value }))}
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">— Selecione —</option>
+                {partnersList.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Telefone (opcional)</label>
+              <input
+                value={promoteForm.phone}
+                onChange={(e) => setPromoteForm((p) => ({ ...p, phone: e.target.value }))}
+                placeholder="+351 912 345 678"
+                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+            <p className="text-xs text-text-muted">
+              O utilizador passa a ter plano Pro, role de consultor e fica associado à imobiliária. A password atual é mantida.
+            </p>
+            <button onClick={promoteToConsultant} disabled={promoting}
+              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
+              {promoting ? "A promover..." : "Promover"}
             </button>
           </div>
         </DialogContent>

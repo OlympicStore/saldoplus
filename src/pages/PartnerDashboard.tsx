@@ -512,6 +512,13 @@ const PartnerDashboard = () => {
                           ))}
                         </select>
                         <button
+                          onClick={() => setShowCreateConsultant(true)}
+                          className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors"
+                          title="Criar novo consultor"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                        <button
                           onClick={() => handleRemoveClient(client)}
                           className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
                           title="Remover cliente"
