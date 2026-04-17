@@ -171,7 +171,15 @@ const AdminDashboard = () => {
       const { data, error } = await supabase.functions.invoke("admin-delete-user", {
         body: { user_id: userId },
       });
-      if (error) throw error;
+      if (error) {
+        const ctx: any = (error as any).context;
+        let detail = error.message;
+        try {
+          const body = await ctx?.json?.();
+          if (body?.error) detail = body.error;
+        } catch { /* ignore */ }
+        throw new Error(detail);
+      }
       if (data?.error) throw new Error(data.error);
       toast.success(`Utilizador ${email} removido com sucesso`);
       setUsers((prev) => prev.filter((u) => u.id !== userId));
