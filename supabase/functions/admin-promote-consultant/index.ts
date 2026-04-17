@@ -30,8 +30,15 @@ serve(async (req) => {
     const isPartner = roleSet.has("partner");
     if (!isAdmin && !isPartner) throw new Error("Not authorized");
 
-    const { user_id, partner_id, name, phone, photo_url } = await req.json();
-    if (!user_id) throw new Error("user_id is required");
+    const { user_id: bodyUserId, email, partner_id, name, phone, photo_url } = await req.json();
+    let user_id = bodyUserId;
+    if (!user_id && email) {
+      const { data: byEmail } = await supabaseAdmin
+        .from("profiles").select("id").eq("email", email).maybeSingle();
+      if (!byEmail) throw new Error("Não existe nenhum utilizador com esse email");
+      user_id = byEmail.id;
+    }
+    if (!user_id) throw new Error("user_id ou email é obrigatório");
 
     // Resolve target partner_id
     let resolvedPartnerId = partner_id;
