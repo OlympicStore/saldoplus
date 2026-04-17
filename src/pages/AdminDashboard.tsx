@@ -198,7 +198,37 @@ const AdminDashboard = () => {
     }
   };
 
-  const savePaymentLinks = async () => {
+  const promoteToConsultant = async () => {
+    if (!promoteUser || !promoteForm.partner_id) {
+      toast.error("Selecione uma imobiliária");
+      return;
+    }
+    setPromoting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-promote-consultant", {
+        body: {
+          user_id: promoteUser.id,
+          partner_id: promoteForm.partner_id,
+          phone: promoteForm.phone || null,
+        },
+      });
+      if (error) {
+        const ctx: any = (error as any).context;
+        let detail = error.message;
+        try { const body = await ctx?.json?.(); if (body?.error) detail = body.error; } catch {}
+        throw new Error(detail);
+      }
+      if (data?.error) throw new Error(data.error);
+      toast.success(`${promoteUser.email} promovido a consultor`);
+      setPromoteUser(null);
+      setPromoteForm({ partner_id: "", phone: "" });
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao promover utilizador");
+    } finally {
+      setPromoting(false);
+    }
+  };
     setSavingLinks(true);
     try {
       for (const plan of PLAN_ORDER) {
