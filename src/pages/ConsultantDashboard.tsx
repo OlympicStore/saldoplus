@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Users, ChevronDown, ChevronUp, Home, UserPlus, UserMinus, Pencil, X, Check, Camera,
-  TrendingUp, TrendingDown, Minus as MinusIcon, Search,
+  TrendingUp, TrendingDown, Minus as MinusIcon, Search, Eye, EyeOff, Loader2, Plus,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
