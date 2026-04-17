@@ -211,9 +211,13 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
       {profile.plan === "imobiliaria" && profile.plan_source === "partner" && (
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-5">
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg">
-              🏠
-            </div>
+            {partnerLogo ? (
+              <img src={partnerLogo} alt={partnerName || "Imobiliária"} className="h-10 w-10 rounded-xl object-contain bg-white border border-border-subtle" />
+            ) : (
+              <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg">
+                🏠
+              </div>
+            )}
             <div>
               <p className="text-lg font-semibold text-foreground">Parceiro Pro</p>
               <p className="text-sm text-primary font-medium">
@@ -227,6 +231,30 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
               <span className="block mt-1 font-medium text-foreground">Válido até: {expiresAt}</span>
             )}
           </p>
+
+          {consultant && (
+            <div className="mt-4 pt-4 border-t border-primary/15">
+              <span className="label-caps mb-3 block">O seu consultor</span>
+              <div className="flex items-start gap-3">
+                {consultant.photo_url ? (
+                  <img src={consultant.photo_url} alt={consultant.name} className="h-14 w-14 rounded-full object-cover border border-border-subtle" />
+                ) : (
+                  <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                    <UserRound className="h-6 w-6" />
+                  </div>
+                )}
+                <div className="space-y-0.5 text-sm">
+                  <p className="font-semibold text-foreground">{consultant.name}</p>
+                  {consultant.phone && (
+                    <p className="text-text-muted">{consultant.phone}</p>
+                  )}
+                  <a href={`mailto:${consultant.email}`} className="text-primary hover:underline block">
+                    {consultant.email}
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
