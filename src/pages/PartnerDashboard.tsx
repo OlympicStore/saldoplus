@@ -293,6 +293,36 @@ const PartnerDashboard = () => {
     }
   };
 
+  const handleAssignConsultantToClient = async (client: ClientProfile, consultantId: string) => {
+    if (!partnerId) return;
+    const newConsultantId = consultantId || null;
+    const existing = invites.find((i) => i.email === client.email && i.partner_id === partnerId);
+    try {
+      if (existing) {
+        const { error } = await supabase
+          .from("partner_invites")
+          .update({ consultant_id: newConsultantId } as any)
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        // No invite exists (client created directly) — create an accepted invite to track consultant
+        const { error } = await supabase
+          .from("partner_invites")
+          .insert({
+            email: client.email,
+            partner_id: partnerId,
+            status: "accepted",
+            consultant_id: newConsultantId,
+          } as any);
+        if (error) throw error;
+      }
+      toast.success(newConsultantId ? "Consultor atribuído" : "Consultor removido");
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao atribuir consultor");
+    }
+  };
+
   const handleDeleteInvite = async (inv: Invite) => {
     const msg = inv.status === "accepted"
       ? `Eliminar o convite de ${inv.email}? O cliente já criou conta — o convite será removido mas a conta dele mantém-se.`
