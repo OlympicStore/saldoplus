@@ -12,6 +12,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log("[partner-create-client] env ready", {
+    hasUrl: !!Deno.env.get("SUPABASE_URL"),
+    hasServiceRole: !!Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+  });
+
   const supabaseAdmin = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
