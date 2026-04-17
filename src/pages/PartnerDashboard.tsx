@@ -275,6 +275,24 @@ const PartnerDashboard = () => {
     }
   };
 
+  const handleRemoveClient = async (client: ClientProfile) => {
+    const ok = confirm(
+      `Remover o cliente ${client.full_name || client.email}?\n\nEsta ação apaga definitivamente a conta e todos os dados financeiros do cliente. Não pode ser revertida.`
+    );
+    if (!ok) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("partner-delete-client", {
+        body: { client_id: client.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Cliente removido");
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao remover cliente");
+    }
+  };
+
   const handleDeleteInvite = async (inv: Invite) => {
     const msg = inv.status === "accepted"
       ? `Eliminar o convite de ${inv.email}? O cliente já criou conta — o convite será removido mas a conta dele mantém-se.`
@@ -447,9 +465,18 @@ const PartnerDashboard = () => {
                         <p className="text-sm font-semibold text-foreground truncate">{client.full_name || "—"}</p>
                         <p className="text-xs text-text-muted truncate">{client.email}</p>
                       </div>
-                      {consultantName && (
-                        <span className="text-xs text-text-muted shrink-0">· {consultantName}</span>
-                      )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {consultantName && (
+                          <span className="text-xs text-text-muted">· {consultantName}</span>
+                        )}
+                        <button
+                          onClick={() => handleRemoveClient(client)}
+                          className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          title="Remover cliente"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                     {house && (
                       <div className="grid grid-cols-3 gap-3 mt-2">
