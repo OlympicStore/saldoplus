@@ -55,9 +55,47 @@ const ConsultantDashboard = () => {
 
   // Add client
   const [showAddClient, setShowAddClient] = useState(false);
+  const [addClientMode, setAddClientMode] = useState<"invite" | "create">("invite");
   const [newClientEmail, setNewClientEmail] = useState("");
   const [addingClient, setAddingClient] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [createClientForm, setCreateClientForm] = useState({
+    full_name: "", email: "", phone: "", password: "",
+  });
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [creatingClient, setCreatingClient] = useState(false);
+
+  const handleCreateClientDirect = async () => {
+    if (!createClientForm.full_name || !createClientForm.email || !createClientForm.password) {
+      toast.error("Nome, email e password são obrigatórios");
+      return;
+    }
+    if (createClientForm.password.length < 6) {
+      toast.error("Password deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setCreatingClient(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("partner-create-client", {
+        body: {
+          email: createClientForm.email,
+          password: createClientForm.password,
+          full_name: createClientForm.full_name,
+          phone: createClientForm.phone || null,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Cliente ${createClientForm.full_name} criado com sucesso`);
+      setShowAddClient(false);
+      setCreateClientForm({ full_name: "", email: "", phone: "", password: "" });
+      await loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar cliente");
+    } finally {
+      setCreatingClient(false);
+    }
+  };
 
   // Profile editing
   const [editingProfile, setEditingProfile] = useState(false);
