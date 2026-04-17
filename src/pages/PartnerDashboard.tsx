@@ -499,6 +499,13 @@ const PartnerDashboard = () => {
                     <span className="text-[10px] text-text-muted">
                       {new Date(inv.created_at).toLocaleDateString("pt-PT")}
                     </span>
+                    <button
+                      onClick={() => handleDeleteInvite(inv)}
+                      className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      title="Eliminar convite"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
               ))
