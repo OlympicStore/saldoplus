@@ -378,6 +378,13 @@ const PartnerDashboard = () => {
   const partnerInvites = invites.filter((i) => i.partner_id === partnerId);
   const acceptedCount = partnerInvites.filter((i) => i.status === "accepted").length;
 
+  // Exclude the partner user itself and any consultant users from the clients list
+  const consultantUserIds = new Set(consultants.map((c) => c.user_id));
+  const partnerEmail = partner?.email?.toLowerCase();
+  const realClients = clientProfiles.filter(
+    (c) => !consultantUserIds.has(c.id) && c.email?.toLowerCase() !== partnerEmail
+  );
+
   const currentMonthInvites = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
