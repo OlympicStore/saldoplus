@@ -544,6 +544,14 @@ const AdminDashboard = () => {
                         </button>
                         <button
                           disabled={updatingUser === u.id}
+                          onClick={() => { setPromoteUser(u); setPromoteForm({ partner_id: "", phone: "" }); }}
+                          className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-30"
+                          title="Promover a consultor"
+                        >
+                          <Briefcase className="h-4 w-4" />
+                        </button>
+                        <button
+                          disabled={updatingUser === u.id}
                           onClick={() => deleteUser(u.id, u.email)}
                           className="p-1.5 rounded-lg text-text-muted hover:text-status-negative hover:bg-[hsl(var(--status-negative)/0.1)] transition-colors disabled:opacity-30"
                           title="Remover utilizador"
