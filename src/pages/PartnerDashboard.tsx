@@ -80,10 +80,55 @@ const PartnerDashboard = () => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const [inviteMode, setInviteMode] = useState<"invite" | "create">("invite");
+  const [creatingClient, setCreatingClient] = useState(false);
+  const [showClientPassword, setShowClientPassword] = useState(false);
+
   const [inviteForm, setInviteForm] = useState({
     email: "",
     consultant_id: "",
   });
+
+  const [clientForm, setClientForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    password: "",
+    consultant_id: "",
+  });
+
+  const handleCreateClient = async () => {
+    if (!clientForm.full_name || !clientForm.email || !clientForm.password) {
+      toast.error("Nome, email e password são obrigatórios");
+      return;
+    }
+    if (clientForm.password.length < 6) {
+      toast.error("Password deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setCreatingClient(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("partner-create-client", {
+        body: {
+          email: clientForm.email,
+          password: clientForm.password,
+          full_name: clientForm.full_name,
+          phone: clientForm.phone || null,
+          consultant_id: clientForm.consultant_id || null,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Cliente ${clientForm.full_name} criado com sucesso`);
+      setShowInviteUser(false);
+      setClientForm({ full_name: "", email: "", phone: "", password: "", consultant_id: "" });
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar cliente");
+    } finally {
+      setCreatingClient(false);
+    }
+  };
 
   const [consultantForm, setConsultantForm] = useState({
     name: "",
@@ -448,43 +493,133 @@ const PartnerDashboard = () => {
         </div>
       </main>
 
-      {/* Invite Dialog */}
+      {/* Invite/Create Client Dialog */}
       <Dialog open={showInviteUser} onOpenChange={setShowInviteUser}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Convidar Cliente</DialogTitle>
+            <DialogTitle>Adicionar Cliente</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-2">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Email do cliente *</label>
-              <input type="email" value={inviteForm.email}
-                onChange={(e) => setInviteForm((p) => ({ ...p, email: e.target.value }))}
-                placeholder="cliente@email.com"
-                className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
-            </div>
 
-            {consultants.length > 0 && (
-              <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">Consultor atribuído</label>
-                <select
-                  value={inviteForm.consultant_id}
-                  onChange={(e) => setInviteForm((p) => ({ ...p, consultant_id: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="">— Sem consultor —</option>
-                  {consultants.filter(c => c.active).map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <button onClick={handleInviteUser} disabled={inviting}
-              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-              {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              {inviting ? "A enviar..." : "Enviar Convite"}
+          {/* Tabs */}
+          <div className="flex gap-1 p-1 bg-secondary/50 rounded-lg mt-2">
+            <button
+              onClick={() => setInviteMode("invite")}
+              className={`flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+                inviteMode === "invite" ? "bg-surface text-foreground shadow-sm" : "text-text-muted hover:text-foreground"
+              }`}
+            >
+              Convidar por Email
+            </button>
+            <button
+              onClick={() => setInviteMode("create")}
+              className={`flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+                inviteMode === "create" ? "bg-surface text-foreground shadow-sm" : "text-text-muted hover:text-foreground"
+              }`}
+            >
+              Criar Diretamente
             </button>
           </div>
+
+          {inviteMode === "invite" ? (
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">Email do cliente *</label>
+                <input type="email" value={inviteForm.email}
+                  onChange={(e) => setInviteForm((p) => ({ ...p, email: e.target.value }))}
+                  placeholder="cliente@email.com"
+                  className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+
+              {consultants.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Consultor atribuído</label>
+                  <select
+                    value={inviteForm.consultant_id}
+                    onChange={(e) => setInviteForm((p) => ({ ...p, consultant_id: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">— Sem consultor —</option>
+                    {consultants.filter(c => c.active).map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">
+                O cliente receberá um email para criar a conta. Se o email não chegar, use a opção "Criar Diretamente".
+              </p>
+
+              <button onClick={handleInviteUser} disabled={inviting}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+                {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {inviting ? "A enviar..." : "Enviar Convite"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3 mt-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">Nome completo *</label>
+                <input value={clientForm.full_name}
+                  onChange={(e) => setClientForm((p) => ({ ...p, full_name: e.target.value }))}
+                  placeholder="Nome do cliente"
+                  className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">Email *</label>
+                <input type="email" value={clientForm.email}
+                  onChange={(e) => setClientForm((p) => ({ ...p, email: e.target.value }))}
+                  placeholder="cliente@email.com"
+                  className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">Contacto</label>
+                <input value={clientForm.phone}
+                  onChange={(e) => setClientForm((p) => ({ ...p, phone: e.target.value }))}
+                  placeholder="+351 912 345 678"
+                  className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1 block">Password *</label>
+                <div className="relative">
+                  <input type={showClientPassword ? "text" : "password"} value={clientForm.password}
+                    onChange={(e) => setClientForm((p) => ({ ...p, password: e.target.value }))}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full px-3 py-2 pr-10 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" />
+                  <button type="button" onClick={() => setShowClientPassword(!showClientPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-foreground">
+                    {showClientPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {consultants.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1 block">Consultor atribuído</label>
+                  <select
+                    value={clientForm.consultant_id}
+                    onChange={(e) => setClientForm((p) => ({ ...p, consultant_id: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">— Sem consultor —</option>
+                    {consultants.filter(c => c.active).map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">
+                A conta é criada imediatamente, sem verificação de email. O cliente pode alterar os dados depois ao iniciar sessão.
+              </p>
+
+              <button onClick={handleCreateClient} disabled={creatingClient}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+                {creatingClient ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                {creatingClient ? "A criar..." : "Criar Cliente"}
+              </button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

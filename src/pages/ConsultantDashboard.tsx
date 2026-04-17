@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Users, ChevronDown, ChevronUp, Home, UserPlus, UserMinus, Pencil, X, Check, Camera,
-  TrendingUp, TrendingDown, Minus as MinusIcon, Search,
+  TrendingUp, TrendingDown, Minus as MinusIcon, Search, Eye, EyeOff, Loader2, Plus,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
@@ -55,9 +55,47 @@ const ConsultantDashboard = () => {
 
   // Add client
   const [showAddClient, setShowAddClient] = useState(false);
+  const [addClientMode, setAddClientMode] = useState<"invite" | "create">("invite");
   const [newClientEmail, setNewClientEmail] = useState("");
   const [addingClient, setAddingClient] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [createClientForm, setCreateClientForm] = useState({
+    full_name: "", email: "", phone: "", password: "",
+  });
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [creatingClient, setCreatingClient] = useState(false);
+
+  const handleCreateClientDirect = async () => {
+    if (!createClientForm.full_name || !createClientForm.email || !createClientForm.password) {
+      toast.error("Nome, email e password são obrigatórios");
+      return;
+    }
+    if (createClientForm.password.length < 6) {
+      toast.error("Password deve ter pelo menos 6 caracteres");
+      return;
+    }
+    setCreatingClient(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("partner-create-client", {
+        body: {
+          email: createClientForm.email,
+          password: createClientForm.password,
+          full_name: createClientForm.full_name,
+          phone: createClientForm.phone || null,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Cliente ${createClientForm.full_name} criado com sucesso`);
+      setShowAddClient(false);
+      setCreateClientForm({ full_name: "", email: "", phone: "", password: "" });
+      await loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar cliente");
+    } finally {
+      setCreatingClient(false);
+    }
+  };
 
   // Profile editing
   const [editingProfile, setEditingProfile] = useState(false);
@@ -426,20 +464,75 @@ const ConsultantDashboard = () => {
 
           {/* Add client form */}
           {showAddClient && (
-            <div className="px-4 py-3 border-b border-border-subtle/40 bg-background">
-              <div className="flex gap-2">
-                <input
-                  value={newClientEmail}
-                  onChange={e => setNewClientEmail(e.target.value)}
-                  placeholder="Email do cliente"
-                  className="flex-1 bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-text-muted"
-                  onKeyDown={e => e.key === "Enter" && handleAddClient()}
-                />
-                <button onClick={handleAddClient} disabled={addingClient || !newClientEmail.trim()}
-                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50">
-                  {addingClient ? "..." : "Adicionar"}
+            <div className="px-4 py-3 border-b border-border-subtle/40 bg-background space-y-3">
+              {/* Tabs */}
+              <div className="flex gap-1 p-1 bg-secondary/50 rounded-lg">
+                <button
+                  onClick={() => setAddClientMode("invite")}
+                  className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    addClientMode === "invite" ? "bg-surface text-foreground shadow-sm" : "text-text-muted hover:text-foreground"
+                  }`}
+                >
+                  Convidar por Email
+                </button>
+                <button
+                  onClick={() => setAddClientMode("create")}
+                  className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    addClientMode === "create" ? "bg-surface text-foreground shadow-sm" : "text-text-muted hover:text-foreground"
+                  }`}
+                >
+                  Criar Diretamente
                 </button>
               </div>
+
+              {addClientMode === "invite" ? (
+                <div className="flex gap-2">
+                  <input
+                    value={newClientEmail}
+                    onChange={e => setNewClientEmail(e.target.value)}
+                    placeholder="Email do cliente"
+                    className="flex-1 bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-text-muted"
+                    onKeyDown={e => e.key === "Enter" && handleAddClient()}
+                  />
+                  <button onClick={handleAddClient} disabled={addingClient || !newClientEmail.trim()}
+                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50">
+                    {addingClient ? "..." : "Adicionar"}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <input value={createClientForm.full_name}
+                    onChange={e => setCreateClientForm(p => ({ ...p, full_name: e.target.value }))}
+                    placeholder="Nome completo *"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-text-muted" />
+                  <input type="email" value={createClientForm.email}
+                    onChange={e => setCreateClientForm(p => ({ ...p, email: e.target.value }))}
+                    placeholder="Email *"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-text-muted" />
+                  <input value={createClientForm.phone}
+                    onChange={e => setCreateClientForm(p => ({ ...p, phone: e.target.value }))}
+                    placeholder="Contacto"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-text-muted" />
+                  <div className="relative">
+                    <input type={showCreatePassword ? "text" : "password"} value={createClientForm.password}
+                      onChange={e => setCreateClientForm(p => ({ ...p, password: e.target.value }))}
+                      placeholder="Password (mín. 6 caracteres) *"
+                      className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 pr-10 text-sm text-foreground placeholder:text-text-muted" />
+                    <button type="button" onClick={() => setShowCreatePassword(!showCreatePassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-foreground">
+                      {showCreatePassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-text-muted">
+                    A conta é criada sem verificação de email. O cliente pode alterar dados ao iniciar sessão.
+                  </p>
+                  <button onClick={handleCreateClientDirect} disabled={creatingClient}
+                    className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+                    {creatingClient ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    {creatingClient ? "A criar..." : "Criar Cliente"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
