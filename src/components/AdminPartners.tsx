@@ -848,19 +848,35 @@ const AdminPartners = () => {
                                           </div>
                                           <div className="flex-1 min-w-0">
                                             {isEditing ? (
-                                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                <input
-                                                  value={editConsultantData.name}
-                                                  onChange={(e) => setEditConsultantData(d => ({ ...d, name: e.target.value }))}
-                                                  placeholder="Nome"
-                                                  className="px-2 py-1 text-xs bg-background border border-border-subtle rounded-md"
-                                                />
-                                                <input
-                                                  value={editConsultantData.phone}
-                                                  onChange={(e) => setEditConsultantData(d => ({ ...d, phone: e.target.value }))}
-                                                  placeholder="Telefone"
-                                                  className="px-2 py-1 text-xs bg-background border border-border-subtle rounded-md"
-                                                />
+                                              <div className="space-y-2">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                  <input
+                                                    value={editConsultantData.name}
+                                                    onChange={(e) => setEditConsultantData(d => ({ ...d, name: e.target.value }))}
+                                                    placeholder="Nome"
+                                                    className="px-2 py-1 text-xs bg-background border border-border-subtle rounded-md"
+                                                  />
+                                                  <input
+                                                    value={editConsultantData.phone}
+                                                    onChange={(e) => setEditConsultantData(d => ({ ...d, phone: e.target.value }))}
+                                                    placeholder="Telefone"
+                                                    className="px-2 py-1 text-xs bg-background border border-border-subtle rounded-md"
+                                                  />
+                                                </div>
+                                                <label className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-border-subtle text-[11px] text-foreground hover:bg-surface-hover cursor-pointer w-fit">
+                                                  {uploadingConsultantPhoto === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                                                  {c.photo_url ? "Alterar foto" : "Adicionar foto"}
+                                                  <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                      const file = e.target.files?.[0];
+                                                      if (file) handleConsultantPhotoUpload(c.id, file);
+                                                      e.target.value = "";
+                                                    }}
+                                                  />
+                                                </label>
                                               </div>
                                             ) : (
                                               <>
