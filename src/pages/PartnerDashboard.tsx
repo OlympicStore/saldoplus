@@ -378,6 +378,13 @@ const PartnerDashboard = () => {
   const partnerInvites = invites.filter((i) => i.partner_id === partnerId);
   const acceptedCount = partnerInvites.filter((i) => i.status === "accepted").length;
 
+  // Exclude the partner user itself and any consultant users from the clients list
+  const consultantUserIds = new Set(consultants.map((c) => c.user_id));
+  const partnerEmail = partner?.email?.toLowerCase();
+  const realClients = clientProfiles.filter(
+    (c) => !consultantUserIds.has(c.id) && c.email?.toLowerCase() !== partnerEmail
+  );
+
   const currentMonthInvites = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -514,15 +521,15 @@ const PartnerDashboard = () => {
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden mb-6">
           <div className="p-4 border-b border-border-subtle/60 flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
-            <span className="label-caps">Clientes ({clientProfiles.length})</span>
+            <span className="label-caps">Clientes ({realClients.length})</span>
           </div>
           <div className="divide-y divide-border-subtle/40">
-            {clientProfiles.length === 0 ? (
+            {realClients.length === 0 ? (
               <div className="px-5 py-8 text-center text-sm text-text-muted">
                 Nenhum cliente ainda. Convide utilizadores para começar.
               </div>
             ) : (
-              clientProfiles.map((client) => {
+              realClients.map((client) => {
                 const house = clientHouseData.find((h) => h.user_id === client.id);
                 const invite = invites.find((i) => i.email === client.email);
                 const currentConsultantId = invite?.consultant_id || "";
