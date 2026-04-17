@@ -210,9 +210,13 @@ const PartnerDashboard = () => {
           partner_id: partnerId,
         },
       });
-      if (error) throw error;
+      if (error) {
+        const ctx: any = (error as any).context;
+        let detail = error.message;
+        try { const body = await ctx?.json?.(); if (body?.error) detail = body.error; } catch {}
+        throw new Error(detail);
+      }
       if (data?.error) throw new Error(data.error);
-      toast.success(`Consultor ${consultantForm.name} criado com sucesso`);
       setShowCreateConsultant(false);
       setConsultantForm({ name: "", email: "", password: "", phone: "", photo_url: "" });
       loadData();

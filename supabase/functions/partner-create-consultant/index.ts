@@ -65,18 +65,34 @@ serve(async (req) => {
 
     if (!resolvedPartnerId) throw new Error("partner_id is required");
 
-    // Create user with email confirmed
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: name },
-    });
+    // Try to find existing user with this email
+    const { data: existingProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
 
-    if (createError) throw new Error(`Failed to create user: ${createError.message}`);
-    if (!newUser.user) throw new Error("User creation returned no user");
-
-    const userId = newUser.user.id;
+    let userId: string;
+    if (existingProfile) {
+      // Reuse existing user — just promote to consultant
+      userId = existingProfile.id;
+      // Update password
+      const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password,
+        user_metadata: { full_name: name },
+      });
+      if (updErr) throw new Error(`Falha ao atualizar utilizador existente: ${updErr.message}`);
+    } else {
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: name },
+      });
+      if (createError) throw new Error(`Falha ao criar utilizador: ${createError.message}`);
+      if (!newUser.user) throw new Error("User creation returned no user");
+      userId = newUser.user.id;
+    }
 
     // Set plan to pro with 100 year expiry (consultant has full access)
     const now = new Date();
@@ -95,24 +111,40 @@ serve(async (req) => {
       })
       .eq("id", userId);
 
-    // Assign consultant role
-    await supabaseAdmin
+    // Assign consultant role (idempotent)
+    const { data: existingRole } = await supabaseAdmin
       .from("user_roles")
-      .insert({ user_id: userId, role: "consultant" });
+      .select("id")
+      .eq("user_id", userId)
+      .eq("role", "consultant")
+      .maybeSingle();
+    if (!existingRole) {
+      await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id: userId, role: "consultant" });
+    }
 
-    // Create partner_consultants record
-    const { error: pcError } = await supabaseAdmin
+    // Upsert partner_consultants record
+    const { data: existingPc } = await supabaseAdmin
       .from("partner_consultants")
-      .insert({
-        user_id: userId,
-        partner_id: resolvedPartnerId,
-        name,
-        phone: phone || null,
-        email,
-        photo_url: photo_url || null,
-      });
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-    if (pcError) throw new Error(`Failed to create consultant record: ${pcError.message}`);
+    const pcPayload = {
+      user_id: userId,
+      partner_id: resolvedPartnerId,
+      name,
+      phone: phone || null,
+      email,
+      photo_url: photo_url || null,
+      active: true,
+    };
+    const pcRes = existingPc
+      ? await supabaseAdmin.from("partner_consultants").update(pcPayload).eq("id", existingPc.id)
+      : await supabaseAdmin.from("partner_consultants").insert(pcPayload);
+
+    if (pcRes.error) throw new Error(`Falha ao criar consultor: ${pcRes.error.message}`);
 
     return new Response(
       JSON.stringify({ success: true, user_id: userId }),

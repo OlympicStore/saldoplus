@@ -41,8 +41,15 @@ serve(async (req) => {
       throw new Error("Cannot delete your own account");
     }
 
+    // Cleanup related records that don't have CASCADE on auth.users
+    await supabaseAdmin.from("partner_consultants").delete().eq("user_id", user_id);
+    const { data: prof } = await supabaseAdmin.from("profiles").select("email").eq("id", user_id).maybeSingle();
+    if (prof?.email) {
+      await supabaseAdmin.from("partner_invites").delete().eq("email", prof.email);
+    }
+
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
-    if (deleteError) throw new Error(`Failed to delete user: ${deleteError.message}`);
+    if (deleteError) throw new Error(`Falha ao eliminar utilizador: ${deleteError.message}`);
 
     return new Response(
       JSON.stringify({ success: true }),
