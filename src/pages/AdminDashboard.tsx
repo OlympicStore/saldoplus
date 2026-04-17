@@ -81,12 +81,14 @@ const AdminDashboard = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [statsRes, usersRes, linksRes, suggestionsRes] = await Promise.all([
+    const [statsRes, usersRes, linksRes, suggestionsRes, partnersRes] = await Promise.all([
       supabase.rpc("get_admin_stats"),
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("site_settings").select("key, value").like("key", "payment_link_%"),
       supabase.from("suggestions").select("*").order("created_at", { ascending: false }).limit(20),
+      supabase.from("partners").select("id, name").order("name"),
     ]);
+    if (partnersRes.data) setPartnersList(partnersRes.data as any);
     if (statsRes.data) setStats(statsRes.data as unknown as Stats);
     if (usersRes.data) {
       setUsers(usersRes.data as UserProfile[]);
