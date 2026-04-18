@@ -23,6 +23,8 @@ interface HouseData {
   monthly_payment: number;
   monthly_income: number;
   down_payment: number;
+  annual_rate: number;
+  term_years: number;
   extra_expenses: ExtraExpense[];
   monthly_payment_status: Record<string, string>;
 }
