@@ -482,6 +482,51 @@ export type Database = {
           },
         ]
       }
+      mortgage_simulations: {
+        Row: {
+          annual_rate: number
+          created_at: string
+          extra_monthly_costs: number
+          extra_payment: number
+          id: string
+          loan_amount: number
+          monthly_income: number
+          name: string
+          notes: string | null
+          term_years: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          annual_rate?: number
+          created_at?: string
+          extra_monthly_costs?: number
+          extra_payment?: number
+          id?: string
+          loan_amount?: number
+          monthly_income?: number
+          name?: string
+          notes?: string | null
+          term_years?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          annual_rate?: number
+          created_at?: string
+          extra_monthly_costs?: number
+          extra_payment?: number
+          id?: string
+          loan_amount?: number
+          monthly_income?: number
+          name?: string
+          notes?: string | null
+          term_years?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       partner_consultants: {
         Row: {
           active: boolean
