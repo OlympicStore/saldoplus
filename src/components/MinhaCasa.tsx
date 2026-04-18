@@ -823,6 +823,8 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
             { label: "Valor pago na entrada (€)", key: "down_payment" as const },
             { label: "Prestação mensal (€)", key: "monthly_payment" as const },
             { label: "Rendimento mensal (€)", key: "monthly_income" as const },
+            { label: "Taxa de juro anual (%)", key: "annual_rate" as const },
+            { label: "Prazo do crédito (anos)", key: "term_years" as const },
           ].map((field) => (
             <div key={field.key}>
               <label className="text-sm font-medium text-foreground block mb-1.5">{field.label}</label>
