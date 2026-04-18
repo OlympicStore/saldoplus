@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, Download, History, BellRing, Calculator } from "lucide-react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, Download, History, BellRing, Calculator, Wallet, CreditCard } from "lucide-react";
 import MortgageSimulator from "./MortgageSimulator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -720,70 +720,136 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-1 block">Total habitação/mês</span>
+        {/* Total habitação/mês */}
+        <div className="rounded-xl border border-border-subtle/60 bg-gradient-to-br from-surface to-primary/5 p-5 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="rounded-lg bg-primary/10 p-1.5">
+              <Wallet className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <span className="label-caps">Total habitação/mês</span>
+          </div>
           <p className="text-xl font-semibold text-foreground font-mono tabular-nums">{fmt(totalHousing)}</p>
         </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-1 block">Margem disponível</span>
+
+        {/* Margem disponível */}
+        <div className={`rounded-xl border p-5 shadow-card ${margin >= 0 ? "border-status-paid/30 bg-gradient-to-br from-surface to-status-paid/5" : "border-status-negative/30 bg-gradient-to-br from-surface to-status-negative/5"}`}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`rounded-lg p-1.5 ${margin >= 0 ? "bg-status-paid/10" : "bg-status-negative/10"}`}>
+              <TrendingUp className={`h-3.5 w-3.5 ${margin >= 0 ? "text-status-paid" : "text-status-negative"}`} />
+            </div>
+            <span className="label-caps">Margem disponível</span>
+          </div>
           <p className={`text-xl font-semibold font-mono tabular-nums ${margin >= 0 ? "text-status-paid" : "text-status-negative"}`}>
             {fmt(margin)}
           </p>
         </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-1 block">Valor da casa</span>
+
+        {/* Valor da casa */}
+        <div className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-surface to-blue-500/5 p-5 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="rounded-lg bg-blue-500/10 p-1.5">
+              <Home className="h-3.5 w-3.5 text-blue-600" />
+            </div>
+            <span className="label-caps">Valor da casa</span>
+          </div>
           <p className="text-xl font-semibold text-foreground font-mono tabular-nums">{fmt(data.house_value)}</p>
           {loanAmount > 0 && (
-            <p className="text-[11px] text-text-muted mt-1">Financiado: <span className="font-mono">{fmt(loanAmount)}</span></p>
+            <p className="text-[11px] text-text-muted mt-1.5">A financiar: <span className="font-mono font-semibold text-foreground">{fmt(loanAmount)}</span></p>
           )}
         </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-1 block">Total a pagar ao banco</span>
+
+        {/* Total a pagar ao banco */}
+        <div className="rounded-xl border border-status-negative/30 bg-gradient-to-br from-surface to-status-negative/5 p-5 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="rounded-lg bg-status-negative/10 p-1.5">
+              <CreditCard className="h-3.5 w-3.5 text-status-negative" />
+            </div>
+            <span className="label-caps">Total ao banco</span>
+          </div>
           <p className="text-xl font-semibold text-foreground font-mono tabular-nums">
             {totalCredit > 0 ? fmt(totalCredit) : "—"}
           </p>
           {totalInterest > 0 ? (
-            <p className="text-[11px] text-text-muted mt-1">
-              <span className="font-mono">{fmt(loanAmount)}</span> financiados +{" "}
-              <span className="text-status-negative font-mono font-semibold">{fmt(totalInterest)}</span> juros
+            <p className="text-[11px] text-text-muted mt-1.5">
+              + <span className="text-status-negative font-mono font-semibold">{fmt(totalInterest)}</span> juros
             </p>
           ) : (
-            <p className="text-[11px] text-text-muted mt-1">prestação × meses</p>
+            <p className="text-[11px] text-text-muted mt-1.5">prestação × meses</p>
           )}
         </div>
       </div>
 
       {/* Real cost summary banner */}
       {totalCredit > 0 && loanAmount > 0 && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Calculator className="h-4 w-4 text-primary" /> Quanto vai pagar realmente pela casa
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            <div className="bg-surface rounded-lg p-3 border border-border-subtle/60">
-              <span className="text-text-muted text-xs block mb-0.5">Preço da casa</span>
-              <span className="font-semibold text-foreground font-mono">{fmt(data.house_value)}</span>
+        <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 shadow-card">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="rounded-xl bg-primary/15 p-2.5 shadow-sm">
+              <Calculator className="h-5 w-5 text-primary" />
             </div>
-            <div className="bg-surface rounded-lg p-3 border border-border-subtle/60">
-              <span className="text-text-muted text-xs block mb-0.5">Entrada</span>
-              <span className="font-semibold text-foreground font-mono">{fmt(data.down_payment)}</span>
-            </div>
-            <div className="bg-status-negative/10 rounded-lg p-3 border border-status-negative/20">
-              <span className="text-text-muted text-xs block mb-0.5">Juros pagos ao banco</span>
-              <span className="font-semibold text-status-negative font-mono">{fmt(totalInterest)}</span>
-            </div>
-            <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
-              <span className="text-text-muted text-xs block mb-0.5">Custo total real</span>
-              <span className="font-semibold text-primary font-mono">{fmt(totalCostOfHouse)}</span>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">Quanto vai pagar realmente pela casa</h3>
+              <p className="text-xs text-text-muted">Decomposição completa ao longo de {data.term_years} anos</p>
             </div>
           </div>
-          <p className="text-xs text-text-muted mt-3">
-            Pela casa de <span className="font-mono font-semibold text-foreground">{fmt(data.house_value)}</span> vai pagar no total{" "}
-            <span className="font-mono font-semibold text-foreground">{fmt(totalCostOfHouse)}</span> ao longo de {data.term_years} anos
-            {totalInterest > 0 && (
-              <> — <span className="text-status-negative font-semibold">{fmt(totalInterest)}</span> só de juros 💸</>
-            )}.
-          </p>
+
+          {/* Visual breakdown bar */}
+          <div className="mb-5">
+            <div className="flex h-3 rounded-full overflow-hidden border border-border-subtle/60 bg-surface">
+              <div
+                className="bg-blue-500 transition-all"
+                style={{ width: `${(data.down_payment / totalCostOfHouse) * 100}%` }}
+                title={`Entrada: ${fmt(data.down_payment)}`}
+              />
+              <div
+                className="bg-primary transition-all"
+                style={{ width: `${(loanAmount / totalCostOfHouse) * 100}%` }}
+                title={`Capital: ${fmt(loanAmount)}`}
+              />
+              <div
+                className="bg-status-negative transition-all"
+                style={{ width: `${(totalInterest / totalCostOfHouse) * 100}%` }}
+                title={`Juros: ${fmt(totalInterest)}`}
+              />
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] text-text-muted">
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-500" /> Entrada {((data.down_payment / totalCostOfHouse) * 100).toFixed(0)}%</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary" /> Capital {((loanAmount / totalCostOfHouse) * 100).toFixed(0)}%</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-status-negative" /> Juros {((totalInterest / totalCostOfHouse) * 100).toFixed(0)}%</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="rounded-xl bg-surface border-l-4 border-l-blue-500 border-y border-r border-border-subtle/60 p-3.5">
+              <span className="text-text-muted text-[11px] uppercase tracking-wide block mb-1">Entrada</span>
+              <span className="font-semibold text-foreground font-mono text-base block">{fmt(data.down_payment)}</span>
+              <span className="text-[10px] text-text-muted">{data.house_value > 0 ? `${((data.down_payment / data.house_value) * 100).toFixed(0)}% da casa` : ""}</span>
+            </div>
+            <div className="rounded-xl bg-surface border-l-4 border-l-primary border-y border-r border-border-subtle/60 p-3.5">
+              <span className="text-text-muted text-[11px] uppercase tracking-wide block mb-1">Capital financiado</span>
+              <span className="font-semibold text-foreground font-mono text-base block">{fmt(loanAmount)}</span>
+              <span className="text-[10px] text-text-muted">o que pediu ao banco</span>
+            </div>
+            <div className="rounded-xl bg-status-negative/5 border-l-4 border-l-status-negative border-y border-r border-status-negative/20 p-3.5">
+              <span className="text-status-negative/80 text-[11px] uppercase tracking-wide block mb-1">Juros pagos</span>
+              <span className="font-semibold text-status-negative font-mono text-base block">{fmt(totalInterest)}</span>
+              <span className="text-[10px] text-status-negative/70">{loanAmount > 0 ? `+${((totalInterest / loanAmount) * 100).toFixed(0)}% do financiado` : ""}</span>
+            </div>
+            <div className="rounded-xl bg-primary/10 border-l-4 border-l-primary border-y border-r border-primary/20 p-3.5">
+              <span className="text-primary/80 text-[11px] uppercase tracking-wide block mb-1">Custo total real</span>
+              <span className="font-bold text-primary font-mono text-base block">{fmt(totalCostOfHouse)}</span>
+              <span className="text-[10px] text-primary/70">entrada + total ao banco</span>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-xl bg-surface/80 border border-border-subtle/60 p-4">
+            <p className="text-sm text-foreground leading-relaxed">
+              💡 Pela casa de <span className="font-mono font-semibold">{fmt(data.house_value)}</span> vai pagar no total{" "}
+              <span className="font-mono font-semibold text-primary">{fmt(totalCostOfHouse)}</span> ao longo de {data.term_years} anos
+              {totalInterest > 0 && (
+                <> — <span className="text-status-negative font-semibold font-mono">{fmt(totalInterest)}</span> só de juros 💸</>
+              )}.
+            </p>
+          </div>
         </div>
       )}
 
