@@ -215,6 +215,8 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         estimated_expenses: 0,
         monthly_income: data.monthly_income,
         down_payment: data.down_payment,
+        annual_rate: data.annual_rate,
+        term_years: data.term_years,
         extra_expenses: data.extra_expenses as any,
         monthly_payment_status: data.monthly_payment_status as any,
       };
