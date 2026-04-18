@@ -390,7 +390,10 @@ const PartnerDashboard = () => {
   const currentMonthInvites = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    return partnerInvites.filter((i) => new Date(i.created_at) >= monthStart).length;
+    const acceptedThisMonth = partnerInvites.filter(
+      (i) => i.status === "accepted" && new Date(i.created_at) >= monthStart
+    );
+    return new Set(acceptedThisMonth.map((i) => i.email.toLowerCase())).size;
   }, [partnerInvites]);
 
   const getConsultantName = (invite: Invite) => {
