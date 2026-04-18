@@ -332,6 +332,15 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const marginToRisk = data.monthly_income > 0 ? (data.monthly_income * 0.3) - data.monthly_payment : 0;
   const marginDiff = 30 - baseRatio;
 
+  // Loan / financing calculations
+  const loanAmount = Math.max(0, data.house_value - data.down_payment);
+  const totalMonths = (data.term_years || 0) * 12;
+  const totalCredit = data.monthly_payment > 0 && totalMonths > 0
+    ? data.monthly_payment * totalMonths
+    : 0;
+  const totalInterest = Math.max(0, totalCredit - loanAmount);
+  const totalCostOfHouse = data.down_payment + totalCredit; // entrada + tudo o que paga ao banco
+
   // Progress calculations
   const paidMonths = Object.values(data.monthly_payment_status).filter(v => v === "pago").length;
   const totalPaid = data.down_payment + (paidMonths * data.monthly_payment);
