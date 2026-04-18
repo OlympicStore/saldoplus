@@ -237,7 +237,13 @@ const Index = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {partnerBranding?.brand_logo_url && (
-              <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-12 w-12 rounded-lg object-contain" />
+              <button
+                onClick={() => handleTabChange("dashboard")}
+                className="focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
+                aria-label="Ir para a Home"
+              >
+                <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-12 w-12 rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity" />
+              </button>
             )}
             {partnerBranding?.consultant_photo_url && (
               <Popover>
@@ -288,10 +294,16 @@ const Index = () => {
               </Popover>
             )}
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none">
-                <span className="text-foreground">Saldo</span>
-                <span className="text-primary text-3xl sm:text-4xl font-black leading-none">+</span>
-              </h1>
+              <button
+                onClick={() => handleTabChange("dashboard")}
+                className="focus:outline-none focus:ring-2 focus:ring-primary rounded"
+                aria-label="Ir para a Home"
+              >
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none cursor-pointer hover:opacity-90 transition-opacity">
+                  <span className="text-foreground">Saldo</span>
+                  <span className="text-primary text-3xl sm:text-4xl font-black leading-none">+</span>
+                </h1>
+              </button>
               {partnerBranding?.consultant_name && (
                 <p className="text-[10px] text-text-muted leading-tight mt-0.5">
                   {partnerBranding.consultant_name} · {partnerBranding.name}
