@@ -46,7 +46,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [stressExtra, setStressExtra] = useState(0);
-  const [activeSection, setActiveSection] = useState<"esforco" | "progresso">("esforco");
+  const [activeSection, setActiveSection] = useState<"esforco" | "progresso" | "simulador">("esforco");
   const [selectedCalendarYear, setSelectedCalendarYear] = useState(new Date().getFullYear());
   const [newExpenseName, setNewExpenseName] = useState("");
   const [newExpenseValue, setNewExpenseValue] = useState("");
