@@ -42,6 +42,8 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     monthly_payment: 0,
     monthly_income: 0,
     down_payment: 0,
+    annual_rate: 0,
+    term_years: 30,
     extra_expenses: [],
     monthly_payment_status: {},
   });
