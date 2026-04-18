@@ -237,7 +237,13 @@ const Index = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {partnerBranding?.brand_logo_url && (
-              <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-12 w-12 rounded-lg object-contain" />
+              <button
+                onClick={() => handleTabChange("dashboard")}
+                className="focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
+                aria-label="Ir para a Home"
+              >
+                <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-12 w-12 rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity" />
+              </button>
             )}
             {partnerBranding?.consultant_photo_url && (
               <Popover>
