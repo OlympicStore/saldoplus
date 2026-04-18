@@ -312,8 +312,9 @@ const MortgageSimulator = () => {
             <label className="text-xs font-medium text-muted-foreground">Valor do empréstimo (€)</label>
             <input
               type="number"
-              value={loanAmount}
-              onChange={(e) => setLoanAmount(Math.max(0, Number(e.target.value)))}
+              inputMode="decimal"
+              value={loanAmount === 0 ? "" : loanAmount}
+              onChange={(e) => setLoanAmount(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
               className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
             />
           </div>
@@ -321,9 +322,10 @@ const MortgageSimulator = () => {
             <label className="text-xs font-medium text-muted-foreground">Taxa de juro anual (%)</label>
             <input
               type="number"
+              inputMode="decimal"
               step="0.01"
-              value={annualRate}
-              onChange={(e) => setAnnualRate(Math.max(0, Number(e.target.value)))}
+              value={annualRate === 0 ? "" : annualRate}
+              onChange={(e) => setAnnualRate(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
               className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
             />
           </div>
@@ -331,8 +333,9 @@ const MortgageSimulator = () => {
             <label className="text-xs font-medium text-muted-foreground">Prazo (anos)</label>
             <input
               type="number"
-              value={termYears}
-              onChange={(e) => setTermYears(Math.max(1, Math.min(50, Number(e.target.value))))}
+              inputMode="numeric"
+              value={termYears === 0 ? "" : termYears}
+              onChange={(e) => setTermYears(e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))))}
               className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
             />
           </div>
@@ -340,8 +343,9 @@ const MortgageSimulator = () => {
             <label className="text-xs font-medium text-muted-foreground">Rendimento mensal (€) <span className="opacity-60">opcional</span></label>
             <input
               type="number"
-              value={monthlyIncome}
-              onChange={(e) => setMonthlyIncome(Math.max(0, Number(e.target.value)))}
+              inputMode="decimal"
+              value={monthlyIncome === 0 ? "" : monthlyIncome}
+              onChange={(e) => setMonthlyIncome(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
               className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
             />
           </div>
@@ -349,8 +353,9 @@ const MortgageSimulator = () => {
             <label className="text-xs font-medium text-muted-foreground">Custos mensais extra (€) <span className="opacity-60">seguros, condomínio…</span></label>
             <input
               type="number"
-              value={extraMonthlyCosts}
-              onChange={(e) => setExtraMonthlyCosts(Math.max(0, Number(e.target.value)))}
+              inputMode="decimal"
+              value={extraMonthlyCosts === 0 ? "" : extraMonthlyCosts}
+              onChange={(e) => setExtraMonthlyCosts(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
               className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
             />
           </div>
@@ -360,8 +365,9 @@ const MortgageSimulator = () => {
             </label>
             <input
               type="number"
-              value={extraPayment}
-              onChange={(e) => setExtraPayment(Math.max(0, Number(e.target.value)))}
+              inputMode="decimal"
+              value={extraPayment === 0 ? "" : extraPayment}
+              onChange={(e) => setExtraPayment(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
               className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
             />
           </div>
