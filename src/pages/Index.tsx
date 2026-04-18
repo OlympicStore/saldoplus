@@ -294,10 +294,16 @@ const Index = () => {
               </Popover>
             )}
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none">
-                <span className="text-foreground">Saldo</span>
-                <span className="text-primary text-3xl sm:text-4xl font-black leading-none">+</span>
-              </h1>
+              <button
+                onClick={() => handleTabChange("dashboard")}
+                className="focus:outline-none focus:ring-2 focus:ring-primary rounded"
+                aria-label="Ir para a Home"
+              >
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none cursor-pointer hover:opacity-90 transition-opacity">
+                  <span className="text-foreground">Saldo</span>
+                  <span className="text-primary text-3xl sm:text-4xl font-black leading-none">+</span>
+                </h1>
+              </button>
               {partnerBranding?.consultant_name && (
                 <p className="text-[10px] text-text-muted leading-tight mt-0.5">
                   {partnerBranding.consultant_name} · {partnerBranding.name}
