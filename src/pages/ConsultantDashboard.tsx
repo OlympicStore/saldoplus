@@ -401,7 +401,60 @@ const ConsultantDashboard = () => {
               )}
             </div>
           </div>
-        </div>
+
+          {editingProfile && consultant.photo_url && (
+            <div className="mt-5 pt-5 border-t border-border-subtle/60">
+              <p className="label-caps mb-3">Enquadramento da foto</p>
+              <div className="flex items-start gap-4">
+                <div className="grid grid-cols-3 gap-1.5 w-fit">
+                  {[
+                    { pos: "left top", label: "↖" },
+                    { pos: "center top", label: "↑" },
+                    { pos: "right top", label: "↗" },
+                    { pos: "left center", label: "←" },
+                    { pos: "center center", label: "•" },
+                    { pos: "right center", label: "→" },
+                    { pos: "left bottom", label: "↙" },
+                    { pos: "center bottom", label: "↓" },
+                    { pos: "right bottom", label: "↘" },
+                  ].map(({ pos, label }) => {
+                    const current = consultant.photo_position || "center center";
+                    const isActive = current === pos || (pos === "center center" && current === "center");
+                    return (
+                      <button
+                        key={pos}
+                        type="button"
+                        onClick={async () => {
+                          await supabase.from("partner_consultants").update({ photo_position: pos }).eq("id", consultant.id);
+                          setConsultant({ ...consultant, photo_position: pos });
+                          toast.success("Enquadramento atualizado");
+                        }}
+                        className={`w-8 h-8 rounded-md text-xs font-medium border transition-colors ${
+                          isActive
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-text-muted border-border-subtle hover:bg-surface-hover hover:text-foreground"
+                        }`}
+                        aria-label={`Posição ${pos}`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-text-muted mb-2">Pré-visualização</p>
+                  <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-border-subtle">
+                    <img
+                      src={consultant.photo_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      style={{ objectPosition: consultant.photo_position || "center" }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         {/* Stats + Chart */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
