@@ -738,14 +738,17 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
           )}
         </div>
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-1 block">Custo total do crédito</span>
+          <span className="label-caps mb-1 block">Total a pagar ao banco</span>
           <p className="text-xl font-semibold text-foreground font-mono tabular-nums">
             {totalCredit > 0 ? fmt(totalCredit) : "—"}
           </p>
-          {totalInterest > 0 && (
-            <p className="text-[11px] text-status-negative mt-1">
-              Juros: <span className="font-mono font-semibold">{fmt(totalInterest)}</span>
+          {totalInterest > 0 ? (
+            <p className="text-[11px] text-text-muted mt-1">
+              <span className="font-mono">{fmt(loanAmount)}</span> financiados +{" "}
+              <span className="text-status-negative font-mono font-semibold">{fmt(totalInterest)}</span> juros
             </p>
+          ) : (
+            <p className="text-[11px] text-text-muted mt-1">prestação × meses</p>
           )}
         </div>
       </div>
