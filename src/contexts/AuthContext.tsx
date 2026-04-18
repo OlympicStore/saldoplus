@@ -92,24 +92,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (!partner) return null;
 
-    // Get consultant from the user's accepted invite
+    // Get consultant from the user's invite (prefer linked consultant record, fallback to legacy fields)
     const { data: invite } = await supabase
       .from("partner_invites")
-      .select("consultant_name, consultant_phone, consultant_email, consultant_photo_url, consultant_photo_position")
+      .select("consultant_id, consultant_name, consultant_phone, consultant_email, consultant_photo_url, consultant_photo_position")
       .eq("email", prof.email)
       .eq("partner_id", prof.partner_id)
-      .eq("status", "accepted")
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
+
+    let cName = (invite as any)?.consultant_name ?? null;
+    let cPhone = (invite as any)?.consultant_phone ?? null;
+    let cEmail = (invite as any)?.consultant_email ?? null;
+    let cPhoto = (invite as any)?.consultant_photo_url ?? null;
+    let cPos = (invite as any)?.consultant_photo_position ?? "center";
+
+    if ((invite as any)?.consultant_id) {
+      const { data: c } = await supabase
+        .from("partner_consultants")
+        .select("name, phone, email, photo_url, photo_position")
+        .eq("id", (invite as any).consultant_id)
+        .maybeSingle();
+      if (c) {
+        cName = c.name;
+        cPhone = c.phone;
+        cEmail = c.email;
+        cPhoto = c.photo_url;
+        cPos = c.photo_position || "center";
+      }
+    }
 
     return {
       name: partner.name,
       brand_color: partner.brand_color,
       brand_logo_url: partner.brand_logo_url,
-      consultant_name: (invite as any)?.consultant_name ?? null,
-      consultant_phone: (invite as any)?.consultant_phone ?? null,
-      consultant_email: (invite as any)?.consultant_email ?? null,
-      consultant_photo_url: (invite as any)?.consultant_photo_url ?? null,
-      consultant_photo_position: (invite as any)?.consultant_photo_position ?? "center",
+      consultant_name: cName,
+      consultant_phone: cPhone,
+      consultant_email: cEmail,
+      consultant_photo_url: cPhoto,
+      consultant_photo_position: cPos,
     };
   }, []);
 
