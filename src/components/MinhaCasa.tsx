@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, Download, History, BellRing } from "lucide-react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, Download, History, BellRing, Calculator } from "lucide-react";
+import MortgageSimulator from "./MortgageSimulator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -45,7 +46,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [stressExtra, setStressExtra] = useState(0);
-  const [activeSection, setActiveSection] = useState<"esforco" | "progresso">("esforco");
+  const [activeSection, setActiveSection] = useState<"esforco" | "progresso" | "simulador">("esforco");
   const [selectedCalendarYear, setSelectedCalendarYear] = useState(new Date().getFullYear());
   const [newExpenseName, setNewExpenseName] = useState("");
   const [newExpenseValue, setNewExpenseValue] = useState("");
@@ -458,11 +459,11 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         </div>
       </div>
 
-      {/* Section toggle: Esforço vs Progresso */}
-      <div className="flex gap-2">
+      {/* Section toggle */}
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setActiveSection("esforco")}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all ${
             activeSection === "esforco" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
           }`}
         >
@@ -470,13 +471,23 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         </button>
         <button
           onClick={() => setActiveSection("progresso")}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all ${
             activeSection === "progresso" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
           }`}
         >
           🏠 Progresso da Casa
         </button>
+        <button
+          onClick={() => setActiveSection("simulador")}
+          className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+            activeSection === "simulador" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
+          }`}
+        >
+          <Calculator className="h-4 w-4" /> Simulador de Crédito
+        </button>
       </div>
+
+      {activeSection === "simulador" && <MortgageSimulator />}
 
       {activeSection === "esforco" && (
         <>

@@ -21,6 +21,7 @@ Planos: Essencial, Casa, Pro com feature gating.
 - [Metas financeiras](mem://features/metas-financeiras) — Goals with accounts
 - [Project identity](mem://project/identity) — App name: Dashboard Financeiro
 - [Auth & Plans](mem://features/auth-plans) — Email+Google auth, 3 plans, groups, feature gating
+- [Mortgage simulator](mem://features/mortgage-simulator) — Simulador crédito habitação (plano imobiliaria) dentro da Minha Casa
 - [Casa Segura+](mem://features/casa-segura-plus) — Plano imobiliária B2B, MinhaCasa, branding parceiro
 - [Consultants](mem://features/consultants) — Perfis de consultor com dashboard, criados pela imobiliária
 - [App restructure](mem://features/app-restructure) — Despesas F/I/N (Fixas, Inevitáveis, Não-essenciais)
