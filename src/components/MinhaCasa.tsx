@@ -719,7 +719,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <span className="label-caps mb-1 block">Total habitação/mês</span>
           <p className="text-xl font-semibold text-foreground font-mono tabular-nums">{fmt(totalHousing)}</p>
@@ -733,8 +733,56 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <span className="label-caps mb-1 block">Valor da casa</span>
           <p className="text-xl font-semibold text-foreground font-mono tabular-nums">{fmt(data.house_value)}</p>
+          {loanAmount > 0 && (
+            <p className="text-[11px] text-text-muted mt-1">Financiado: <span className="font-mono">{fmt(loanAmount)}</span></p>
+          )}
+        </div>
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+          <span className="label-caps mb-1 block">Custo total do crédito</span>
+          <p className="text-xl font-semibold text-foreground font-mono tabular-nums">
+            {totalCredit > 0 ? fmt(totalCredit) : "—"}
+          </p>
+          {totalInterest > 0 && (
+            <p className="text-[11px] text-status-negative mt-1">
+              Juros: <span className="font-mono font-semibold">{fmt(totalInterest)}</span>
+            </p>
+          )}
         </div>
       </div>
+
+      {/* Real cost summary banner */}
+      {totalCredit > 0 && loanAmount > 0 && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Calculator className="h-4 w-4 text-primary" /> Quanto vai pagar realmente pela casa
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div className="bg-surface rounded-lg p-3 border border-border-subtle/60">
+              <span className="text-text-muted text-xs block mb-0.5">Preço da casa</span>
+              <span className="font-semibold text-foreground font-mono">{fmt(data.house_value)}</span>
+            </div>
+            <div className="bg-surface rounded-lg p-3 border border-border-subtle/60">
+              <span className="text-text-muted text-xs block mb-0.5">Entrada</span>
+              <span className="font-semibold text-foreground font-mono">{fmt(data.down_payment)}</span>
+            </div>
+            <div className="bg-status-negative/10 rounded-lg p-3 border border-status-negative/20">
+              <span className="text-text-muted text-xs block mb-0.5">Juros pagos ao banco</span>
+              <span className="font-semibold text-status-negative font-mono">{fmt(totalInterest)}</span>
+            </div>
+            <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+              <span className="text-text-muted text-xs block mb-0.5">Custo total real</span>
+              <span className="font-semibold text-primary font-mono">{fmt(totalCostOfHouse)}</span>
+            </div>
+          </div>
+          <p className="text-xs text-text-muted mt-3">
+            Pela casa de <span className="font-mono font-semibold text-foreground">{fmt(data.house_value)}</span> vai pagar no total{" "}
+            <span className="font-mono font-semibold text-foreground">{fmt(totalCostOfHouse)}</span> ao longo de {data.term_years} anos
+            {totalInterest > 0 && (
+              <> — <span className="text-status-negative font-semibold">{fmt(totalInterest)}</span> só de juros 💸</>
+            )}.
+          </p>
+        </div>
+      )}
 
       {/* Payment history */}
       {paymentHistory.length > 0 && (
