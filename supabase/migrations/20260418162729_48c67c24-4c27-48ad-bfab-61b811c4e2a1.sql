@@ -1,0 +1,3 @@
+ALTER TABLE public.house_data
+ADD COLUMN IF NOT EXISTS annual_rate numeric NOT NULL DEFAULT 0,
+ADD COLUMN IF NOT EXISTS term_years integer NOT NULL DEFAULT 30;
