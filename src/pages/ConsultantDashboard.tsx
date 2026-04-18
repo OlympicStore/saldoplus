@@ -455,6 +455,7 @@ const ConsultantDashboard = () => {
               </div>
             </div>
           )}
+        </div>
 
         {/* Stats + Chart */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
