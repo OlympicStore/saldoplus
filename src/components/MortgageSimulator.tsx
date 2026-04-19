@@ -868,9 +868,94 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
 
       {/* TABELA AMORTIZAÇÃO ANUAL */}
       {yearlyTable.length > 0 && (
-        <div className="rounded-xl border border-border-subtle/60 bg-card p-5">
+        <div className="rounded-xl border border-border-subtle/60 bg-card p-4 sm:p-5">
           <h3 className="font-semibold mb-3">Tabela de Amortização</h3>
-          <div className="overflow-x-auto">
+
+          {/* MOBILE: cards expansíveis */}
+          <div className="md:hidden space-y-2">
+            {yearlyTable.map((y) => {
+              const isOpen = expandedYear === y.year;
+              const principalPct = y.totalPayment > 0 ? (y.totalPrincipal / y.totalPayment) * 100 : 0;
+              return (
+                <div
+                  key={y.year}
+                  className="rounded-xl border border-border-subtle/60 bg-background overflow-hidden"
+                >
+                  <button
+                    onClick={() => setExpandedYear(isOpen ? null : y.year)}
+                    className="w-full p-3 flex items-center gap-3 hover:bg-surface-hover/40 transition-colors"
+                  >
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                      {y.year}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Ano {y.year}</span>
+                        <span className="text-xs font-mono tabular-nums text-muted-foreground">
+                          dívida: <span className="text-foreground font-semibold">{fmt(y.endBalance)}</span>
+                        </span>
+                      </div>
+                      <div className="mt-1.5 h-1.5 w-full rounded-full bg-destructive/20 overflow-hidden">
+                        <div
+                          className="h-full bg-success rounded-full transition-all"
+                          style={{ width: `${principalPct}%` }}
+                        />
+                      </div>
+                    </div>
+                    {isOpen ? (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
+                  </button>
+
+                  <div className="px-3 pb-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-lg bg-muted/40 p-2">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Pago</p>
+                      <p className="text-xs font-bold font-mono tabular-nums">{fmt(y.totalPayment)}</p>
+                    </div>
+                    <div className="rounded-lg bg-destructive/5 p-2">
+                      <p className="text-[10px] uppercase tracking-wide text-destructive/80">Juros</p>
+                      <p className="text-xs font-bold font-mono tabular-nums text-destructive">{fmt(y.totalInterest)}</p>
+                    </div>
+                    <div className="rounded-lg bg-success/5 p-2">
+                      <p className="text-[10px] uppercase tracking-wide text-success/80">Capital</p>
+                      <p className="text-xs font-bold font-mono tabular-nums text-success">{fmt(y.totalPrincipal)}</p>
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <div className="border-t border-border-subtle/60 bg-muted/20 p-2 space-y-1">
+                      <div className="grid grid-cols-4 gap-1 px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        <span>Mês</span>
+                        <span className="text-right">Pago</span>
+                        <span className="text-right">Juros</span>
+                        <span className="text-right">Capital</span>
+                      </div>
+                      {y.rows.map((r, idx) => (
+                        <div
+                          key={idx}
+                          className="grid grid-cols-4 gap-1 px-2 py-1.5 rounded-md bg-background text-[11px] font-mono tabular-nums"
+                        >
+                          <span className="font-semibold text-muted-foreground">{MONTH_NAMES_SHORT[r.month - 1]}</span>
+                          <span className="text-right">{fmt2(r.payment)}</span>
+                          <span className="text-right text-destructive">{fmt2(r.interest)}</span>
+                          <span className="text-right text-success">{fmt2(r.principal)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div className="flex items-center gap-3 text-[10px] text-muted-foreground pt-1">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-success" /> Capital</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-destructive/40" /> Juros</span>
+            </div>
+          </div>
+
+          {/* DESKTOP: tabela */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-subtle text-left text-xs text-muted-foreground">
