@@ -741,39 +741,54 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           created_at: string
+          data_deleted_at: string | null
           email: string
           full_name: string | null
+          grace_period_ends_at: string | null
           id: string
           partner_id: string | null
           plan: string
           plan_expires_at: string | null
           plan_source: string
           plan_started_at: string | null
+          trial_ends_at: string | null
+          trial_started_at: string | null
           updated_at: string
         }
         Insert: {
+          account_status?: string
           created_at?: string
+          data_deleted_at?: string | null
           email: string
           full_name?: string | null
+          grace_period_ends_at?: string | null
           id: string
           partner_id?: string | null
           plan?: string
           plan_expires_at?: string | null
           plan_source?: string
           plan_started_at?: string | null
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
         }
         Update: {
+          account_status?: string
           created_at?: string
+          data_deleted_at?: string | null
           email?: string
           full_name?: string | null
+          grace_period_ends_at?: string | null
           id?: string
           partner_id?: string | null
           plan?: string
           plan_expires_at?: string | null
           plan_source?: string
           plan_started_at?: string | null
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -961,6 +976,27 @@ export type Database = {
           },
         ]
       }
+      trial_history: {
+        Row: {
+          created_at: string
+          email: string
+          first_trial_at: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_trial_at?: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_trial_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1096,6 +1132,11 @@ export type Database = {
         Args: { _group_id: string; _invite_code: string }
         Returns: boolean
       }
+      restore_user_after_subscription: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
+      soft_delete_user_data: { Args: { _user_id: string }; Returns: undefined }
       verify_invite_code: {
         Args: { _group_id: string; _invite_code: string }
         Returns: boolean
