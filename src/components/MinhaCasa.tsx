@@ -568,6 +568,45 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
 
       {activeSection === "progresso" && (
         <>
+          {/* Prestação atual em destaque */}
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-text-muted uppercase tracking-wide">Prestação mensal</p>
+                <p className="text-2xl font-bold text-foreground font-mono tabular-nums">{fmt(data.monthly_payment)}</p>
+              </div>
+              <button
+                onClick={() => togglePaymentStatus(statusKey)}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  currentStatus === "pago"
+                    ? "bg-status-paid/15 text-status-paid hover:bg-status-paid/25"
+                    : "bg-yellow-500/15 text-yellow-700 hover:bg-yellow-500/25"
+                }`}
+              >
+                {currentStatus === "pago" ? "✅ Paga" : "⏳ Pendente"} · {MONTH_NAMES[currentMonth]}
+              </button>
+            </div>
+            {data.rate_type && (
+              <p className="text-xs text-text-muted">
+                Taxa: <span className="font-semibold text-foreground capitalize">
+                  {data.rate_type === "fixed" ? "Fixa" : data.rate_type === "variable" ? "Variável" : "Mista"}
+                </span>
+                {data.rate_type === "fixed" && data.annual_rate > 0 && (
+                  <> · <span className="font-mono">{data.annual_rate.toFixed(3)}%</span></>
+                )}
+                {data.rate_type === "variable" && (data.indexante > 0 || data.spread > 0) && (
+                  <> · <span className="font-mono">{(data.indexante + data.spread).toFixed(3)}%</span> (Indexante {data.indexante.toFixed(3)}% + Spread {data.spread.toFixed(3)}%)</>
+                )}
+                {data.rate_type === "mixed" && (
+                  <> · <span className="font-mono">{data.fixed_rate_initial.toFixed(3)}%</span> fixa por {data.fixed_period_years} anos, depois <span className="font-mono">{(data.indexante + data.spread).toFixed(3)}%</span></>
+                )}
+              </p>
+            )}
+          </div>
+
           {/* House progress */}
           <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
             <div className="flex items-center gap-3 mb-4">
