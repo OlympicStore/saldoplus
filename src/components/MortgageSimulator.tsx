@@ -157,6 +157,11 @@ interface CurrentCredit {
   term_years: number;
   monthly_payment: number;
   monthly_payment_status: Record<string, string>;
+  rate_type: RateType;
+  indexante: number;
+  spread: number;
+  fixed_period_years: number;
+  fixed_rate_initial: number;
 }
 
 const MONTH_NAMES_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
@@ -188,6 +193,11 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     term_years: 30,
     monthly_payment: 0,
     monthly_payment_status: {},
+    rate_type: "fixed",
+    indexante: 0,
+    spread: 0,
+    fixed_period_years: 0,
+    fixed_rate_initial: 0,
   });
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
@@ -241,18 +251,24 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     setLoadingCurrent(true);
     const { data } = await supabase
       .from("house_data")
-      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment, monthly_payment_status")
+      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment, monthly_payment_status, rate_type, indexante, spread, fixed_period_years, fixed_rate_initial")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
       const loan = Math.max(0, Number(data.house_value || 0) - Number(data.down_payment || 0));
+      const d = data as any;
       setCurrent({
         id: data.id,
         loan_amount: loan,
         annual_rate: Number(data.annual_rate || 0),
         term_years: Number(data.term_years || 30),
         monthly_payment: Number(data.monthly_payment || 0),
-        monthly_payment_status: ((data as any).monthly_payment_status as Record<string, string>) || {},
+        monthly_payment_status: (d.monthly_payment_status as Record<string, string>) || {},
+        rate_type: (d.rate_type as RateType) || "fixed",
+        indexante: Number(d.indexante || 0),
+        spread: Number(d.spread || 0),
+        fixed_period_years: Number(d.fixed_period_years || 0),
+        fixed_rate_initial: Number(d.fixed_rate_initial || 0),
       });
     }
     setLoadingCurrent(false);
@@ -288,15 +304,30 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     if (!error && data) setSavedSims(data as unknown as Simulation[]);
   };
 
+  // Resolve "taxa de partida" used for headline payment & summaries
+  const currentVariableRate = current.indexante + current.spread;
+  const currentEffectiveStartRate =
+    current.rate_type === "fixed"
+      ? current.annual_rate
+      : current.rate_type === "variable"
+      ? currentVariableRate
+      : current.fixed_rate_initial;
+
   const handleSaveCurrent = async () => {
     if (!user) return;
     setSavingCurrent(true);
     try {
-      const computedPayment = calcPMT(current.loan_amount, current.annual_rate, current.term_years);
-      const payload = {
-        annual_rate: current.annual_rate,
+      const computedPayment = calcPMT(current.loan_amount, currentEffectiveStartRate, current.term_years);
+      const payload: any = {
+        annual_rate:
+          current.rate_type === "fixed" ? current.annual_rate : currentEffectiveStartRate,
         term_years: current.term_years,
         monthly_payment: computedPayment,
+        rate_type: current.rate_type,
+        indexante: current.indexante,
+        spread: current.spread,
+        fixed_period_years: current.fixed_period_years,
+        fixed_rate_initial: current.fixed_rate_initial,
       };
       if (current.id) {
         const { error } = await supabase.from("house_data").update(payload).eq("id", current.id);
@@ -320,23 +351,34 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     }
   };
 
-  // === CÁLCULOS CRÉDITO ATUAL (sempre taxa fixa — é o que está em house_data) ===
+  // === CÁLCULOS CRÉDITO ATUAL (respeita o tipo de taxa) ===
   const currentSchedule = useMemo(
     () =>
       buildSchedule({
         principal: current.loan_amount,
         termYears: current.term_years,
-        rateType: "fixed",
-        fixedRate: current.annual_rate,
-        fixedPeriodYears: 0,
-        variableRate: 0,
+        rateType: current.rate_type,
+        fixedRate:
+          current.rate_type === "mixed" ? current.fixed_rate_initial : current.annual_rate,
+        fixedPeriodYears: current.fixed_period_years,
+        variableRate: currentVariableRate,
         extraPayment: 0,
       }),
-    [current.loan_amount, current.annual_rate, current.term_years]
+    [
+      current.loan_amount,
+      current.annual_rate,
+      current.term_years,
+      current.rate_type,
+      current.indexante,
+      current.spread,
+      current.fixed_period_years,
+      current.fixed_rate_initial,
+      currentVariableRate,
+    ]
   );
   const currentPayment = useMemo(
-    () => calcPMT(current.loan_amount, current.annual_rate, current.term_years),
-    [current.loan_amount, current.annual_rate, current.term_years]
+    () => calcPMT(current.loan_amount, currentEffectiveStartRate, current.term_years),
+    [current.loan_amount, currentEffectiveStartRate, current.term_years]
   );
   const currentTotalCost = currentSchedule.reduce((s, r) => s + r.payment, 0);
   const currentTotalInterest = Math.max(0, currentTotalCost - current.loan_amount);
@@ -957,30 +999,181 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                     placeholder="Ex: 120000"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className={labelCls}>Taxa anual (%)</label>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      step="0.01"
-                      value={current.annual_rate === 0 ? "" : current.annual_rate}
-                      onChange={(e) => setCurrent((p) => ({ ...p, annual_rate: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
-                      className={inputCls}
-                      placeholder="Ex: 3.5"
-                    />
-                  </div>
-                  <div>
-                    <label className={labelCls}>Prazo (anos)</label>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      value={current.term_years === 0 ? "" : current.term_years}
-                      onChange={(e) => setCurrent((p) => ({ ...p, term_years: e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))) }))}
-                      className={inputCls}
-                    />
+
+                {/* Tipo de taxa */}
+                <div>
+                  <label className={labelCls}>Tipo de taxa</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(["fixed","variable","mixed"] as RateType[]).map((rt) => {
+                      const lbl = rt === "fixed" ? "Fixa" : rt === "variable" ? "Variável" : "Mista";
+                      const active = current.rate_type === rt;
+                      return (
+                        <button
+                          key={rt}
+                          type="button"
+                          onClick={() => setCurrent((p) => ({ ...p, rate_type: rt }))}
+                          className={`rounded-md px-2 py-1.5 text-xs font-medium border transition-colors ${
+                            active
+                              ? "bg-blue-500 text-white border-blue-500"
+                              : "bg-card border-border-subtle/60 text-foreground hover:bg-surface-hover"
+                          }`}
+                        >
+                          {lbl}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
+
+                {/* Campos condicionais ao tipo de taxa */}
+                {current.rate_type === "fixed" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelCls}>Taxa anual (%)</label>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.01"
+                        value={current.annual_rate === 0 ? "" : current.annual_rate}
+                        onChange={(e) => setCurrent((p) => ({ ...p, annual_rate: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                        className={inputCls}
+                        placeholder="Ex: 3.5"
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Prazo (anos)</label>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={current.term_years === 0 ? "" : current.term_years}
+                        onChange={(e) => setCurrent((p) => ({ ...p, term_years: e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))) }))}
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {current.rate_type === "variable" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Indexante (%)</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.001"
+                          value={current.indexante === 0 ? "" : current.indexante}
+                          onChange={(e) => setCurrent((p) => ({ ...p, indexante: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                          className={inputCls}
+                          placeholder="Ex: 2.5"
+                        />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Spread (%)</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.001"
+                          value={current.spread === 0 ? "" : current.spread}
+                          onChange={(e) => setCurrent((p) => ({ ...p, spread: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                          className={inputCls}
+                          placeholder="Ex: 1.0"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Taxa atual (%)</label>
+                        <input
+                          type="number"
+                          value={currentVariableRate.toFixed(3)}
+                          readOnly
+                          className={`${inputCls} bg-muted/50 cursor-not-allowed`}
+                        />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Prazo (anos)</label>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={current.term_years === 0 ? "" : current.term_years}
+                          onChange={(e) => setCurrent((p) => ({ ...p, term_years: e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))) }))}
+                          className={inputCls}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {current.rate_type === "mixed" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Taxa fixa inicial (%)</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.01"
+                          value={current.fixed_rate_initial === 0 ? "" : current.fixed_rate_initial}
+                          onChange={(e) => setCurrent((p) => ({ ...p, fixed_rate_initial: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                          className={inputCls}
+                          placeholder="Ex: 3.0"
+                        />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Anos da fase fixa</label>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={current.fixed_period_years === 0 ? "" : current.fixed_period_years}
+                          onChange={(e) => setCurrent((p) => ({ ...p, fixed_period_years: e.target.value === "" ? 0 : Math.max(0, Math.min(current.term_years, Number(e.target.value))) }))}
+                          className={inputCls}
+                          placeholder="Ex: 5"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Indexante (%)</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.001"
+                          value={current.indexante === 0 ? "" : current.indexante}
+                          onChange={(e) => setCurrent((p) => ({ ...p, indexante: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                          className={inputCls}
+                          placeholder="Ex: 2.5"
+                        />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Spread (%)</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.001"
+                          value={current.spread === 0 ? "" : current.spread}
+                          onChange={(e) => setCurrent((p) => ({ ...p, spread: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                          className={inputCls}
+                          placeholder="Ex: 1.0"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelCls}>Prazo total (anos)</label>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={current.term_years === 0 ? "" : current.term_years}
+                        onChange={(e) => setCurrent((p) => ({ ...p, term_years: e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))) }))}
+                        className={inputCls}
+                      />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Fase 1: <strong>{current.fixed_rate_initial.toFixed(2)}%</strong> durante {current.fixed_period_years} anos.
+                      Fase 2: <strong>{currentVariableRate.toFixed(3)}%</strong> (indexante + spread) nos restantes {Math.max(0, current.term_years - current.fixed_period_years)} anos.
+                    </p>
+                  </>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-2 pt-2">
