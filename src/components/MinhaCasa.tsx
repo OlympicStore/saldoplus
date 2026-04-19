@@ -76,35 +76,37 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     return true;
   };
 
+  const reloadHouseData = async () => {
+    if (!user) return;
+    const [houseRes, historyRes] = await Promise.all([
+      supabase.from("house_data").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("payment_history").select("*").eq("user_id", user.id).order("changed_at", { ascending: false }).limit(20),
+    ]);
+    if (houseRes.data) {
+      const row = houseRes.data;
+      const payment = Number(row.monthly_payment) || 0;
+      setData({
+        id: row.id,
+        house_value: Number(row.house_value) || 0,
+        monthly_payment: payment,
+        monthly_income: Number(row.monthly_income) || 0,
+        down_payment: Number((row as any).down_payment) || 0,
+        annual_rate: Number((row as any).annual_rate) || 0,
+        term_years: Number((row as any).term_years) || 30,
+        extra_expenses: ((row as any).extra_expenses as ExtraExpense[]) || [],
+        monthly_payment_status: (row as any).monthly_payment_status || {},
+      });
+      setPreviousPayment(payment);
+    }
+    if (historyRes.data) {
+      setPaymentHistory(historyRes.data as PaymentHistoryEntry[]);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      const [houseRes, historyRes] = await Promise.all([
-        supabase.from("house_data").select("*").eq("user_id", user.id).maybeSingle(),
-        supabase.from("payment_history").select("*").eq("user_id", user.id).order("changed_at", { ascending: false }).limit(20),
-      ]);
-      if (houseRes.data) {
-        const row = houseRes.data;
-        const payment = Number(row.monthly_payment) || 0;
-        setData({
-          id: row.id,
-          house_value: Number(row.house_value) || 0,
-          monthly_payment: payment,
-          monthly_income: Number(row.monthly_income) || 0,
-          down_payment: Number((row as any).down_payment) || 0,
-          annual_rate: Number((row as any).annual_rate) || 0,
-          term_years: Number((row as any).term_years) || 30,
-          extra_expenses: ((row as any).extra_expenses as ExtraExpense[]) || [],
-          monthly_payment_status: (row as any).monthly_payment_status || {},
-        });
-        setPreviousPayment(payment);
-      }
-      if (historyRes.data) {
-        setPaymentHistory(historyRes.data as PaymentHistoryEntry[]);
-      }
-      setLoading(false);
-    };
-    load();
+    reloadHouseData();
   }, [user]);
 
   // Sync fixed expense + extra expenses to fixed_expenses table
@@ -504,7 +506,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         </button>
       </div>
 
-      {activeSection === "simulador" && <MortgageSimulator />}
+      {activeSection === "simulador" && <MortgageSimulator onSavedCurrent={reloadHouseData} />}
 
       {activeSection === "esforco" && (
         <>
