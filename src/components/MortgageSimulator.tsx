@@ -656,14 +656,6 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
               atual: {fmt(currentTotalInterest)}
             </p>
           )}
-        <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground"><AlertCircle className="h-3.5 w-3.5" />Juros totais</div>
-          <p className="mt-1 text-xl font-bold font-mono tabular-nums text-destructive">{fmt(totalInterest)}</p>
-          {currentTotalInterest > 0 && (
-            <p className={`text-[11px] font-mono mt-0.5 ${interestDelta < 0 ? "text-success" : interestDelta > 0 ? "text-destructive" : "text-muted-foreground"}`}>
-              {interestDelta > 0 ? "+" : ""}{fmt(interestDelta)} vs atual
-            </p>
-          )}
         </div>
         <div className={`rounded-xl border border-border-subtle/60 p-4 ${effortStatus.bg}`}>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">{effortStatus.emoji} Taxa esforço</div>
