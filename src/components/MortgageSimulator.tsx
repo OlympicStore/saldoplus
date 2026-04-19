@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   PiggyBank,
   Loader2,
@@ -109,7 +110,11 @@ interface CurrentCredit {
   annual_rate: number;
   term_years: number;
   monthly_payment: number;
+  monthly_payment_status: Record<string, string>;
 }
+
+const MONTH_NAMES_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MONTH_NAMES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<void> | void }) => {
   const { user } = useAuth();
@@ -120,9 +125,11 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     annual_rate: 0,
     term_years: 30,
     monthly_payment: 0,
+    monthly_payment_status: {},
   });
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
 
   // === SIMULAÇÃO LIVRE ===
   const [loanAmount, setLoanAmount] = useState(150000);
@@ -148,7 +155,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     setLoadingCurrent(true);
     const { data } = await supabase
       .from("house_data")
-      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment")
+      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment, monthly_payment_status")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
@@ -159,9 +166,30 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         annual_rate: Number(data.annual_rate || 0),
         term_years: Number(data.term_years || 30),
         monthly_payment: Number(data.monthly_payment || 0),
+        monthly_payment_status: ((data as any).monthly_payment_status as Record<string, string>) || {},
       });
     }
     setLoadingCurrent(false);
+  };
+
+  const togglePaymentStatus = async (year: number, month: number) => {
+    if (!user || !current.id) {
+      toast.error("Guarde primeiro o crédito atual");
+      return;
+    }
+    const key = `${year}-${month}`;
+    const next = current.monthly_payment_status[key] === "pago" ? "pendente" : "pago";
+    const newStatus = { ...current.monthly_payment_status, [key]: next };
+    setCurrent((p) => ({ ...p, monthly_payment_status: newStatus }));
+    const { error } = await supabase
+      .from("house_data")
+      .update({ monthly_payment_status: newStatus as any })
+      .eq("id", current.id);
+    if (error) {
+      toast.error("Erro ao atualizar");
+    } else {
+      if (onSavedCurrent) await onSavedCurrent();
+    }
   };
 
   const loadSimulations = async () => {
@@ -391,6 +419,78 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
           </div>
         </div>
       </div>
+
+      {/* PRESTAÇÃO ATUAL — estado de pagamento */}
+      {!loadingCurrent && current.loan_amount > 0 && (
+        <div className="rounded-xl border border-border-subtle/60 bg-card p-5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+                Prestação atual de {MONTH_NAMES_FULL[new Date().getMonth()]} {new Date().getFullYear()}
+              </p>
+              <p className="text-xl font-semibold font-mono tabular-nums">{fmt2(current.monthly_payment)}</p>
+            </div>
+            {(() => {
+              const todayKey = `${new Date().getFullYear()}-${new Date().getMonth()}`;
+              const isPaid = current.monthly_payment_status[todayKey] === "pago";
+              return (
+                <button
+                  onClick={() => togglePaymentStatus(new Date().getFullYear(), new Date().getMonth())}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                    isPaid
+                      ? "bg-success/10 text-success border-success/20"
+                      : "bg-warning/10 text-warning-foreground border-warning/20 text-yellow-600"
+                  }`}
+                >
+                  {isPaid ? "✅ Paga" : "⏳ Pendente"}
+                </button>
+              );
+            })()}
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <button
+                onClick={() => setCalendarYear((y) => y - 1)}
+                className="p-1 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="text-sm font-semibold min-w-[3rem] text-center">{calendarYear}</span>
+              <button
+                onClick={() => setCalendarYear((y) => y + 1)}
+                className="p-1 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-foreground"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex gap-1.5">
+              {MONTH_NAMES_SHORT.map((name, i) => {
+                const key = `${calendarYear}-${i}`;
+                const st = current.monthly_payment_status[key];
+                const isPast = calendarYear < new Date().getFullYear() ||
+                  (calendarYear === new Date().getFullYear() && i <= new Date().getMonth());
+                return (
+                  <button
+                    key={i}
+                    onClick={() => togglePaymentStatus(calendarYear, i)}
+                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                      st === "pago"
+                        ? "bg-success/15 text-success"
+                        : isPast
+                        ? "bg-warning/10 text-yellow-600"
+                        : "bg-secondary text-muted-foreground"
+                    }`}
+                    title={`${name} — ${st === "pago" ? "Paga" : "Pendente"}`}
+                  >
+                    {name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DUAS COLUNAS: ATUAL vs SIMULAÇÃO */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -623,6 +723,21 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                   <FileText className="h-4 w-4" />
                 </button>
               </div>
+
+              {/* INSIGHTS — dentro da simulação */}
+              {insights.length > 0 && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <PiggyBank className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-semibold">Insights da simulação</h4>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {insights.map((ins, i) => (
+                      <li key={i} className="text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: ins.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
+                    ))}
+                  </ul>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -750,20 +865,6 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         </div>
       </div>
 
-      {/* INSIGHTS */}
-      {insights.length > 0 && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <PiggyBank className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Insights</h3>
-          </div>
-          <ul className="space-y-2">
-            {insights.map((ins, i) => (
-              <li key={i} className="text-sm" dangerouslySetInnerHTML={{ __html: ins.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* TABELA AMORTIZAÇÃO ANUAL */}
       {yearlyTable.length > 0 && (

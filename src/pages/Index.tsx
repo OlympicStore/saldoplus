@@ -231,7 +231,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <PartnerOnboarding />
-      <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange} />
+      <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange} plan={userPlan} />
       <ExpirationBanner />
       <header className="border-b border-border-subtle/60 bg-surface">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">

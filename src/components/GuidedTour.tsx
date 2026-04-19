@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, ArrowLeft, Home, Wallet, ArrowDownCircle, Receipt, Target, BarChart3, Settings, Sparkles } from "lucide-react";
+import { X, ArrowRight, ArrowLeft, Home, Wallet, ArrowDownCircle, Receipt, Target, BarChart3, Settings, Sparkles, HomeIcon, Calculator } from "lucide-react";
 
-type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "account";
+type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
 
 interface TourStep {
   title: string;
@@ -70,17 +70,41 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
+// Steps adicionais para o plano Imobiliária — inseridos antes do "Tudo pronto"
+const IMOBILIARIA_EXTRA_STEPS: TourStep[] = [
+  {
+    title: "Minha Casa — Acompanhe a sua habitação",
+    description: "Aqui pode controlar a prestação mensal, acompanhar a taxa de esforço (peso da casa no rendimento) e ver o progresso do pagamento da casa ao longo do tempo. Tudo num só sítio.",
+    icon: HomeIcon,
+    tip: "A taxa de esforço ideal está abaixo de 30% do seu rendimento.",
+    tab: "minha_casa",
+  },
+  {
+    title: "Simulador de Crédito",
+    description: "Dentro de Minha Casa tem um Simulador de Crédito completo: pode atualizar o seu crédito atual, simular cenários alternativos com taxas/prazos diferentes e ver quanto poupa com pagamentos extra.",
+    icon: Calculator,
+    tip: "Use 'Copiar atual' para criar simulações baseadas no seu crédito real.",
+    tab: "minha_casa",
+  },
+];
+
 const TOUR_STORAGE_KEY = "saldoplus_tour_completed";
 
 interface GuidedTourProps {
   forceShow?: boolean;
   onClose?: () => void;
   onNavigate?: (tab: Tab) => void;
+  plan?: string;
 }
 
-const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
+const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+
+  // Build steps based on plan: imobiliária inclui Minha Casa + Simulador antes do passo final
+  const steps = plan === "imobiliaria"
+    ? [...TOUR_STEPS.slice(0, -1), ...IMOBILIARIA_EXTRA_STEPS, TOUR_STEPS[TOUR_STEPS.length - 1]]
+    : TOUR_STEPS;
 
   useEffect(() => {
     if (forceShow) {
@@ -97,11 +121,11 @@ const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
   // Navigate to the relevant tab when the step changes
   useEffect(() => {
     if (!isVisible) return;
-    const step = TOUR_STEPS[currentStep];
-    if (step.tab && onNavigate) {
+    const step = steps[currentStep];
+    if (step?.tab && onNavigate) {
       onNavigate(step.tab);
     }
-  }, [currentStep, isVisible, onNavigate]);
+  }, [currentStep, isVisible, onNavigate, steps]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -110,7 +134,7 @@ const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
   };
 
   const handleNext = () => {
-    if (currentStep < TOUR_STEPS.length - 1) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep((s) => s + 1);
     } else {
       handleClose();
@@ -123,8 +147,8 @@ const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
 
   if (!isVisible) return null;
 
-  const step = TOUR_STEPS[currentStep];
-  const isLast = currentStep === TOUR_STEPS.length - 1;
+  const step = steps[currentStep];
+  const isLast = currentStep === steps.length - 1;
   const isFirst = currentStep === 0;
   const Icon = step.icon;
 
@@ -154,7 +178,7 @@ const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
           <div className="h-1 bg-border-subtle/30">
             <div
               className="h-full bg-primary transition-all duration-300 rounded-full"
-              style={{ width: `${((currentStep + 1) / TOUR_STEPS.length) * 100}%` }}
+              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
             />
           </div>
 
@@ -185,7 +209,7 @@ const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
             {/* Navigation */}
             <div className="flex items-center justify-between">
               <span className="text-xs text-text-muted">
-                {currentStep + 1} de {TOUR_STEPS.length}
+                {currentStep + 1} de {steps.length}
               </span>
 
               <div className="flex items-center gap-2">
