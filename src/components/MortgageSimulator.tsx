@@ -251,18 +251,24 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     setLoadingCurrent(true);
     const { data } = await supabase
       .from("house_data")
-      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment, monthly_payment_status")
+      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment, monthly_payment_status, rate_type, indexante, spread, fixed_period_years, fixed_rate_initial")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
       const loan = Math.max(0, Number(data.house_value || 0) - Number(data.down_payment || 0));
+      const d = data as any;
       setCurrent({
         id: data.id,
         loan_amount: loan,
         annual_rate: Number(data.annual_rate || 0),
         term_years: Number(data.term_years || 30),
         monthly_payment: Number(data.monthly_payment || 0),
-        monthly_payment_status: ((data as any).monthly_payment_status as Record<string, string>) || {},
+        monthly_payment_status: (d.monthly_payment_status as Record<string, string>) || {},
+        rate_type: (d.rate_type as RateType) || "fixed",
+        indexante: Number(d.indexante || 0),
+        spread: Number(d.spread || 0),
+        fixed_period_years: Number(d.fixed_period_years || 0),
+        fixed_rate_initial: Number(d.fixed_rate_initial || 0),
       });
     }
     setLoadingCurrent(false);
