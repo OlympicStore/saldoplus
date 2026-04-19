@@ -116,6 +116,9 @@ serve(async (req) => {
           plan,
           plan_started_at: now.toISOString(),
           plan_expires_at: expiresAt.toISOString(),
+          account_status: "active",
+          data_deleted_at: null,
+          grace_period_ends_at: null,
         })
         .eq("id", profile.id);
 
@@ -123,6 +126,7 @@ serve(async (req) => {
         console.error(`[STRIPE-WEBHOOK] Failed to update profile: ${updateError.message}`);
         throw updateError;
       }
+      console.log(`[STRIPE-WEBHOOK] account_status set to 'active' for user ${profile.id}`);
 
       console.log(`[STRIPE-WEBHOOK] Plan ${plan} activated for user ${profile.id} until ${expiresAt.toISOString()}`);
 
