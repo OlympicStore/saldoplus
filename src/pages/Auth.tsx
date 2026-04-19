@@ -26,27 +26,18 @@ const Auth = () => {
         if (error) throw error;
         navigate("/app");
       } else {
-        // Check if email is registered in Stripe before allowing signup
-        const { data: checkData, error: checkError } = await supabase.functions.invoke("check-email-allowed", {
-          body: { email },
-        });
-        if (checkError) throw new Error("Erro ao verificar email. Tente novamente.");
-        if (!checkData?.allowed) {
-          toast.error("Este email não tem um pagamento associado. Adquira um plano primeiro.");
-          setLoading(false);
-          return;
-        }
-
+        // Open signup — trial assigned automatically by DB trigger
+        // (3-day trial for new emails; trial_expired for repeat emails)
         const { error } = await supabase.auth.signUp({
           email, password,
           options: {
             data: { full_name: fullName },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/app`,
           },
         });
         if (error) throw error;
         fbTrackLead();
-        toast.success("Conta criada! Verifique o seu email para confirmar.");
+        toast.success("🎉 Conta criada! O seu teste gratuito de 3 dias começou. Verifique o email para confirmar.");
       }
     } catch (err: any) {
       toast.error(err.message || "Erro na autenticação");

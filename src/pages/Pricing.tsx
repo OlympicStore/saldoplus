@@ -222,8 +222,8 @@ const Pricing = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 border border-primary/20">
-                <Star className="h-3.5 w-3.5 fill-primary" />
-                +500 portugueses já organizam as suas finanças
+                <Sparkles className="h-3.5 w-3.5" />
+                Teste grátis 3 dias — sem compromisso
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-foreground tracking-tight leading-[1.08] mb-6">
@@ -232,13 +232,16 @@ const Pricing = () => {
               </h1>
 
               <p className="text-text-secondary text-lg sm:text-xl max-w-xl mb-8 leading-relaxed">
-                Pare de perder dinheiro sem perceber. O Saldo+ organiza todas as finanças da sua casa num só lugar, sem complicações.
+                Experimente todas as funcionalidades durante 3 dias gratuitamente. Sem cobranças automáticas, sem cartão necessário.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
-                <a href={user ? undefined : "#precos"} onClick={user ? () => navigate("/app") : undefined}
-                  className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer">
-                  Criar conta em 1 minuto
+                <a
+                  href={user ? undefined : "/auth"}
+                  onClick={user ? () => navigate("/app") : undefined}
+                  className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer"
+                >
+                  Começar grátis 3 dias
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
                 </a>
                 <a href="#precos"
@@ -248,8 +251,8 @@ const Pricing = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-muted">
+                <span className="flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-primary" /> 3 dias grátis</span>
                 <span className="flex items-center gap-1.5"><Shield className="h-4 w-4 text-primary" /> Dados 100% seguros</span>
-                <span className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> Pagamento único</span>
                 <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Garantia 7 dias</span>
               </div>
             </motion.div>
