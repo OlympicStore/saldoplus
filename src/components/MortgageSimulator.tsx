@@ -109,7 +109,11 @@ interface CurrentCredit {
   annual_rate: number;
   term_years: number;
   monthly_payment: number;
+  monthly_payment_status: Record<string, string>;
 }
+
+const MONTH_NAMES_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MONTH_NAMES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<void> | void }) => {
   const { user } = useAuth();
@@ -120,9 +124,11 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     annual_rate: 0,
     term_years: 30,
     monthly_payment: 0,
+    monthly_payment_status: {},
   });
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
 
   // === SIMULAÇÃO LIVRE ===
   const [loanAmount, setLoanAmount] = useState(150000);
