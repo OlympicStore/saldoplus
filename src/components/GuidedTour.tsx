@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, ArrowLeft, Home, Wallet, ArrowDownCircle, Receipt, Target, BarChart3, Settings, Sparkles } from "lucide-react";
+import { X, ArrowRight, ArrowLeft, Home, Wallet, ArrowDownCircle, Receipt, Target, BarChart3, Settings, Sparkles, HomeIcon, Calculator } from "lucide-react";
 
-type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "account";
+type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
 
 interface TourStep {
   title: string;
@@ -67,6 +67,24 @@ const TOUR_STEPS: TourStep[] = [
     icon: Target,
     tip: "Dica: comece pelo mês atual e vá preenchendo aos poucos.",
     tab: "dashboard",
+  },
+];
+
+// Steps adicionais para o plano Imobiliária — inseridos antes do "Tudo pronto"
+const IMOBILIARIA_EXTRA_STEPS: TourStep[] = [
+  {
+    title: "Minha Casa — Acompanhe a sua habitação",
+    description: "Aqui pode controlar a prestação mensal, acompanhar a taxa de esforço (peso da casa no rendimento) e ver o progresso do pagamento da casa ao longo do tempo. Tudo num só sítio.",
+    icon: HomeIcon,
+    tip: "A taxa de esforço ideal está abaixo de 30% do seu rendimento.",
+    tab: "minha_casa",
+  },
+  {
+    title: "Simulador de Crédito",
+    description: "Dentro de Minha Casa tem um Simulador de Crédito completo: pode atualizar o seu crédito atual, simular cenários alternativos com taxas/prazos diferentes e ver quanto poupa com pagamentos extra.",
+    icon: Calculator,
+    tip: "Use 'Copiar atual' para criar simulações baseadas no seu crédito real.",
+    tab: "minha_casa",
   },
 ];
 
