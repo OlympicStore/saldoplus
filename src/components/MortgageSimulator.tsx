@@ -154,7 +154,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     setLoadingCurrent(true);
     const { data } = await supabase
       .from("house_data")
-      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment")
+      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment, monthly_payment_status")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
@@ -165,9 +165,30 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         annual_rate: Number(data.annual_rate || 0),
         term_years: Number(data.term_years || 30),
         monthly_payment: Number(data.monthly_payment || 0),
+        monthly_payment_status: ((data as any).monthly_payment_status as Record<string, string>) || {},
       });
     }
     setLoadingCurrent(false);
+  };
+
+  const togglePaymentStatus = async (year: number, month: number) => {
+    if (!user || !current.id) {
+      toast.error("Guarde primeiro o crédito atual");
+      return;
+    }
+    const key = `${year}-${month}`;
+    const next = current.monthly_payment_status[key] === "pago" ? "pendente" : "pago";
+    const newStatus = { ...current.monthly_payment_status, [key]: next };
+    setCurrent((p) => ({ ...p, monthly_payment_status: newStatus }));
+    const { error } = await supabase
+      .from("house_data")
+      .update({ monthly_payment_status: newStatus as any })
+      .eq("id", current.id);
+    if (error) {
+      toast.error("Erro ao atualizar");
+    } else {
+      if (onSavedCurrent) await onSavedCurrent();
+    }
   };
 
   const loadSimulations = async () => {
