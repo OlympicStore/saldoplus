@@ -178,7 +178,7 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
           <div className="h-1 bg-border-subtle/30">
             <div
               className="h-full bg-primary transition-all duration-300 rounded-full"
-              style={{ width: `${((currentStep + 1) / TOUR_STEPS.length) * 100}%` }}
+              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
             />
           </div>
 
@@ -209,7 +209,7 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
             {/* Navigation */}
             <div className="flex items-center justify-between">
               <span className="text-xs text-text-muted">
-                {currentStep + 1} de {TOUR_STEPS.length}
+                {currentStep + 1} de {steps.length}
               </span>
 
               <div className="flex items-center gap-2">
