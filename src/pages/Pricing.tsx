@@ -700,7 +700,7 @@ const Pricing = () => {
             <p className="text-text-muted text-lg mb-8 max-w-lg mx-auto">
               Junte-se a +500 portugueses que já sabem para onde vai cada euro.
             </p>
-            <button onClick={() => user ? navigate("/app") : navigate("/auth")}
+            <button onClick={() => user ? navigate("/app") : navigate("/auth?mode=signup")}
               className="group px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:opacity-90 transition-all inline-flex items-center gap-2 shadow-xl shadow-primary/25">
               Começar agora — é rápido
               <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
