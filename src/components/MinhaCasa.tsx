@@ -433,14 +433,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
       {/* Section toggle */}
       <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => setActiveSection("esforco")}
-          className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all ${
-            activeSection === "esforco" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
-          }`}
-        >
-          📊 Capacidade de Esforço
-        </button>
-        <button
           onClick={() => setActiveSection("progresso")}
           className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all ${
             activeSection === "progresso" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
@@ -455,6 +447,14 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
           }`}
         >
           <Calculator className="h-4 w-4" /> Simulador de Crédito
+        </button>
+        <button
+          onClick={() => setActiveSection("esforco")}
+          className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all ${
+            activeSection === "esforco" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
+          }`}
+        >
+          📊 Capacidade de Esforço
         </button>
       </div>
 
