@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, Download, History, BellRing, Calculator, Wallet, CreditCard } from "lucide-react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Download, History, BellRing, Calculator, Wallet, CreditCard } from "lucide-react";
 import MortgageSimulator from "./MortgageSimulator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,6 +66,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const [newExpenseValue, setNewExpenseValue] = useState("");
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showHouseForm, setShowHouseForm] = useState(true);
   const [previousPayment, setPreviousPayment] = useState<number | null>(null);
 
   const now = new Date();
@@ -433,14 +434,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
       {/* Section toggle */}
       <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => setActiveSection("esforco")}
-          className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all ${
-            activeSection === "esforco" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
-          }`}
-        >
-          📊 Capacidade de Esforço
-        </button>
-        <button
           onClick={() => setActiveSection("progresso")}
           className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all ${
             activeSection === "progresso" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
@@ -455,6 +448,14 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
           }`}
         >
           <Calculator className="h-4 w-4" /> Simulador de Crédito
+        </button>
+        <button
+          onClick={() => setActiveSection("esforco")}
+          className={`flex-1 min-w-[140px] py-2.5 rounded-xl text-sm font-medium transition-all ${
+            activeSection === "esforco" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
+          }`}
+        >
+          📊 Capacidade de Esforço
         </button>
       </div>
 
@@ -568,6 +569,45 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
 
       {activeSection === "progresso" && (
         <>
+          {/* Prestação atual em destaque */}
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-text-muted uppercase tracking-wide">Prestação mensal</p>
+                <p className="text-2xl font-bold text-foreground font-mono tabular-nums">{fmt(data.monthly_payment)}</p>
+              </div>
+              <button
+                onClick={() => togglePaymentStatus(statusKey)}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  currentStatus === "pago"
+                    ? "bg-status-paid/15 text-status-paid hover:bg-status-paid/25"
+                    : "bg-yellow-500/15 text-yellow-700 hover:bg-yellow-500/25"
+                }`}
+              >
+                {currentStatus === "pago" ? "✅ Paga" : "⏳ Pendente"} · {MONTH_NAMES[currentMonth]}
+              </button>
+            </div>
+            {data.rate_type && (
+              <p className="text-xs text-text-muted">
+                Taxa: <span className="font-semibold text-foreground capitalize">
+                  {data.rate_type === "fixed" ? "Fixa" : data.rate_type === "variable" ? "Variável" : "Mista"}
+                </span>
+                {data.rate_type === "fixed" && data.annual_rate > 0 && (
+                  <> · <span className="font-mono">{data.annual_rate.toFixed(3)}%</span></>
+                )}
+                {data.rate_type === "variable" && (data.indexante > 0 || data.spread > 0) && (
+                  <> · <span className="font-mono">{(data.indexante + data.spread).toFixed(3)}%</span> (Indexante {data.indexante.toFixed(3)}% + Spread {data.spread.toFixed(3)}%)</>
+                )}
+                {data.rate_type === "mixed" && (
+                  <> · <span className="font-mono">{data.fixed_rate_initial.toFixed(3)}%</span> fixa por {data.fixed_period_years} anos, depois <span className="font-mono">{(data.indexante + data.spread).toFixed(3)}%</span></>
+                )}
+              </p>
+            )}
+          </div>
+
           {/* House progress */}
           <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
             <div className="flex items-center gap-3 mb-4">
@@ -839,7 +879,14 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
 
       {/* Form */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Dados da habitação</h3>
+        <button
+          onClick={() => setShowHouseForm((s) => !s)}
+          className="flex items-center justify-between w-full mb-4"
+        >
+          <h3 className="text-sm font-semibold text-foreground">Dados da habitação</h3>
+          {showHouseForm ? <ChevronUp className="h-4 w-4 text-text-muted" /> : <ChevronDown className="h-4 w-4 text-text-muted" />}
+        </button>
+        {showHouseForm && (<>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             { label: "Valor da casa (€)", key: "house_value" as const },
@@ -1036,6 +1083,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
           {saving ? "A guardar..." : "Guardar dados"}
         </button>
+        </>)}
       </div>
     </div>
   );
