@@ -25,6 +25,11 @@ interface HouseData {
   down_payment: number;
   annual_rate: number;
   term_years: number;
+  rate_type: "fixed" | "variable" | "mixed";
+  indexante: number;
+  spread: number;
+  fixed_period_years: number;
+  fixed_rate_initial: number;
   extra_expenses: ExtraExpense[];
   monthly_payment_status: Record<string, string>;
 }
@@ -44,6 +49,11 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     down_payment: 0,
     annual_rate: 0,
     term_years: 30,
+    rate_type: "fixed",
+    indexante: 0,
+    spread: 0,
+    fixed_period_years: 0,
+    fixed_rate_initial: 0,
     extra_expenses: [],
     monthly_payment_status: {},
   });
@@ -93,6 +103,11 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         down_payment: Number((row as any).down_payment) || 0,
         annual_rate: Number((row as any).annual_rate) || 0,
         term_years: Number((row as any).term_years) || 30,
+        rate_type: ((row as any).rate_type as "fixed" | "variable" | "mixed") || "fixed",
+        indexante: Number((row as any).indexante) || 0,
+        spread: Number((row as any).spread) || 0,
+        fixed_period_years: Number((row as any).fixed_period_years) || 0,
+        fixed_rate_initial: Number((row as any).fixed_rate_initial) || 0,
         extra_expenses: ((row as any).extra_expenses as ExtraExpense[]) || [],
         monthly_payment_status: (row as any).monthly_payment_status || {},
       });
@@ -219,6 +234,11 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         down_payment: data.down_payment,
         annual_rate: data.annual_rate,
         term_years: data.term_years,
+        rate_type: data.rate_type,
+        indexante: data.indexante,
+        spread: data.spread,
+        fixed_period_years: data.fixed_period_years,
+        fixed_rate_initial: data.fixed_rate_initial,
         extra_expenses: data.extra_expenses as any,
         monthly_payment_status: data.monthly_payment_status as any,
       };
