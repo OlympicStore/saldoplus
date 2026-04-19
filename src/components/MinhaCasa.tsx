@@ -66,6 +66,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const [newExpenseValue, setNewExpenseValue] = useState("");
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showHouseForm, setShowHouseForm] = useState(true);
   const [previousPayment, setPreviousPayment] = useState<number | null>(null);
 
   const now = new Date();
