@@ -304,15 +304,30 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     if (!error && data) setSavedSims(data as unknown as Simulation[]);
   };
 
+  // Resolve "taxa de partida" used for headline payment & summaries
+  const currentVariableRate = current.indexante + current.spread;
+  const currentEffectiveStartRate =
+    current.rate_type === "fixed"
+      ? current.annual_rate
+      : current.rate_type === "variable"
+      ? currentVariableRate
+      : current.fixed_rate_initial;
+
   const handleSaveCurrent = async () => {
     if (!user) return;
     setSavingCurrent(true);
     try {
-      const computedPayment = calcPMT(current.loan_amount, current.annual_rate, current.term_years);
-      const payload = {
-        annual_rate: current.annual_rate,
+      const computedPayment = calcPMT(current.loan_amount, currentEffectiveStartRate, current.term_years);
+      const payload: any = {
+        annual_rate:
+          current.rate_type === "fixed" ? current.annual_rate : currentEffectiveStartRate,
         term_years: current.term_years,
         monthly_payment: computedPayment,
+        rate_type: current.rate_type,
+        indexante: current.indexante,
+        spread: current.spread,
+        fixed_period_years: current.fixed_period_years,
+        fixed_rate_initial: current.fixed_rate_initial,
       };
       if (current.id) {
         const { error } = await supabase.from("house_data").update(payload).eq("id", current.id);
@@ -336,23 +351,34 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     }
   };
 
-  // === CÁLCULOS CRÉDITO ATUAL (sempre taxa fixa — é o que está em house_data) ===
+  // === CÁLCULOS CRÉDITO ATUAL (respeita o tipo de taxa) ===
   const currentSchedule = useMemo(
     () =>
       buildSchedule({
         principal: current.loan_amount,
         termYears: current.term_years,
-        rateType: "fixed",
-        fixedRate: current.annual_rate,
-        fixedPeriodYears: 0,
-        variableRate: 0,
+        rateType: current.rate_type,
+        fixedRate:
+          current.rate_type === "mixed" ? current.fixed_rate_initial : current.annual_rate,
+        fixedPeriodYears: current.fixed_period_years,
+        variableRate: currentVariableRate,
         extraPayment: 0,
       }),
-    [current.loan_amount, current.annual_rate, current.term_years]
+    [
+      current.loan_amount,
+      current.annual_rate,
+      current.term_years,
+      current.rate_type,
+      current.indexante,
+      current.spread,
+      current.fixed_period_years,
+      current.fixed_rate_initial,
+      currentVariableRate,
+    ]
   );
   const currentPayment = useMemo(
-    () => calcPMT(current.loan_amount, current.annual_rate, current.term_years),
-    [current.loan_amount, current.annual_rate, current.term_years]
+    () => calcPMT(current.loan_amount, currentEffectiveStartRate, current.term_years),
+    [current.loan_amount, currentEffectiveStartRate, current.term_years]
   );
   const currentTotalCost = currentSchedule.reduce((s, r) => s + r.payment, 0);
   const currentTotalInterest = Math.max(0, currentTotalCost - current.loan_amount);
