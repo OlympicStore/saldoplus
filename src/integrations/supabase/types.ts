@@ -457,9 +457,12 @@ export type Database = {
         Row: {
           account: string
           created_at: string
+          current_value: number | null
+          current_value_updated_at: string | null
           date: string
           description: string
           id: string
+          name: string
           returns: number | null
           sub_account_id: string | null
           type: string
@@ -470,9 +473,12 @@ export type Database = {
         Insert: {
           account?: string
           created_at?: string
+          current_value?: number | null
+          current_value_updated_at?: string | null
           date: string
           description?: string
           id?: string
+          name?: string
           returns?: number | null
           sub_account_id?: string | null
           type?: string
@@ -483,9 +489,12 @@ export type Database = {
         Update: {
           account?: string
           created_at?: string
+          current_value?: number | null
+          current_value_updated_at?: string | null
           date?: string
           description?: string
           id?: string
+          name?: string
           returns?: number | null
           sub_account_id?: string | null
           type?: string
