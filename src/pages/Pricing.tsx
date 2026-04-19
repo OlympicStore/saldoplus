@@ -243,7 +243,7 @@ const Pricing = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
                 <a
-                  href={user ? undefined : "/auth"}
+                  href={user ? undefined : "/auth?mode=signup"}
                   onClick={user ? () => navigate("/app") : undefined}
                   className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer"
                 >
