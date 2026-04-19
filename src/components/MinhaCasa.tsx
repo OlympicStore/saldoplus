@@ -846,7 +846,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
             { label: "Valor pago na entrada (€)", key: "down_payment" as const },
             { label: "Prestação mensal (€)", key: "monthly_payment" as const },
             { label: "Rendimento mensal (€)", key: "monthly_income" as const },
-            { label: "Taxa de juro anual (%)", key: "annual_rate" as const },
             { label: "Prazo do crédito (anos)", key: "term_years" as const },
           ].map((field) => (
             <div key={field.key}>
@@ -861,6 +860,127 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
               />
             </div>
           ))}
+        </div>
+
+        {/* Tipo de taxa */}
+        <div className="mt-4">
+          <label className="text-sm font-medium text-foreground block mb-1.5">Tipo de taxa</label>
+          <div className="grid grid-cols-3 gap-1 rounded-lg p-1 bg-sidebar-accent">
+            {([
+              { v: "fixed", l: "Fixa" },
+              { v: "variable", l: "Variável" },
+              { v: "mixed", l: "Mista" },
+            ] as const).map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => setData((p) => ({ ...p, rate_type: opt.v }))}
+                className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                  data.rate_type === opt.v
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "text-foreground hover:bg-background/50"
+                }`}
+              >
+                {opt.l}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Campos condicionais por tipo de taxa */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          {data.rate_type === "fixed" && (
+            <div>
+              <label className="text-sm font-medium text-foreground block mb-1.5">Taxa de juro anual (%)</label>
+              <input
+                type="number"
+                min={0}
+                step={0.001}
+                value={data.annual_rate || ""}
+                onChange={(e) => setData((p) => ({ ...p, annual_rate: Number(e.target.value) || 0 }))}
+                className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+              />
+            </div>
+          )}
+
+          {data.rate_type === "variable" && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-1.5">Indexante / Euribor (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.001}
+                  value={data.indexante || ""}
+                  onChange={(e) => setData((p) => ({ ...p, indexante: Number(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-1.5">Spread (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.001}
+                  value={data.spread || ""}
+                  onChange={(e) => setData((p) => ({ ...p, spread: Number(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+              <div className="sm:col-span-2 text-xs text-text-muted">
+                Taxa atual: <span className="font-mono font-semibold">{(data.indexante + data.spread).toFixed(3)}%</span>
+              </div>
+            </>
+          )}
+
+          {data.rate_type === "mixed" && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-1.5">Anos com taxa fixa</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={data.fixed_period_years || ""}
+                  onChange={(e) => setData((p) => ({ ...p, fixed_period_years: Number(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-1.5">Taxa fixa inicial (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.001}
+                  value={data.fixed_rate_initial || ""}
+                  onChange={(e) => setData((p) => ({ ...p, fixed_rate_initial: Number(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-1.5">Indexante / Euribor (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.001}
+                  value={data.indexante || ""}
+                  onChange={(e) => setData((p) => ({ ...p, indexante: Number(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground block mb-1.5">Spread (%)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.001}
+                  value={data.spread || ""}
+                  onChange={(e) => setData((p) => ({ ...p, spread: Number(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Extra expenses */}
