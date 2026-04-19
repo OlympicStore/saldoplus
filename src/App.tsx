@@ -13,6 +13,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import Pricing from "./pages/Pricing";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import TrialExpired from "./pages/TrialExpired";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
@@ -34,12 +35,14 @@ const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: R
     </div>
   );
   // Auto-redirect partners to their dashboard (unless already on /parceiro)
-  // Consultants now access the app normally and reach their panel via the Account section.
   if (isPartner && allowPartnerRedirect && !isAdmin) {
     return <Navigate to="/parceiro" replace />;
   }
-  // Admins, partners, and consultants always have access; others need an active paid plan
+  // Trial / data_deleted gating: send to /trial-expired (admins/partners/consultants bypass)
   if (!isAdmin && !isPartner && !isConsultant) {
+    if (profile.account_status === "trial_expired" || profile.account_status === "data_deleted") {
+      return <Navigate to="/trial-expired" replace />;
+    }
     const plan = profile.plan;
     if (plan === "imobiliaria") {
       // Partner clients — allow access
@@ -47,11 +50,14 @@ const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: R
       const now = new Date();
       const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
       if (!expires || expires < now) {
-        return <Navigate to="/pricing" replace />;
+        // Allow trial_active users without expired plan
+        if (profile.account_status !== "trial_active") {
+          return <Navigate to="/pricing" replace />;
+        }
       }
     } else if (plan === "essencial") {
       const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
-      if (expires && expires < new Date()) {
+      if (expires && expires < new Date() && profile.account_status !== "trial_active") {
         return <Navigate to="/pricing" replace />;
       }
     }
@@ -89,6 +95,7 @@ const App = () => (
               <Route path="/consultor" element={<ProtectedRoute allowPartnerRedirect={false}><ConsultantDashboard /></ProtectedRoute>} />
               <Route path="/pricing" element={<Navigate to="/" replace />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/trial-expired" element={<TrialExpired />} />
               <Route path="/termos" element={<Terms />} />
               <Route path="/privacidade" element={<Privacy />} />
               <Route path="*" element={<NotFound />} />
