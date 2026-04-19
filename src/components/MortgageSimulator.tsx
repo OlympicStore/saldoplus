@@ -157,6 +157,11 @@ interface CurrentCredit {
   term_years: number;
   monthly_payment: number;
   monthly_payment_status: Record<string, string>;
+  rate_type: RateType;
+  indexante: number;
+  spread: number;
+  fixed_period_years: number;
+  fixed_rate_initial: number;
 }
 
 const MONTH_NAMES_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
