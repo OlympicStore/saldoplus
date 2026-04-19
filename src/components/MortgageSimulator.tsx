@@ -419,6 +419,78 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         </div>
       </div>
 
+      {/* PRESTAÇÃO ATUAL — estado de pagamento */}
+      {!loadingCurrent && current.loan_amount > 0 && (
+        <div className="rounded-xl border border-border-subtle/60 bg-card p-5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+                Prestação atual de {MONTH_NAMES_FULL[new Date().getMonth()]} {new Date().getFullYear()}
+              </p>
+              <p className="text-xl font-semibold font-mono tabular-nums">{fmt2(current.monthly_payment)}</p>
+            </div>
+            {(() => {
+              const todayKey = `${new Date().getFullYear()}-${new Date().getMonth()}`;
+              const isPaid = current.monthly_payment_status[todayKey] === "pago";
+              return (
+                <button
+                  onClick={() => togglePaymentStatus(new Date().getFullYear(), new Date().getMonth())}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                    isPaid
+                      ? "bg-success/10 text-success border-success/20"
+                      : "bg-warning/10 text-warning-foreground border-warning/20 text-yellow-600"
+                  }`}
+                >
+                  {isPaid ? "✅ Paga" : "⏳ Pendente"}
+                </button>
+              );
+            })()}
+          </div>
+
+          <div className="mt-4">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <button
+                onClick={() => setCalendarYear((y) => y - 1)}
+                className="p-1 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="text-sm font-semibold min-w-[3rem] text-center">{calendarYear}</span>
+              <button
+                onClick={() => setCalendarYear((y) => y + 1)}
+                className="p-1 rounded-lg hover:bg-surface-hover text-muted-foreground hover:text-foreground"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex gap-1.5">
+              {MONTH_NAMES_SHORT.map((name, i) => {
+                const key = `${calendarYear}-${i}`;
+                const st = current.monthly_payment_status[key];
+                const isPast = calendarYear < new Date().getFullYear() ||
+                  (calendarYear === new Date().getFullYear() && i <= new Date().getMonth());
+                return (
+                  <button
+                    key={i}
+                    onClick={() => togglePaymentStatus(calendarYear, i)}
+                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                      st === "pago"
+                        ? "bg-success/15 text-success"
+                        : isPast
+                        ? "bg-warning/10 text-yellow-600"
+                        : "bg-secondary text-muted-foreground"
+                    }`}
+                    title={`${name} — ${st === "pago" ? "Paga" : "Pendente"}`}
+                  >
+                    {name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* DUAS COLUNAS: ATUAL vs SIMULAÇÃO */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* === CRÉDITO ATUAL === */}
@@ -777,20 +849,6 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         </div>
       </div>
 
-      {/* INSIGHTS */}
-      {insights.length > 0 && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <PiggyBank className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Insights</h3>
-          </div>
-          <ul className="space-y-2">
-            {insights.map((ins, i) => (
-              <li key={i} className="text-sm" dangerouslySetInnerHTML={{ __html: ins.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* TABELA AMORTIZAÇÃO ANUAL */}
       {yearlyTable.length > 0 && (
