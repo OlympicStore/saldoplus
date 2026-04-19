@@ -723,6 +723,21 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                   <FileText className="h-4 w-4" />
                 </button>
               </div>
+
+              {/* INSIGHTS — dentro da simulação */}
+              {insights.length > 0 && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mt-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <PiggyBank className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-semibold">Insights da simulação</h4>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {insights.map((ins, i) => (
+                      <li key={i} className="text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: ins.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
+                    ))}
+                  </ul>
+                </div>
+              )}
             </>
           )}
         </div>
