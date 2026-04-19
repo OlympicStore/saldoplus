@@ -94,11 +94,17 @@ interface GuidedTourProps {
   forceShow?: boolean;
   onClose?: () => void;
   onNavigate?: (tab: Tab) => void;
+  plan?: string;
 }
 
-const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
+const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+
+  // Build steps based on plan: imobiliária inclui Minha Casa + Simulador antes do passo final
+  const steps = plan === "imobiliaria"
+    ? [...TOUR_STEPS.slice(0, -1), ...IMOBILIARIA_EXTRA_STEPS, TOUR_STEPS[TOUR_STEPS.length - 1]]
+    : TOUR_STEPS;
 
   useEffect(() => {
     if (forceShow) {
@@ -115,11 +121,11 @@ const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
   // Navigate to the relevant tab when the step changes
   useEffect(() => {
     if (!isVisible) return;
-    const step = TOUR_STEPS[currentStep];
-    if (step.tab && onNavigate) {
+    const step = steps[currentStep];
+    if (step?.tab && onNavigate) {
       onNavigate(step.tab);
     }
-  }, [currentStep, isVisible, onNavigate]);
+  }, [currentStep, isVisible, onNavigate, steps]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -128,7 +134,7 @@ const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
   };
 
   const handleNext = () => {
-    if (currentStep < TOUR_STEPS.length - 1) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep((s) => s + 1);
     } else {
       handleClose();
@@ -141,8 +147,8 @@ const GuidedTour = ({ forceShow, onClose, onNavigate }: GuidedTourProps) => {
 
   if (!isVisible) return null;
 
-  const step = TOUR_STEPS[currentStep];
-  const isLast = currentStep === TOUR_STEPS.length - 1;
+  const step = steps[currentStep];
+  const isLast = currentStep === steps.length - 1;
   const isFirst = currentStep === 0;
   const Icon = step.icon;
 
