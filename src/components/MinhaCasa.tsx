@@ -1083,6 +1083,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
           {saving ? "A guardar..." : "Guardar dados"}
         </button>
+        </>)}
       </div>
     </div>
   );
