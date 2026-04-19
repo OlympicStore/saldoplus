@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   PiggyBank,
   Loader2,
