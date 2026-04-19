@@ -160,16 +160,22 @@ const Pricing = () => {
   };
 
   const handleSelectPlan = (planId: string) => {
-    const link = PAYMENT_LINKS[planId];
-    if (!link) return;
-
     const plan = PLANS.find((p) => p.id === planId);
     const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
     handleAddToCart(planId);
     fbTrackInitiateCheckout(planId, value);
 
+    // If user not logged in → send to signup (start 3-day trial)
+    if (!user) {
+      navigate(`/auth?mode=signup&plan=${planId}`);
+      return;
+    }
+
+    // Logged-in user → open Stripe checkout
+    const link = PAYMENT_LINKS[planId];
+    if (!link) return;
     const separator = link.includes("?") ? "&" : "?";
-    const email = user?.email || "";
+    const email = user.email || "";
     const url = email
       ? `${link}${separator}prefilled_email=${encodeURIComponent(email)}`
       : link;
