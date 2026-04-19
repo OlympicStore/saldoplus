@@ -15,6 +15,8 @@ interface PartnerBranding {
   consultant_photo_position: string | null;
 }
 
+type AccountStatus = "trial_active" | "active" | "trial_expired" | "data_deleted";
+
 interface Profile {
   id: string;
   email: string;
@@ -24,6 +26,11 @@ interface Profile {
   plan_expires_at: string | null;
   partner_id: string | null;
   plan_source: "direct" | "partner";
+  account_status: AccountStatus;
+  trial_started_at: string | null;
+  trial_ends_at: string | null;
+  grace_period_ends_at: string | null;
+  data_deleted_at: string | null;
 }
 
 interface AuthContextType {

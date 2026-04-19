@@ -16,8 +16,8 @@ const TrialExpired = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md text-center"
       >
-        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-500/10 border border-yellow-500/20 mb-6">
-          <AlertTriangle className="h-7 w-7 text-yellow-600" />
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-status-negative/10 border border-status-negative/20 mb-6">
+          <AlertTriangle className="h-7 w-7 text-status-negative" />
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">

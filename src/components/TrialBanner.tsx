@@ -20,11 +20,11 @@ const TrialBanner = () => {
   if (!info || dismissed) return null;
 
   return (
-    <div className={`border-b ${info.urgent ? "bg-yellow-500/10 border-yellow-500/30" : "bg-primary/5 border-primary/20"}`}>
+    <div className={`border-b ${info.urgent ? "bg-status-negative/5 border-status-negative/20" : "bg-primary/5 border-primary/20"}`}>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           {info.urgent ? (
-            <Clock className="h-4 w-4 shrink-0 text-yellow-600" />
+            <Clock className="h-4 w-4 shrink-0 text-status-negative" />
           ) : (
             <Sparkles className="h-4 w-4 shrink-0 text-primary" />
           )}
