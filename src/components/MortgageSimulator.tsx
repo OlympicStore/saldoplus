@@ -10,6 +10,7 @@ import {
   Save,
   Trash2,
   ChevronDown,
+  ChevronUp,
   ChevronRight,
   Sparkles,
   PiggyBank,
@@ -134,6 +135,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
   const [savedSims, setSavedSims] = useState<Simulation[]>([]);
   const [saving, setSaving] = useState(false);
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
+  const [simCollapsed, setSimCollapsed] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -490,120 +492,139 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
 
         {/* === SIMULE UM NOVO CRÉDITO === */}
         <div className="rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-primary/10 p-2">
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => setSimCollapsed((v) => !v)}
+              className="flex items-center gap-2 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+              aria-expanded={!simCollapsed}
+            >
+              <div className="rounded-lg bg-primary/10 p-2 shrink-0">
                 <FlaskConical className="h-4 w-4 text-primary" />
               </div>
-              <div>
-                <h3 className="font-semibold">Simule um Novo Crédito</h3>
-                <p className="text-xs text-muted-foreground">Teste cenários sem afetar Minha Casa</p>
+              <div className="min-w-0">
+                <h3 className="font-semibold flex items-center gap-1.5">
+                  Simule um Novo Crédito
+                  {simCollapsed ? (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </h3>
+                <p className="text-xs text-muted-foreground truncate">
+                  {simCollapsed ? "Clique para expandir" : "Teste cenários sem afetar Minha Casa"}
+                </p>
               </div>
-            </div>
-            <button
-              onClick={copyCurrentToSim}
-              className="text-[11px] rounded-md px-2 py-1 bg-primary/10 text-primary hover:bg-primary/20 font-medium"
-              title="Copiar dados do crédito atual"
-            >
-              ← Copiar atual
             </button>
+            {!simCollapsed && (
+              <button
+                onClick={copyCurrentToSim}
+                className="text-[11px] rounded-md px-2 py-1 bg-primary/10 text-primary hover:bg-primary/20 font-medium shrink-0"
+                title="Copiar dados do crédito atual"
+              >
+                ← Copiar atual
+              </button>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
-            <div>
-              <label className={labelCls}>Nome da simulação</label>
-              <input
-                type="text"
-                value={simName}
-                onChange={(e) => setSimName(e.target.value)}
-                maxLength={100}
-                className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Valor do empréstimo (€)</label>
-              <input
-                type="number"
-                inputMode="decimal"
-                value={loanAmount === 0 ? "" : loanAmount}
-                onChange={(e) => setLoanAmount(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-                className={inputCls}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Taxa anual (%)</label>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.01"
-                  value={annualRate === 0 ? "" : annualRate}
-                  onChange={(e) => setAnnualRate(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-                  className={inputCls}
-                />
+          {!simCollapsed && (
+            <>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className={labelCls}>Nome da simulação</label>
+                  <input
+                    type="text"
+                    value={simName}
+                    onChange={(e) => setSimName(e.target.value)}
+                    maxLength={100}
+                    className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Valor do empréstimo (€)</label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={loanAmount === 0 ? "" : loanAmount}
+                    onChange={(e) => setLoanAmount(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                    className={inputCls}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Taxa anual (%)</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.01"
+                      value={annualRate === 0 ? "" : annualRate}
+                      onChange={(e) => setAnnualRate(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Prazo (anos)</label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={termYears === 0 ? "" : termYears}
+                      onChange={(e) => setTermYears(e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))))}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Rendimento (€) <span className="opacity-60">opc.</span></label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={monthlyIncome === 0 ? "" : monthlyIncome}
+                      onChange={(e) => setMonthlyIncome(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Custos extra (€) <span className="opacity-60">opc.</span></label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={extraMonthlyCosts === 0 ? "" : extraMonthlyCosts}
+                      onChange={(e) => setExtraMonthlyCosts(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>💥 Pagamento extra mensal (€)</label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={extraPayment === 0 ? "" : extraPayment}
+                    onChange={(e) => setExtraPayment(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                    className={inputCls}
+                  />
+                </div>
               </div>
-              <div>
-                <label className={labelCls}>Prazo (anos)</label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={termYears === 0 ? "" : termYears}
-                  onChange={(e) => setTermYears(e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))))}
-                  className={inputCls}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Rendimento (€) <span className="opacity-60">opc.</span></label>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={monthlyIncome === 0 ? "" : monthlyIncome}
-                  onChange={(e) => setMonthlyIncome(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-                  className={inputCls}
-                />
-              </div>
-              <div>
-                <label className={labelCls}>Custos extra (€) <span className="opacity-60">opc.</span></label>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={extraMonthlyCosts === 0 ? "" : extraMonthlyCosts}
-                  onChange={(e) => setExtraMonthlyCosts(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-                  className={inputCls}
-                />
-              </div>
-            </div>
-            <div>
-              <label className={labelCls}>💥 Pagamento extra mensal (€)</label>
-              <input
-                type="number"
-                inputMode="decimal"
-                value={extraPayment === 0 ? "" : extraPayment}
-                onChange={(e) => setExtraPayment(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-                className={inputCls}
-              />
-            </div>
-          </div>
 
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={handleSaveSim}
-              disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-            >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Guardar
-            </button>
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-2 rounded-lg border border-border-subtle bg-secondary px-3 py-2 text-sm font-medium hover:bg-surface-hover"
-              title="Exportar CSV"
-            >
-              <FileText className="h-4 w-4" />
-            </button>
-          </div>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={handleSaveSim}
+                  disabled={saving}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Guardar
+                </button>
+                <button
+                  onClick={exportCSV}
+                  className="flex items-center gap-2 rounded-lg border border-border-subtle bg-secondary px-3 py-2 text-sm font-medium hover:bg-surface-hover"
+                  title="Exportar CSV"
+                >
+                  <FileText className="h-4 w-4" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -621,13 +642,18 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingDown className="h-3.5 w-3.5" />Custo total</div>
           <p className="mt-1 text-xl font-bold font-mono tabular-nums">{fmt(totalCost)}</p>
+          {currentTotalCost > 0 && (
+            <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+              atual: {fmt(currentTotalCost)}
+            </p>
+          )}
         </div>
         <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><AlertCircle className="h-3.5 w-3.5" />Juros totais</div>
           <p className="mt-1 text-xl font-bold font-mono tabular-nums text-destructive">{fmt(totalInterest)}</p>
           {currentTotalInterest > 0 && (
-            <p className={`text-[11px] font-mono mt-0.5 ${interestDelta < 0 ? "text-success" : interestDelta > 0 ? "text-destructive" : "text-muted-foreground"}`}>
-              {interestDelta > 0 ? "+" : ""}{fmt(interestDelta)} vs atual
+            <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+              atual: {fmt(currentTotalInterest)}
             </p>
           )}
         </div>
