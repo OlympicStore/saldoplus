@@ -1247,7 +1247,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
               {/* Tipo de taxa — segmented control */}
               <div>
                 <label className={labelCls}>Tipo de taxa de juro</label>
-                <div className="mt-1 grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
+                <div className="mt-1 grid grid-cols-3 gap-1 rounded-lg p-1 bg-[sidebar-accent-foreground] bg-sidebar-accent">
                   {([
                     { v: "fixed" as RateType, label: "Fixa" },
                     { v: "variable" as RateType, label: "Variável" },
