@@ -494,11 +494,16 @@ export type Database = {
           created_at: string
           extra_monthly_costs: number
           extra_payment: number
+          fixed_period_years: number
+          fixed_rate_initial: number
           id: string
+          indexante: number
           loan_amount: number
           monthly_income: number
           name: string
           notes: string | null
+          rate_type: string
+          spread: number
           term_years: number
           updated_at: string
           user_id: string
@@ -508,11 +513,16 @@ export type Database = {
           created_at?: string
           extra_monthly_costs?: number
           extra_payment?: number
+          fixed_period_years?: number
+          fixed_rate_initial?: number
           id?: string
+          indexante?: number
           loan_amount?: number
           monthly_income?: number
           name?: string
           notes?: string | null
+          rate_type?: string
+          spread?: number
           term_years?: number
           updated_at?: string
           user_id: string
@@ -522,11 +532,16 @@ export type Database = {
           created_at?: string
           extra_monthly_costs?: number
           extra_payment?: number
+          fixed_period_years?: number
+          fixed_rate_initial?: number
           id?: string
+          indexante?: number
           loan_amount?: number
           monthly_income?: number
           name?: string
           notes?: string | null
+          rate_type?: string
+          spread?: number
           term_years?: number
           updated_at?: string
           user_id?: string
