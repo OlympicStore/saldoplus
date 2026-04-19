@@ -347,11 +347,16 @@ export type Database = {
           down_payment: number
           estimated_expenses: number
           extra_expenses: Json
+          fixed_period_years: number
+          fixed_rate_initial: number
           house_value: number
           id: string
+          indexante: number
           monthly_income: number
           monthly_payment: number
           monthly_payment_status: Json
+          rate_type: string
+          spread: number
           term_years: number
           updated_at: string
           user_id: string
@@ -362,11 +367,16 @@ export type Database = {
           down_payment?: number
           estimated_expenses?: number
           extra_expenses?: Json
+          fixed_period_years?: number
+          fixed_rate_initial?: number
           house_value?: number
           id?: string
+          indexante?: number
           monthly_income?: number
           monthly_payment?: number
           monthly_payment_status?: Json
+          rate_type?: string
+          spread?: number
           term_years?: number
           updated_at?: string
           user_id: string
@@ -377,11 +387,16 @@ export type Database = {
           down_payment?: number
           estimated_expenses?: number
           extra_expenses?: Json
+          fixed_period_years?: number
+          fixed_rate_initial?: number
           house_value?: number
           id?: string
+          indexante?: number
           monthly_income?: number
           monthly_payment?: number
           monthly_payment_status?: Json
+          rate_type?: string
+          spread?: number
           term_years?: number
           updated_at?: string
           user_id?: string
