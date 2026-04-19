@@ -63,7 +63,8 @@ const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date();
   const userPlan = profile?.plan || "essencial";
-  const allowedTabs = planTabs[userPlan] || planTabs.essencial;
+  // Admins têm acesso completo a todas as tabs, independentemente do plano
+  const allowedTabs = isAdmin ? allTabs.map((t) => t.key) : (planTabs[userPlan] || planTabs.essencial);
   const tabs = allTabs.filter((t) => allowedTabs.includes(t.key));
   const requestedTab = searchParams.get("tab");
 
