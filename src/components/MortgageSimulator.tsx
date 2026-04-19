@@ -143,6 +143,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
   const [saving, setSaving] = useState(false);
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
   const [simCollapsed, setSimCollapsed] = useState(false);
+  const [tableCollapsed, setTableCollapsed] = useState(true);
 
   useEffect(() => {
     if (!user) return;
