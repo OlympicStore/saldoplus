@@ -193,6 +193,11 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     term_years: 30,
     monthly_payment: 0,
     monthly_payment_status: {},
+    rate_type: "fixed",
+    indexante: 0,
+    spread: 0,
+    fixed_period_years: 0,
+    fixed_rate_initial: 0,
   });
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
