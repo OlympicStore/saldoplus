@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { fbTrackLead } from "@/lib/fbPixel";
+import { openCheckout, PLAN_LABELS } from "@/lib/paymentLinks";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
+  const planParam = searchParams.get("plan");
+  const validPlan = planParam && ["essencial", "casa", "pro"].includes(planParam) ? planParam : null;
+
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,6 +21,13 @@ const Auth = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Persist plan choice across OAuth redirect
+  useEffect(() => {
+    if (validPlan) {
+      sessionStorage.setItem("pending_trial_plan", validPlan);
+    }
+  }, [validPlan]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,18 +38,17 @@ const Auth = () => {
         if (error) throw error;
         navigate("/app");
       } else {
-        // Open signup — trial assigned automatically by DB trigger
-        // (3-day trial for new emails; trial_expired for repeat emails)
+        const trialPlan = validPlan || "essencial";
         const { error } = await supabase.auth.signUp({
           email, password,
           options: {
-            data: { full_name: fullName },
+            data: { full_name: fullName, trial_plan: trialPlan },
             emailRedirectTo: `${window.location.origin}/app`,
           },
         });
         if (error) throw error;
         fbTrackLead();
-        toast.success("🎉 Conta criada! O seu teste gratuito de 3 dias começou. Verifique o email para confirmar.");
+        toast.success(`🎉 Conta criada! O seu teste gratuito de 3 dias do plano ${PLAN_LABELS[trialPlan]} começou.`);
       }
     } catch (err: any) {
       toast.error(err.message || "Erro na autenticação");
@@ -74,6 +84,16 @@ const Auth = () => {
             {isLogin ? "Entre na sua conta" : "Crie a sua conta"}
           </p>
         </div>
+
+        {!isLogin && validPlan && (
+          <div className="mb-4 p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-2.5">
+            <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-semibold text-foreground">Plano {PLAN_LABELS[validPlan]} — 3 dias grátis</p>
+              <p className="text-xs text-text-muted mt-0.5">Vai testar o plano {PLAN_LABELS[validPlan]} sem custos. Pode mudar de plano a qualquer momento.</p>
+            </div>
+          </div>
+        )}
 
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-6">
           <button
@@ -147,7 +167,7 @@ const Auth = () => {
 
             <button type="submit" disabled={loading}
               className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
-              {loading ? "A processar..." : isLogin ? "Entrar" : "Criar conta"}
+              {loading ? "A processar..." : isLogin ? "Entrar" : validPlan ? `Começar teste grátis — ${PLAN_LABELS[validPlan]}` : "Criar conta"}
             </button>
           </form>
 
