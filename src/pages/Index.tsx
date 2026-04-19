@@ -63,7 +63,8 @@ const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const now = new Date();
   const userPlan = profile?.plan || "essencial";
-  const allowedTabs = planTabs[userPlan] || planTabs.essencial;
+  // Admins têm acesso completo a todas as tabs, independentemente do plano
+  const allowedTabs = isAdmin ? allTabs.map((t) => t.key) : (planTabs[userPlan] || planTabs.essencial);
   const tabs = allTabs.filter((t) => allowedTabs.includes(t.key));
   const requestedTab = searchParams.get("tab");
 
@@ -319,7 +320,7 @@ const Index = () => {
                 {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
               </span>
             )}
-            {(userPlan === "pro" || userPlan === "imobiliaria") && <SubAccountSwitcher />}
+            {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && <SubAccountSwitcher />}
             <SuggestionsDialog />
             <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
               className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
@@ -440,7 +441,7 @@ const Index = () => {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === "dashboard" && (
           <>
-            {(userPlan === "pro" || userPlan === "imobiliaria") && (
+            {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && (
               <div className="mb-6 flex justify-end">
                 <AISuggestions
                   fixedExpenses={yearFixedExpenses}
