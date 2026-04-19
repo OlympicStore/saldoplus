@@ -10,6 +10,7 @@ import {
   Save,
   Trash2,
   ChevronDown,
+  ChevronUp,
   ChevronRight,
   Sparkles,
   PiggyBank,
@@ -641,7 +642,20 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingDown className="h-3.5 w-3.5" />Custo total</div>
           <p className="mt-1 text-xl font-bold font-mono tabular-nums">{fmt(totalCost)}</p>
+          {currentTotalCost > 0 && (
+            <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+              atual: {fmt(currentTotalCost)}
+            </p>
+          )}
         </div>
+        <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground"><AlertCircle className="h-3.5 w-3.5" />Juros totais</div>
+          <p className="mt-1 text-xl font-bold font-mono tabular-nums text-destructive">{fmt(totalInterest)}</p>
+          {currentTotalInterest > 0 && (
+            <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+              atual: {fmt(currentTotalInterest)}
+            </p>
+          )}
         <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><AlertCircle className="h-3.5 w-3.5" />Juros totais</div>
           <p className="mt-1 text-xl font-bold font-mono tabular-nums text-destructive">{fmt(totalInterest)}</p>
