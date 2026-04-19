@@ -879,7 +879,14 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
 
       {/* Form */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Dados da habitação</h3>
+        <button
+          onClick={() => setShowHouseForm((s) => !s)}
+          className="flex items-center justify-between w-full mb-4"
+        >
+          <h3 className="text-sm font-semibold text-foreground">Dados da habitação</h3>
+          {showHouseForm ? <ChevronUp className="h-4 w-4 text-text-muted" /> : <ChevronDown className="h-4 w-4 text-text-muted" />}
+        </button>
+        {showHouseForm && (<>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             { label: "Valor da casa (€)", key: "house_value" as const },
