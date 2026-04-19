@@ -724,6 +724,62 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 </button>
               </div>
 
+              {/* RESULTADOS DA SIMULAÇÃO */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="rounded-xl border border-border-subtle/60 bg-card p-3">
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><Wallet className="h-3 w-3" />Prestação</div>
+                  <p className="mt-0.5 text-lg font-bold font-mono tabular-nums">{fmt2(basePayment)}</p>
+                  {currentPayment > 0 && (
+                    <p className={`text-[10px] font-mono mt-0.5 ${paymentDelta < 0 ? "text-success" : paymentDelta > 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                      {paymentDelta > 0 ? "+" : ""}{fmt2(paymentDelta)} vs atual
+                    </p>
+                  )}
+                </div>
+                <div className="rounded-xl border border-border-subtle/60 bg-card p-3">
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><TrendingDown className="h-3 w-3" />Custo total</div>
+                  <p className="mt-0.5 text-lg font-bold font-mono tabular-nums">{fmt(totalCost)}</p>
+                  {currentTotalCost > 0 && (
+                    <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                      atual: {fmt(currentTotalCost)}
+                    </p>
+                  )}
+                </div>
+                <div className="rounded-xl border border-border-subtle/60 bg-card p-3">
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><AlertCircle className="h-3 w-3" />Juros totais</div>
+                  <p className="mt-0.5 text-lg font-bold font-mono tabular-nums text-destructive">{fmt(totalInterest)}</p>
+                  {currentTotalInterest > 0 && (
+                    <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                      atual: {fmt(currentTotalInterest)}
+                    </p>
+                  )}
+                </div>
+                <div className={`rounded-xl border border-border-subtle/60 p-3 ${effortStatus.bg}`}>
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">{effortStatus.emoji} Taxa esforço</div>
+                  <p className={`mt-0.5 text-lg font-bold font-mono tabular-nums ${effortStatus.color}`}>
+                    {monthlyIncome > 0 ? `${effortRatio.toFixed(1)}%` : "—"}
+                  </p>
+                  <p className={`text-[10px] ${effortStatus.color}`}>{effortStatus.label}</p>
+                </div>
+              </div>
+
+              {/* Margem */}
+              {monthlyIncome > 0 && (
+                <div className="rounded-lg border border-border-subtle/60 bg-card p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">Custo real mensal</p>
+                      <p className="text-base font-bold font-mono tabular-nums">{fmt2(realMonthlyCost)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[11px] text-muted-foreground">Margem mensal</p>
+                      <p className={`text-base font-bold font-mono tabular-nums ${margin >= 0 ? "text-success" : "text-destructive"}`}>
+                        {fmt2(margin)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* INSIGHTS — dentro da simulação */}
               {insights.length > 0 && (
                 <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mt-2">
@@ -742,62 +798,6 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
           )}
         </div>
       </div>
-
-      {/* DASHBOARD DA SIMULAÇÃO */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground"><Wallet className="h-3.5 w-3.5" />Prestação</div>
-          <p className="mt-1 text-xl font-bold font-mono tabular-nums">{fmt2(basePayment)}</p>
-          {currentPayment > 0 && (
-            <p className={`text-[11px] font-mono mt-0.5 ${paymentDelta < 0 ? "text-success" : paymentDelta > 0 ? "text-destructive" : "text-muted-foreground"}`}>
-              {paymentDelta > 0 ? "+" : ""}{fmt2(paymentDelta)} vs atual
-            </p>
-          )}
-        </div>
-        <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingDown className="h-3.5 w-3.5" />Custo total</div>
-          <p className="mt-1 text-xl font-bold font-mono tabular-nums">{fmt(totalCost)}</p>
-          {currentTotalCost > 0 && (
-            <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
-              atual: {fmt(currentTotalCost)}
-            </p>
-          )}
-        </div>
-        <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground"><AlertCircle className="h-3.5 w-3.5" />Juros totais</div>
-          <p className="mt-1 text-xl font-bold font-mono tabular-nums text-destructive">{fmt(totalInterest)}</p>
-          {currentTotalInterest > 0 && (
-            <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
-              atual: {fmt(currentTotalInterest)}
-            </p>
-          )}
-        </div>
-        <div className={`rounded-xl border border-border-subtle/60 p-4 ${effortStatus.bg}`}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">{effortStatus.emoji} Taxa esforço</div>
-          <p className={`mt-1 text-xl font-bold font-mono tabular-nums ${effortStatus.color}`}>
-            {monthlyIncome > 0 ? `${effortRatio.toFixed(1)}%` : "—"}
-          </p>
-          <p className={`text-xs ${effortStatus.color}`}>{effortStatus.label}</p>
-        </div>
-      </div>
-
-      {/* Margem */}
-      {monthlyIncome > 0 && (
-        <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-xs text-muted-foreground">Custo real mensal</p>
-              <p className="text-lg font-bold font-mono tabular-nums">{fmt2(realMonthlyCost)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Margem mensal</p>
-              <p className={`text-lg font-bold font-mono tabular-nums ${margin >= 0 ? "text-success" : "text-destructive"}`}>
-                {fmt2(margin)}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Pagamento extra benefícios */}
       {extraPayment > 0 && interestSaved > 0 && (
