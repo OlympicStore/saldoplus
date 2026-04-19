@@ -136,8 +136,13 @@ export function usePersistedData(subAccountId?: string | null) {
 
       if (inv.data?.length) {
         setInvestments(inv.data.map((r: any) => ({
-          id: r.id, type: r.type as Investment["type"], account: r.account,
-          value: Number(r.value), date: r.date, returns: r.returns != null ? Number(r.returns) : null,
+          id: r.id, type: r.type as Investment["type"],
+          name: r.name || r.description || "",
+          account: r.account,
+          value: Number(r.value), date: r.date,
+          returns: r.returns != null ? Number(r.returns) : null,
+          currentValue: r.current_value != null ? Number(r.current_value) : null,
+          currentValueUpdatedAt: r.current_value_updated_at || null,
           description: r.description,
         })));
       }
@@ -250,8 +255,11 @@ export function usePersistedData(subAccountId?: string | null) {
     if (!userId) return;
     await supabase.from("investments").upsert({ ...subField,
       id: investment.id, user_id: userId, type: investment.type,
+      name: investment.name,
       account: investment.account, value: investment.value,
       date: investment.date, returns: investment.returns,
+      current_value: investment.currentValue,
+      current_value_updated_at: investment.currentValueUpdatedAt,
       description: investment.description,
     }, { onConflict: "id" });
   }, [userId, subAccountId]);
