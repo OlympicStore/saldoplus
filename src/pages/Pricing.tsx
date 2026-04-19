@@ -160,16 +160,22 @@ const Pricing = () => {
   };
 
   const handleSelectPlan = (planId: string) => {
-    const link = PAYMENT_LINKS[planId];
-    if (!link) return;
-
     const plan = PLANS.find((p) => p.id === planId);
     const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
     handleAddToCart(planId);
     fbTrackInitiateCheckout(planId, value);
 
+    // If user not logged in → send to signup (start 3-day trial)
+    if (!user) {
+      navigate(`/auth?mode=signup&plan=${planId}`);
+      return;
+    }
+
+    // Logged-in user → open Stripe checkout
+    const link = PAYMENT_LINKS[planId];
+    if (!link) return;
     const separator = link.includes("?") ? "&" : "?";
-    const email = user?.email || "";
+    const email = user.email || "";
     const url = email
       ? `${link}${separator}prefilled_email=${encodeURIComponent(email)}`
       : link;
@@ -203,7 +209,7 @@ const Pricing = () => {
                   className="text-sm px-3 py-2 rounded-lg text-text-muted hover:text-foreground transition-colors hidden sm:inline">
                   Entrar
                 </button>
-                <button onClick={() => navigate("/auth")}
+                <button onClick={() => navigate("/auth?mode=signup")}
                   className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity">
                   Começar agora
                 </button>
@@ -237,7 +243,7 @@ const Pricing = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
                 <a
-                  href={user ? undefined : "/auth"}
+                  href={user ? undefined : "/auth?mode=signup"}
                   onClick={user ? () => navigate("/app") : undefined}
                   className="group px-7 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer"
                 >
@@ -694,7 +700,7 @@ const Pricing = () => {
             <p className="text-text-muted text-lg mb-8 max-w-lg mx-auto">
               Junte-se a +500 portugueses que já sabem para onde vai cada euro.
             </p>
-            <button onClick={() => user ? navigate("/app") : navigate("/auth")}
+            <button onClick={() => user ? navigate("/app") : navigate("/auth?mode=signup")}
               className="group px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg hover:opacity-90 transition-all inline-flex items-center gap-2 shadow-xl shadow-primary/25">
               Começar agora — é rápido
               <ArrowRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
