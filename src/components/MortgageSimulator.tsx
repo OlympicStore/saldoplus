@@ -15,6 +15,9 @@ import {
   PiggyBank,
   Loader2,
   FileText,
+  Home,
+  FlaskConical,
+  RefreshCw,
 } from "lucide-react";
 import {
   LineChart,
@@ -60,7 +63,7 @@ interface AmortRow {
 const calcPMT = (principal: number, annualRate: number, years: number) => {
   const r = annualRate / 100 / 12;
   const n = years * 12;
-  if (r === 0) return principal / n;
+  if (r === 0 || n === 0) return n === 0 ? 0 : principal / n;
   return (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 };
 
@@ -70,6 +73,7 @@ const buildSchedule = (
   years: number,
   extraPayment: number = 0
 ): AmortRow[] => {
+  if (principal <= 0 || years <= 0) return [];
   const r = annualRate / 100 / 12;
   const basePayment = calcPMT(principal, annualRate, years);
   const maxMonths = years * 12;
@@ -98,8 +102,28 @@ const buildSchedule = (
   return rows;
 };
 
-const MortgageSimulator = () => {
+interface CurrentCredit {
+  id?: string;
+  loan_amount: number;
+  annual_rate: number;
+  term_years: number;
+  monthly_payment: number;
+}
+
+const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<void> | void }) => {
   const { user } = useAuth();
+
+  // === CRÉDITO ATUAL (sincroniza com house_data) ===
+  const [current, setCurrent] = useState<CurrentCredit>({
+    loan_amount: 0,
+    annual_rate: 0,
+    term_years: 30,
+    monthly_payment: 0,
+  });
+  const [loadingCurrent, setLoadingCurrent] = useState(true);
+  const [savingCurrent, setSavingCurrent] = useState(false);
+
+  // === SIMULAÇÃO LIVRE ===
   const [loanAmount, setLoanAmount] = useState(150000);
   const [annualRate, setAnnualRate] = useState(3.5);
   const [termYears, setTermYears] = useState(30);
@@ -108,28 +132,91 @@ const MortgageSimulator = () => {
   const [extraPayment, setExtraPayment] = useState(0);
   const [simName, setSimName] = useState("Simulação 1");
   const [savedSims, setSavedSims] = useState<Simulation[]>([]);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
+    loadCurrent();
     loadSimulations();
   }, [user]);
 
+  const loadCurrent = async () => {
+    if (!user) return;
+    setLoadingCurrent(true);
+    const { data } = await supabase
+      .from("house_data")
+      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (data) {
+      const loan = Math.max(0, Number(data.house_value || 0) - Number(data.down_payment || 0));
+      setCurrent({
+        id: data.id,
+        loan_amount: loan,
+        annual_rate: Number(data.annual_rate || 0),
+        term_years: Number(data.term_years || 30),
+        monthly_payment: Number(data.monthly_payment || 0),
+      });
+    }
+    setLoadingCurrent(false);
+  };
+
   const loadSimulations = async () => {
     if (!user) return;
-    setLoading(true);
     const { data, error } = await supabase
       .from("mortgage_simulations")
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     if (!error && data) setSavedSims(data as Simulation[]);
-    setLoading(false);
   };
 
-  // === CÁLCULOS ===
+  const handleSaveCurrent = async () => {
+    if (!user) return;
+    setSavingCurrent(true);
+    try {
+      const computedPayment = calcPMT(current.loan_amount, current.annual_rate, current.term_years);
+      const payload = {
+        annual_rate: current.annual_rate,
+        term_years: current.term_years,
+        monthly_payment: computedPayment,
+      };
+      if (current.id) {
+        const { error } = await supabase.from("house_data").update(payload).eq("id", current.id);
+        if (error) throw error;
+      } else {
+        const { data: row, error } = await supabase
+          .from("house_data")
+          .insert({ ...payload, user_id: user.id, house_value: current.loan_amount, down_payment: 0 })
+          .select()
+          .single();
+        if (error) throw error;
+        setCurrent((p) => ({ ...p, id: row.id }));
+      }
+      setCurrent((p) => ({ ...p, monthly_payment: computedPayment }));
+      toast.success("Crédito atualizado em Minha Casa");
+      if (onSavedCurrent) await onSavedCurrent();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao guardar");
+    } finally {
+      setSavingCurrent(false);
+    }
+  };
+
+  // === CÁLCULOS CRÉDITO ATUAL ===
+  const currentSchedule = useMemo(
+    () => buildSchedule(current.loan_amount, current.annual_rate, current.term_years, 0),
+    [current.loan_amount, current.annual_rate, current.term_years]
+  );
+  const currentPayment = useMemo(
+    () => calcPMT(current.loan_amount, current.annual_rate, current.term_years),
+    [current.loan_amount, current.annual_rate, current.term_years]
+  );
+  const currentTotalCost = currentSchedule.reduce((s, r) => s + r.payment, 0);
+  const currentTotalInterest = Math.max(0, currentTotalCost - current.loan_amount);
+
+  // === CÁLCULOS SIMULAÇÃO ===
   const baseSchedule = useMemo(
     () => buildSchedule(loanAmount, annualRate, termYears, 0),
     [loanAmount, annualRate, termYears]
@@ -141,20 +228,22 @@ const MortgageSimulator = () => {
 
   const basePayment = useMemo(() => calcPMT(loanAmount, annualRate, termYears), [loanAmount, annualRate, termYears]);
   const totalCost = baseSchedule.reduce((s, r) => s + r.payment, 0);
-  const totalInterest = totalCost - loanAmount;
+  const totalInterest = Math.max(0, totalCost - loanAmount);
   const realMonthlyCost = basePayment + extraMonthlyCosts;
   const margin = monthlyIncome - realMonthlyCost;
   const effortRatio = monthlyIncome > 0 ? (basePayment / monthlyIncome) * 100 : 0;
 
-  // Com pagamento extra
   const extraTotalCost = extraSchedule.reduce((s, r) => s + r.payment, 0);
-  const extraTotalInterest = extraTotalCost - loanAmount;
+  const extraTotalInterest = Math.max(0, extraTotalCost - loanAmount);
   const interestSaved = totalInterest - extraTotalInterest;
   const monthsSaved = baseSchedule.length - extraSchedule.length;
   const yearsSaved = Math.floor(monthsSaved / 12);
   const remainderMonths = monthsSaved % 12;
 
-  // Status esforço
+  // Comparativo simulação vs atual
+  const paymentDelta = basePayment - currentPayment;
+  const interestDelta = totalInterest - currentTotalInterest;
+
   const effortStatus = useMemo(() => {
     if (monthlyIncome === 0)
       return { label: "—", color: "text-muted-foreground", bg: "bg-muted/30", emoji: "💡" };
@@ -165,10 +254,9 @@ const MortgageSimulator = () => {
     return { label: "Risco", color: "text-destructive", bg: "bg-destructive/10", emoji: "🔴" };
   }, [effortRatio, monthlyIncome]);
 
-  // Dados do gráfico (anuais)
   const chartData = useMemo(() => {
     const yearly: Record<number, { year: number; balance: number; interest: number; principal: number }> = {};
-    baseSchedule.forEach((r, idx) => {
+    baseSchedule.forEach((r) => {
       const yr = r.year;
       if (!yearly[yr]) yearly[yr] = { year: yr, balance: 0, interest: 0, principal: 0 };
       yearly[yr].balance = r.balance;
@@ -178,7 +266,6 @@ const MortgageSimulator = () => {
     return Object.values(yearly);
   }, [baseSchedule]);
 
-  // Tabela agrupada por ano
   const yearlyTable = useMemo(() => {
     const grouped: Record<number, AmortRow[]> = {};
     baseSchedule.forEach((r) => {
@@ -190,36 +277,29 @@ const MortgageSimulator = () => {
       const totalInterest = rows.reduce((s, r) => s + r.interest, 0);
       const totalPrincipal = rows.reduce((s, r) => s + r.principal, 0);
       const endBalance = rows[rows.length - 1].balance;
-      return {
-        year: Number(year),
-        rows,
-        totalPayment,
-        totalInterest,
-        totalPrincipal,
-        endBalance,
-      };
+      return { year: Number(year), rows, totalPayment, totalInterest, totalPrincipal, endBalance };
     });
   }, [baseSchedule]);
 
-  // Insights
   const insights = useMemo(() => {
     const items: string[] = [];
-    items.push(`💸 Vai pagar **${fmt(totalInterest)}** em juros ao longo de ${termYears} anos.`);
-    if (monthlyIncome > 0) {
-      items.push(`📊 Este crédito consome **${effortRatio.toFixed(1)}%** do seu rendimento mensal.`);
+    if (totalInterest > 0) items.push(`💸 Esta simulação paga **${fmt(totalInterest)}** em juros ao longo de ${termYears} anos.`);
+    if (monthlyIncome > 0) items.push(`📊 Consome **${effortRatio.toFixed(1)}%** do seu rendimento mensal.`);
+    if (currentPayment > 0 && basePayment > 0) {
+      if (paymentDelta < -1) items.push(`✅ Poupa **${fmt(Math.abs(paymentDelta))}/mês** vs o seu crédito atual.`);
+      else if (paymentDelta > 1) items.push(`⚠️ Custa mais **${fmt(paymentDelta)}/mês** vs o seu crédito atual.`);
+      if (interestDelta < -1) items.push(`🎯 Poupa **${fmt(Math.abs(interestDelta))}** em juros vs o atual.`);
     }
     if (extraPayment > 0 && interestSaved > 0) {
-      items.push(
-        `🚀 Com **+${fmt(extraPayment)}/mês**, poupa **${yearsSaved}a ${remainderMonths}m** e **${fmt(interestSaved)}** em juros.`
-      );
+      items.push(`🚀 Com **+${fmt(extraPayment)}/mês**, poupa **${yearsSaved}a ${remainderMonths}m** e **${fmt(interestSaved)}** em juros.`);
     }
     if (margin < 0 && monthlyIncome > 0) {
       items.push(`⚠️ O custo real ultrapassa o seu rendimento em **${fmt(Math.abs(margin))}**.`);
     }
     return items;
-  }, [totalInterest, termYears, monthlyIncome, effortRatio, extraPayment, interestSaved, yearsSaved, remainderMonths, margin]);
+  }, [totalInterest, termYears, monthlyIncome, effortRatio, extraPayment, interestSaved, yearsSaved, remainderMonths, margin, basePayment, currentPayment, paymentDelta, interestDelta]);
 
-  const handleSave = async () => {
+  const handleSaveSim = async () => {
     if (!user) return;
     if (!simName.trim()) {
       toast.error("Dá um nome à simulação");
@@ -266,6 +346,18 @@ const MortgageSimulator = () => {
     loadSimulations();
   };
 
+  const copyCurrentToSim = () => {
+    if (current.loan_amount <= 0) {
+      toast.error("Preencha primeiro o seu crédito atual");
+      return;
+    }
+    setLoanAmount(current.loan_amount);
+    setAnnualRate(current.annual_rate);
+    setTermYears(current.term_years);
+    setSimName("Cenário baseado no atual");
+    toast.success("Dados do crédito atual copiados");
+  };
+
   const exportCSV = () => {
     const header = "Mês,Ano,Prestação,Juros,Capital,Pagamento Extra,Dívida Restante\n";
     const rows = baseSchedule
@@ -280,6 +372,9 @@ const MortgageSimulator = () => {
     URL.revokeObjectURL(url);
   };
 
+  const inputCls = "mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono";
+  const labelCls = "text-xs font-medium text-muted-foreground";
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -290,113 +385,238 @@ const MortgageSimulator = () => {
           </div>
           <div>
             <h2 className="text-lg font-semibold">Simulador de Crédito Habitação</h2>
-            <p className="text-sm text-muted-foreground">Veja o custo real do seu crédito e simule pagamentos extra</p>
+            <p className="text-sm text-muted-foreground">Compare o seu crédito atual com cenários alternativos</p>
           </div>
         </div>
       </div>
 
-      {/* INPUTS */}
-      <div className="rounded-xl border border-border-subtle/60 bg-card p-5 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Nome da simulação</label>
-            <input
-              type="text"
-              value={simName}
-              onChange={(e) => setSimName(e.target.value)}
-              maxLength={100}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-            />
+      {/* DUAS COLUNAS: ATUAL vs SIMULAÇÃO */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* === CRÉDITO ATUAL === */}
+        <div className="rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-transparent p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-blue-500/10 p-2">
+                <Home className="h-4 w-4 text-blue-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold">O Seu Crédito Atual</h3>
+                <p className="text-xs text-muted-foreground">Sincronizado com Minha Casa</p>
+              </div>
+            </div>
+            <button
+              onClick={loadCurrent}
+              className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+              title="Recarregar"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </button>
           </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Valor do empréstimo (€)</label>
-            <input
-              type="number"
-              inputMode="decimal"
-              value={loanAmount === 0 ? "" : loanAmount}
-              onChange={(e) => setLoanAmount(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Taxa de juro anual (%)</label>
-            <input
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              value={annualRate === 0 ? "" : annualRate}
-              onChange={(e) => setAnnualRate(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Prazo (anos)</label>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={termYears === 0 ? "" : termYears}
-              onChange={(e) => setTermYears(e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))))}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Rendimento mensal (€) <span className="opacity-60">opcional</span></label>
-            <input
-              type="number"
-              inputMode="decimal"
-              value={monthlyIncome === 0 ? "" : monthlyIncome}
-              onChange={(e) => setMonthlyIncome(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Custos mensais extra (€) <span className="opacity-60">seguros, condomínio…</span></label>
-            <input
-              type="number"
-              inputMode="decimal"
-              value={extraMonthlyCosts === 0 ? "" : extraMonthlyCosts}
-              onChange={(e) => setExtraMonthlyCosts(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              💥 Pagamento extra mensal (€) <span className="opacity-60">poupe juros e tempo</span>
-            </label>
-            <input
-              type="number"
-              inputMode="decimal"
-              value={extraPayment === 0 ? "" : extraPayment}
-              onChange={(e) => setExtraPayment(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono"
-            />
-          </div>
+
+          {loadingCurrent ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className={labelCls}>Valor financiado (€)</label>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={current.loan_amount === 0 ? "" : current.loan_amount}
+                    onChange={(e) => setCurrent((p) => ({ ...p, loan_amount: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                    className={inputCls}
+                    placeholder="Ex: 120000"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Taxa anual (%)</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.01"
+                      value={current.annual_rate === 0 ? "" : current.annual_rate}
+                      onChange={(e) => setCurrent((p) => ({ ...p, annual_rate: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                      className={inputCls}
+                      placeholder="Ex: 3.5"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Prazo (anos)</label>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={current.term_years === 0 ? "" : current.term_years}
+                      onChange={(e) => setCurrent((p) => ({ ...p, term_years: e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))) }))}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Resumo do crédito atual */}
+              <div className="grid grid-cols-3 gap-2 pt-2">
+                <div className="rounded-lg bg-card border border-border-subtle/60 p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Prestação</p>
+                  <p className="text-sm font-bold font-mono tabular-nums mt-0.5">{fmt2(currentPayment)}</p>
+                </div>
+                <div className="rounded-lg bg-card border border-border-subtle/60 p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</p>
+                  <p className="text-sm font-bold font-mono tabular-nums mt-0.5">{fmt(currentTotalCost)}</p>
+                </div>
+                <div className="rounded-lg bg-card border border-border-subtle/60 p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Juros</p>
+                  <p className="text-sm font-bold font-mono tabular-nums text-destructive mt-0.5">{fmt(currentTotalInterest)}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSaveCurrent}
+                disabled={savingCurrent}
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 transition-colors"
+              >
+                {savingCurrent ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Atualizar em Minha Casa
+              </button>
+              <p className="text-[11px] text-muted-foreground text-center">
+                Estes dados aparecem automaticamente nos painéis de Esforço e Progresso
+              </p>
+            </>
+          )}
         </div>
 
-        <div className="flex gap-2 pt-2">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Guardar
-          </button>
-          <button
-            onClick={exportCSV}
-            className="flex items-center gap-2 rounded-lg border border-border-subtle bg-secondary px-4 py-2 text-sm font-medium hover:bg-surface-hover"
-          >
-            <FileText className="h-4 w-4" />
-            Exportar CSV
-          </button>
+        {/* === SIMULE UM NOVO CRÉDITO === */}
+        <div className="rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <FlaskConical className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Simule um Novo Crédito</h3>
+                <p className="text-xs text-muted-foreground">Teste cenários sem afetar Minha Casa</p>
+              </div>
+            </div>
+            <button
+              onClick={copyCurrentToSim}
+              className="text-[11px] rounded-md px-2 py-1 bg-primary/10 text-primary hover:bg-primary/20 font-medium"
+              title="Copiar dados do crédito atual"
+            >
+              ← Copiar atual
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <label className={labelCls}>Nome da simulação</label>
+              <input
+                type="text"
+                value={simName}
+                onChange={(e) => setSimName(e.target.value)}
+                maxLength={100}
+                className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Valor do empréstimo (€)</label>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={loanAmount === 0 ? "" : loanAmount}
+                onChange={(e) => setLoanAmount(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                className={inputCls}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Taxa anual (%)</label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  value={annualRate === 0 ? "" : annualRate}
+                  onChange={(e) => setAnnualRate(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Prazo (anos)</label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={termYears === 0 ? "" : termYears}
+                  onChange={(e) => setTermYears(e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))))}
+                  className={inputCls}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Rendimento (€) <span className="opacity-60">opc.</span></label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={monthlyIncome === 0 ? "" : monthlyIncome}
+                  onChange={(e) => setMonthlyIncome(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Custos extra (€) <span className="opacity-60">opc.</span></label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={extraMonthlyCosts === 0 ? "" : extraMonthlyCosts}
+                  onChange={(e) => setExtraMonthlyCosts(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                  className={inputCls}
+                />
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>💥 Pagamento extra mensal (€)</label>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={extraPayment === 0 ? "" : extraPayment}
+                onChange={(e) => setExtraPayment(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={handleSaveSim}
+              disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Guardar
+            </button>
+            <button
+              onClick={exportCSV}
+              className="flex items-center gap-2 rounded-lg border border-border-subtle bg-secondary px-3 py-2 text-sm font-medium hover:bg-surface-hover"
+              title="Exportar CSV"
+            >
+              <FileText className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* DASHBOARD */}
+      {/* DASHBOARD DA SIMULAÇÃO */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><Wallet className="h-3.5 w-3.5" />Prestação</div>
           <p className="mt-1 text-xl font-bold font-mono tabular-nums">{fmt2(basePayment)}</p>
+          {currentPayment > 0 && (
+            <p className={`text-[11px] font-mono mt-0.5 ${paymentDelta < 0 ? "text-success" : paymentDelta > 0 ? "text-destructive" : "text-muted-foreground"}`}>
+              {paymentDelta > 0 ? "+" : ""}{fmt2(paymentDelta)} vs atual
+            </p>
+          )}
         </div>
         <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingDown className="h-3.5 w-3.5" />Custo total</div>
@@ -405,6 +625,11 @@ const MortgageSimulator = () => {
         <div className="rounded-xl border border-border-subtle/60 bg-card p-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><AlertCircle className="h-3.5 w-3.5" />Juros totais</div>
           <p className="mt-1 text-xl font-bold font-mono tabular-nums text-destructive">{fmt(totalInterest)}</p>
+          {currentTotalInterest > 0 && (
+            <p className={`text-[11px] font-mono mt-0.5 ${interestDelta < 0 ? "text-success" : interestDelta > 0 ? "text-destructive" : "text-muted-foreground"}`}>
+              {interestDelta > 0 ? "+" : ""}{fmt(interestDelta)} vs atual
+            </p>
+          )}
         </div>
         <div className={`rounded-xl border border-border-subtle/60 p-4 ${effortStatus.bg}`}>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">{effortStatus.emoji} Taxa esforço</div>
@@ -459,7 +684,7 @@ const MortgageSimulator = () => {
 
       {/* GRÁFICO */}
       <div className="rounded-xl border border-border-subtle/60 bg-card p-5">
-        <h3 className="font-semibold mb-3">Evolução da dívida</h3>
+        <h3 className="font-semibold mb-3">Evolução da dívida (simulação)</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
@@ -515,54 +740,56 @@ const MortgageSimulator = () => {
       )}
 
       {/* TABELA AMORTIZAÇÃO ANUAL */}
-      <div className="rounded-xl border border-border-subtle/60 bg-card p-5">
-        <h3 className="font-semibold mb-3">Tabela de Amortização</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border-subtle text-left text-xs text-muted-foreground">
-                <th className="py-2 pr-2"></th>
-                <th className="py-2 pr-2">Ano</th>
-                <th className="py-2 pr-2 text-right">Pago</th>
-                <th className="py-2 pr-2 text-right">Juros</th>
-                <th className="py-2 pr-2 text-right">Capital</th>
-                <th className="py-2 text-right">Dívida fim</th>
-              </tr>
-            </thead>
-            <tbody>
-              {yearlyTable.map((y) => (
-                <>
-                  <tr
-                    key={y.year}
-                    className="border-b border-border-subtle/40 hover:bg-surface-hover/40 cursor-pointer"
-                    onClick={() => setExpandedYear(expandedYear === y.year ? null : y.year)}
-                  >
-                    <td className="py-2 pr-2">
-                      {expandedYear === y.year ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </td>
-                    <td className="py-2 pr-2 font-medium">{y.year}</td>
-                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{fmt(y.totalPayment)}</td>
-                    <td className="py-2 pr-2 text-right font-mono tabular-nums text-destructive">{fmt(y.totalInterest)}</td>
-                    <td className="py-2 pr-2 text-right font-mono tabular-nums text-success">{fmt(y.totalPrincipal)}</td>
-                    <td className="py-2 text-right font-mono tabular-nums">{fmt(y.endBalance)}</td>
-                  </tr>
-                  {expandedYear === y.year &&
-                    y.rows.map((r, idx) => (
-                      <tr key={`${y.year}-${idx}`} className="bg-muted/30 text-xs">
-                        <td></td>
-                        <td className="py-1.5 pr-2 pl-4 text-muted-foreground">Mês {r.month}</td>
-                        <td className="py-1.5 pr-2 text-right font-mono tabular-nums">{fmt2(r.payment)}</td>
-                        <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-destructive">{fmt2(r.interest)}</td>
-                        <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-success">{fmt2(r.principal)}</td>
-                        <td className="py-1.5 text-right font-mono tabular-nums">{fmt2(r.balance)}</td>
-                      </tr>
-                    ))}
-                </>
-              ))}
-            </tbody>
-          </table>
+      {yearlyTable.length > 0 && (
+        <div className="rounded-xl border border-border-subtle/60 bg-card p-5">
+          <h3 className="font-semibold mb-3">Tabela de Amortização</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border-subtle text-left text-xs text-muted-foreground">
+                  <th className="py-2 pr-2"></th>
+                  <th className="py-2 pr-2">Ano</th>
+                  <th className="py-2 pr-2 text-right">Pago</th>
+                  <th className="py-2 pr-2 text-right">Juros</th>
+                  <th className="py-2 pr-2 text-right">Capital</th>
+                  <th className="py-2 text-right">Dívida fim</th>
+                </tr>
+              </thead>
+              <tbody>
+                {yearlyTable.map((y) => (
+                  <>
+                    <tr
+                      key={y.year}
+                      className="border-b border-border-subtle/40 hover:bg-surface-hover/40 cursor-pointer"
+                      onClick={() => setExpandedYear(expandedYear === y.year ? null : y.year)}
+                    >
+                      <td className="py-2 pr-2">
+                        {expandedYear === y.year ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      </td>
+                      <td className="py-2 pr-2 font-medium">{y.year}</td>
+                      <td className="py-2 pr-2 text-right font-mono tabular-nums">{fmt(y.totalPayment)}</td>
+                      <td className="py-2 pr-2 text-right font-mono tabular-nums text-destructive">{fmt(y.totalInterest)}</td>
+                      <td className="py-2 pr-2 text-right font-mono tabular-nums text-success">{fmt(y.totalPrincipal)}</td>
+                      <td className="py-2 text-right font-mono tabular-nums">{fmt(y.endBalance)}</td>
+                    </tr>
+                    {expandedYear === y.year &&
+                      y.rows.map((r, idx) => (
+                        <tr key={`${y.year}-${idx}`} className="bg-muted/30 text-xs">
+                          <td></td>
+                          <td className="py-1.5 pr-2 pl-4 text-muted-foreground">Mês {r.month}</td>
+                          <td className="py-1.5 pr-2 text-right font-mono tabular-nums">{fmt2(r.payment)}</td>
+                          <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-destructive">{fmt2(r.interest)}</td>
+                          <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-success">{fmt2(r.principal)}</td>
+                          <td className="py-1.5 text-right font-mono tabular-nums">{fmt2(r.balance)}</td>
+                        </tr>
+                      ))}
+                  </>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* SIMULAÇÕES GUARDADAS */}
       {savedSims.length > 0 && (
