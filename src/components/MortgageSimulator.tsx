@@ -184,7 +184,7 @@ interface ExtractedDoc {
 }
 
 const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<void> | void }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   // === CRÉDITO ATUAL (sincroniza com house_data) ===
   const [current, setCurrent] = useState<CurrentCredit>({
@@ -202,6 +202,8 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // === SIMULAÇÃO LIVRE ===
   const [loanAmount, setLoanAmount] = useState(150000);
@@ -694,31 +696,50 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
       </div>
 
       {/* PRESTAÇÃO ATUAL — estado de pagamento */}
-      {!loadingCurrent && current.loan_amount > 0 && (
+      {!loadingCurrent && current.loan_amount > 0 && (() => {
+        const loanStart = profile?.plan_started_at ? new Date(profile.plan_started_at) : new Date();
+        const monthsSinceStart = Math.max(
+          0,
+          (selectedYear - loanStart.getFullYear()) * 12 + (selectedMonth - loanStart.getMonth())
+        );
+        const variableRate = current.indexante + current.spread;
+        const rateForSelected = rateAtMonth(
+          monthsSinceStart,
+          current.rate_type,
+          current.rate_type === "mixed" ? current.fixed_rate_initial : current.annual_rate,
+          current.fixed_period_years,
+          variableRate
+        );
+        const paymentForSelected = calcPMT(current.loan_amount, rateForSelected, current.term_years);
+        const selKey = `${selectedYear}-${selectedMonth}`;
+        const isSelectedPaid = current.monthly_payment_status[selKey] === "pago";
+
+        return (
         <div className="rounded-xl border border-border-subtle/60 bg-card p-5">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
-                Prestação atual de {MONTH_NAMES_FULL[new Date().getMonth()]} {new Date().getFullYear()}
+                Prestação de {MONTH_NAMES_FULL[selectedMonth]} {selectedYear}
               </p>
-              <p className="text-xl font-semibold font-mono tabular-nums">{fmt2(current.monthly_payment)}</p>
+              <p className="text-xl font-semibold font-mono tabular-nums">{fmt2(paymentForSelected)}</p>
+              {current.rate_type !== "fixed" && (
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Taxa aplicada: <span className="font-mono">{rateForSelected.toFixed(3)}%</span>
+                  {current.rate_type === "mixed" && monthsSinceStart < current.fixed_period_years * 12 && " (fase fixa)"}
+                  {current.rate_type === "mixed" && monthsSinceStart >= current.fixed_period_years * 12 && " (fase variável)"}
+                </p>
+              )}
             </div>
-            {(() => {
-              const todayKey = `${new Date().getFullYear()}-${new Date().getMonth()}`;
-              const isPaid = current.monthly_payment_status[todayKey] === "pago";
-              return (
-                <button
-                  onClick={() => togglePaymentStatus(new Date().getFullYear(), new Date().getMonth())}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                    isPaid
-                      ? "bg-success/10 text-success border-success/20"
-                      : "bg-warning/10 text-warning-foreground border-warning/20 text-yellow-600"
-                  }`}
-                >
-                  {isPaid ? "✅ Paga" : "⏳ Pendente"}
-                </button>
-              );
-            })()}
+            <button
+              onClick={() => togglePaymentStatus(selectedYear, selectedMonth)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                isSelectedPaid
+                  ? "bg-success/10 text-success border-success/20"
+                  : "bg-warning/10 text-warning-foreground border-warning/20 text-yellow-600"
+              }`}
+            >
+              {isSelectedPaid ? "✅ Paga" : "⏳ Pendente"}
+            </button>
           </div>
 
           <div className="mt-4">
@@ -743,12 +764,15 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 const st = current.monthly_payment_status[key];
                 const isPast = calendarYear < new Date().getFullYear() ||
                   (calendarYear === new Date().getFullYear() && i <= new Date().getMonth());
+                const isSelected = calendarYear === selectedYear && i === selectedMonth;
                 return (
                   <button
                     key={i}
-                    onClick={() => togglePaymentStatus(calendarYear, i)}
+                    onClick={() => { setSelectedMonth(i); setSelectedYear(calendarYear); }}
                     className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                      st === "pago"
+                      isSelected
+                        ? "bg-primary text-primary-foreground ring-2 ring-primary/40"
+                        : st === "pago"
                         ? "bg-success/15 text-success"
                         : isPast
                         ? "bg-warning/10 text-yellow-600"
@@ -763,7 +787,8 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* CRÉDITO ATUAL */}
       <div className="grid grid-cols-1 gap-4">
