@@ -249,6 +249,10 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     spread: 0,
     fixed_period_years: 0,
     fixed_rate_initial: 0,
+    euribor_term: "6m",
+    mixed_phase2_acknowledged: false,
+    fixed_indexante: 0,
+    fixed_spread: 0,
   });
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
