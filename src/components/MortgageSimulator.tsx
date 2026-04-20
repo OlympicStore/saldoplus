@@ -217,11 +217,14 @@ const MONTH_NAMES_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set"
 const MONTH_NAMES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 interface ExtractedDoc {
+  house_value?: number | null;
+  down_payment?: number | null;
   loan_amount?: number | null;
   rate_type?: RateType | null;
   annual_rate?: number | null;
   indexante?: number | null;
   indexante_label?: string | null;
+  euribor_term?: "3m" | "6m" | "12m" | null;
   spread?: number | null;
   fixed_period_years?: number | null;
   fixed_rate_initial?: number | null;
