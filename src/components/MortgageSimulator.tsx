@@ -197,7 +197,11 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
 
   // === CRÉDITO ATUAL (sincroniza com house_data) ===
   const [current, setCurrent] = useState<CurrentCredit>({
+    house_value: 0,
+    down_payment: 0,
     loan_amount: 0,
+    monthly_income: 0,
+    extra_expenses: [],
     annual_rate: 0,
     term_years: 30,
     monthly_payment: 0,
@@ -210,6 +214,8 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
   });
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
+  const [newExtraName, setNewExtraName] = useState("");
+  const [newExtraValue, setNewExtraValue] = useState("");
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
