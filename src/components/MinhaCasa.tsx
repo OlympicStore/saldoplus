@@ -252,6 +252,36 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     });
   };
 
+  const handleResetAll = async () => {
+    if (!user) return;
+    try {
+      await supabase.from("house_data").delete().eq("user_id", user.id);
+      // Limpar também a "Prestação Casa" sincronizada nas despesas fixas
+      await supabase.from("fixed_expenses").delete().eq("user_id", user.id).eq("item", "Prestação Casa");
+      setData({
+        house_value: 0,
+        monthly_payment: 0,
+        monthly_income: 0,
+        down_payment: 0,
+        annual_rate: 0,
+        term_years: 30,
+        rate_type: "fixed",
+        indexante: 0,
+        spread: 0,
+        fixed_period_years: 0,
+        fixed_rate_initial: 0,
+        extra_expenses: [],
+        monthly_payment_status: {},
+      });
+      setPreviousPayment(null);
+      toast.success("Dados da casa redefinidos");
+      if (onSave) await onSave();
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao redefinir dados");
+    }
+  };
+
   const exportReport = () => {
     const lines: string[] = [];
     lines.push("RELATÓRIO MINHA CASA");
