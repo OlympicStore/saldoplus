@@ -456,6 +456,10 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         spread: current.spread,
         fixed_period_years: current.fixed_period_years,
         fixed_rate_initial: current.fixed_rate_initial,
+        euribor_term: current.euribor_term,
+        mixed_phase2_acknowledged: current.mixed_phase2_acknowledged,
+        fixed_indexante: current.fixed_indexante,
+        fixed_spread: current.fixed_spread,
       };
       if (current.id) {
         const { error } = await supabase.from("house_data").update(payload).eq("id", current.id);
