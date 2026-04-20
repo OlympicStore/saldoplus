@@ -734,7 +734,16 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                     <Wallet className="h-3 w-3 text-purple-500" />
                     <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">Entrada</span>
                   </div>
-                  <p className="font-mono font-semibold text-sm text-foreground tabular-nums">{fmt(data.down_payment)}</p>
+                  {isFullyFinanced ? (
+                    <div>
+                      <p className="font-mono font-semibold text-sm text-foreground tabular-nums">€0,00</p>
+                      <span className="inline-block mt-1 text-[9px] uppercase tracking-wider bg-yellow-500/15 text-yellow-700 px-1.5 py-0.5 rounded font-semibold">
+                        100% financiado
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="font-mono font-semibold text-sm text-foreground tabular-nums">{fmt(data.down_payment)}</p>
+                  )}
                 </div>
                 <div className="rounded-xl border border-status-paid/30 bg-status-paid/10 p-3">
                   <div className="flex items-center gap-1.5 mb-1.5">
@@ -752,13 +761,37 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                 </div>
               </div>
 
+              {/* Capital amortizado vs Juros pagos */}
+              {paidMonths > 0 && loanAmount > 0 && (
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-3">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Banknote className="h-3.5 w-3.5 text-blue-600" />
+                      <span className="text-[10px] uppercase tracking-wider text-blue-700 font-semibold">Capital amortizado</span>
+                    </div>
+                    <p className="font-mono font-semibold text-base text-blue-700 tabular-nums">{fmt(capitalPaid)}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">Reduziu a dívida</p>
+                  </div>
+                  <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-3">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Percent className="h-3.5 w-3.5 text-orange-600" />
+                      <span className="text-[10px] uppercase tracking-wider text-orange-700 font-semibold">Juros pagos</span>
+                    </div>
+                    <p className="font-mono font-semibold text-base text-orange-700 tabular-nums">{fmt(interestPaid)}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">Custo do crédito</p>
+                  </div>
+                </div>
+              )}
+
               {/* Footer: pace */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-border-subtle/40">
                 <div className="flex items-center gap-2 px-1">
                   <CheckCircle2 className="h-4 w-4 text-status-paid shrink-0" />
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-text-muted">Prestações pagas</p>
-                    <p className="text-sm font-semibold text-foreground tabular-nums">{paidMonths}</p>
+                    <p className="text-sm font-semibold text-foreground tabular-nums">
+                      {paidMonths} {totalMonths > 0 && <span className="text-text-muted font-normal">/ {totalMonths}</span>}
+                    </p>
                   </div>
                 </div>
                 {data.monthly_payment > 0 && remaining > 0 && (
@@ -775,12 +808,18 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                     <div className="flex items-center gap-2 px-1">
                       <TrendingUp className="h-4 w-4 text-primary shrink-0" />
                       <div>
-                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Estimativa</p>
+                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Estimativa restante</p>
                         <p className="text-sm font-semibold text-foreground tabular-nums">
-                          {remainingYears < 1
-                            ? `${remainingMonths} meses`
-                            : `~${Math.round(remainingYears)} anos`}
+                          {remainingYears > 0 && `${remainingYears} ${remainingYears === 1 ? "ano" : "anos"}`}
+                          {remainingYears > 0 && remainingExtraMonths > 0 && " e "}
+                          {remainingExtraMonths > 0 && `${remainingExtraMonths} ${remainingExtraMonths === 1 ? "mês" : "meses"}`}
+                          {remainingMonths === 0 && "0 meses"}
                         </p>
+                        {totalMonths > 0 && (
+                          <p className="text-[9px] text-text-muted mt-0.5">
+                            Prazo total: {data.term_years} anos
+                          </p>
+                        )}
                       </div>
                     </div>
                   </>
