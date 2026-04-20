@@ -202,6 +202,8 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // === SIMULAÇÃO LIVRE ===
   const [loanAmount, setLoanAmount] = useState(150000);
