@@ -1,5 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
-import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Download, History, BellRing, Calculator, Wallet, CreditCard } from "lucide-react";
+import { Home, TrendingUp, AlertTriangle, ShieldCheck, Loader2, MessageCircle, Phone, Mail, CheckCircle2, Clock, Plus, X, PieChart, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Download, History, BellRing, Calculator, Wallet, CreditCard, RotateCcw, Banknote, Percent } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import MortgageSimulator from "./MortgageSimulator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -241,6 +252,36 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     });
   };
 
+  const handleResetAll = async () => {
+    if (!user) return;
+    try {
+      await supabase.from("house_data").delete().eq("user_id", user.id);
+      // Limpar também a "Prestação Casa" sincronizada nas despesas fixas
+      await supabase.from("fixed_expenses").delete().eq("user_id", user.id).eq("item", "Prestação Casa");
+      setData({
+        house_value: 0,
+        monthly_payment: 0,
+        monthly_income: 0,
+        down_payment: 0,
+        annual_rate: 0,
+        term_years: 30,
+        rate_type: "fixed",
+        indexante: 0,
+        spread: 0,
+        fixed_period_years: 0,
+        fixed_rate_initial: 0,
+        extra_expenses: [],
+        monthly_payment_status: {},
+      });
+      setPreviousPayment(null);
+      toast.success("Dados da casa redefinidos");
+      if (onSave) await onSave();
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao redefinir dados");
+    }
+  };
+
   const exportReport = () => {
     const lines: string[] = [];
     lines.push("RELATÓRIO MINHA CASA");
@@ -321,7 +362,8 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   // Progress calculations — alinhado com o prazo do crédito (totalMonths)
   const paidMonths = Object.values(data.monthly_payment_status).filter(v => v === "pago").length;
   const remainingMonths = Math.max(0, totalMonths - paidMonths);
-  const remainingYears = remainingMonths / 12;
+  const remainingYears = Math.floor(remainingMonths / 12);
+  const remainingExtraMonths = remainingMonths % 12;
   const totalPaid = data.down_payment + (paidMonths * data.monthly_payment);
   // Falta pagar ao banco (capital + juros) com base no prazo real do crédito
   const remaining = Math.max(0, remainingMonths * data.monthly_payment);
@@ -329,6 +371,33 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const progressPct = totalMonths > 0
     ? Math.min(100, (paidMonths / totalMonths) * 100)
     : (data.house_value > 0 ? Math.min(100, (totalPaid / data.house_value) * 100) : 0);
+
+  // Detectar 100% financiado
+  const isFullyFinanced = data.house_value > 0 && data.down_payment === 0;
+
+  // Capital amortizado vs Juros pagos — via tabela de amortização (sistema francês)
+  const { capitalPaid, interestPaid } = useMemo(() => {
+    if (loanAmount <= 0 || data.monthly_payment <= 0 || paidMonths <= 0) {
+      return { capitalPaid: 0, interestPaid: 0 };
+    }
+    let annualRate = data.annual_rate;
+    if (data.rate_type === "variable") annualRate = data.indexante + data.spread;
+    else if (data.rate_type === "mixed") annualRate = data.fixed_rate_initial;
+    const monthlyRate = annualRate / 100 / 12;
+    let balance = loanAmount;
+    let capSum = 0;
+    let intSum = 0;
+    const months = Math.min(paidMonths, totalMonths || paidMonths);
+    for (let i = 0; i < months; i++) {
+      const interest = balance * monthlyRate;
+      const capital = Math.max(0, data.monthly_payment - interest);
+      capSum += capital;
+      intSum += interest;
+      balance = Math.max(0, balance - capital);
+      if (balance === 0) break;
+    }
+    return { capitalPaid: capSum, interestPaid: intSum };
+  }, [loanAmount, data.monthly_payment, paidMonths, totalMonths, data.annual_rate, data.rate_type, data.indexante, data.spread, data.fixed_rate_initial]);
 
   const getStatus = (r: number) => {
     if (r < 30) return { label: "Seguro", color: "text-status-paid", bg: "bg-status-paid/10", icon: ShieldCheck };
@@ -367,12 +436,40 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
             <p className="text-sm text-text-muted">Acompanhe o impacto da sua habitação no orçamento</p>
           </div>
         </div>
-        <button
-          onClick={exportReport}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover text-xs font-medium transition-colors"
-        >
-          <Download className="h-3.5 w-3.5" /> Exportar
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportReport}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover text-xs font-medium transition-colors"
+          >
+            <Download className="h-3.5 w-3.5" /> Exportar
+          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-status-negative/30 text-status-negative hover:bg-status-negative/10 text-xs font-medium transition-colors">
+                <RotateCcw className="h-3.5 w-3.5" /> Redefinir
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Redefinir dados da casa?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação apaga permanentemente todos os dados do seu crédito habitação:
+                  valor da casa, entrada, prestação, taxa, prazo, despesas adicionais (seguros)
+                  e o histórico de prestações pagas. Não é possível desfazer.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleResetAll}
+                  className="bg-status-negative text-white hover:bg-status-negative/90"
+                >
+                  Sim, redefinir tudo
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       {/* Payment reminder banner */}
@@ -637,7 +734,16 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                     <Wallet className="h-3 w-3 text-purple-500" />
                     <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">Entrada</span>
                   </div>
-                  <p className="font-mono font-semibold text-sm text-foreground tabular-nums">{fmt(data.down_payment)}</p>
+                  {isFullyFinanced ? (
+                    <div>
+                      <p className="font-mono font-semibold text-sm text-foreground tabular-nums">€0,00</p>
+                      <span className="inline-block mt-1 text-[9px] uppercase tracking-wider bg-yellow-500/15 text-yellow-700 px-1.5 py-0.5 rounded font-semibold">
+                        100% financiado
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="font-mono font-semibold text-sm text-foreground tabular-nums">{fmt(data.down_payment)}</p>
+                  )}
                 </div>
                 <div className="rounded-xl border border-status-paid/30 bg-status-paid/10 p-3">
                   <div className="flex items-center gap-1.5 mb-1.5">
@@ -655,13 +761,37 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                 </div>
               </div>
 
+              {/* Capital amortizado vs Juros pagos */}
+              {paidMonths > 0 && loanAmount > 0 && (
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-3">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Banknote className="h-3.5 w-3.5 text-blue-600" />
+                      <span className="text-[10px] uppercase tracking-wider text-blue-700 font-semibold">Capital amortizado</span>
+                    </div>
+                    <p className="font-mono font-semibold text-base text-blue-700 tabular-nums">{fmt(capitalPaid)}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">Reduziu a dívida</p>
+                  </div>
+                  <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-3">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Percent className="h-3.5 w-3.5 text-orange-600" />
+                      <span className="text-[10px] uppercase tracking-wider text-orange-700 font-semibold">Juros pagos</span>
+                    </div>
+                    <p className="font-mono font-semibold text-base text-orange-700 tabular-nums">{fmt(interestPaid)}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5">Custo do crédito</p>
+                  </div>
+                </div>
+              )}
+
               {/* Footer: pace */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-border-subtle/40">
                 <div className="flex items-center gap-2 px-1">
                   <CheckCircle2 className="h-4 w-4 text-status-paid shrink-0" />
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-text-muted">Prestações pagas</p>
-                    <p className="text-sm font-semibold text-foreground tabular-nums">{paidMonths}</p>
+                    <p className="text-sm font-semibold text-foreground tabular-nums">
+                      {paidMonths} {totalMonths > 0 && <span className="text-text-muted font-normal">/ {totalMonths}</span>}
+                    </p>
                   </div>
                 </div>
                 {data.monthly_payment > 0 && remaining > 0 && (
@@ -678,12 +808,18 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                     <div className="flex items-center gap-2 px-1">
                       <TrendingUp className="h-4 w-4 text-primary shrink-0" />
                       <div>
-                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Estimativa</p>
+                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Estimativa restante</p>
                         <p className="text-sm font-semibold text-foreground tabular-nums">
-                          {remainingYears < 1
-                            ? `${remainingMonths} meses`
-                            : `~${Math.round(remainingYears)} anos`}
+                          {remainingYears > 0 && `${remainingYears} ${remainingYears === 1 ? "ano" : "anos"}`}
+                          {remainingYears > 0 && remainingExtraMonths > 0 && " e "}
+                          {remainingExtraMonths > 0 && `${remainingExtraMonths} ${remainingExtraMonths === 1 ? "mês" : "meses"}`}
+                          {remainingMonths === 0 && "0 meses"}
                         </p>
+                        {totalMonths > 0 && (
+                          <p className="text-[9px] text-text-muted mt-0.5">
+                            Prazo total: {data.term_years} anos
+                          </p>
+                        )}
                       </div>
                     </div>
                   </>
