@@ -907,6 +907,24 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
+              <label className={labelCls}>Valor da casa (€)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={extracted.house_value ?? ""}
+                onChange={(e) => updateExtractedField("house_value", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Entrada paga (€)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={extracted.down_payment ?? ""}
+                onChange={(e) => updateExtractedField("down_payment", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
               <label className={labelCls}>Valor do empréstimo (€)</label>
               <input
                 type="number"
