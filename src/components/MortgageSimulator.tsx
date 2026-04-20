@@ -352,8 +352,13 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     if (!user) return;
     setSavingCurrent(true);
     try {
-      const computedPayment = calcPMT(current.loan_amount, currentEffectiveStartRate, current.term_years);
+      const loanAmount = Math.max(0, current.house_value - current.down_payment);
+      const computedPayment = calcPMT(loanAmount, currentEffectiveStartRate, current.term_years);
       const payload: any = {
+        house_value: current.house_value,
+        down_payment: current.down_payment,
+        monthly_income: current.monthly_income,
+        extra_expenses: current.extra_expenses,
         annual_rate:
           current.rate_type === "fixed" ? current.annual_rate : currentEffectiveStartRate,
         term_years: current.term_years,
@@ -365,28 +370,19 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         fixed_rate_initial: current.fixed_rate_initial,
       };
       if (current.id) {
-        // Preserve existing down_payment; adjust house_value so that
-        // (house_value - down_payment) === loan_amount entered no simulador
-        const { data: existing } = await supabase
-          .from("house_data")
-          .select("down_payment, house_value")
-          .eq("id", current.id)
-          .maybeSingle();
-        const existingDown = Number(existing?.down_payment ?? 0);
-        payload.house_value = current.loan_amount + existingDown;
         const { error } = await supabase.from("house_data").update(payload).eq("id", current.id);
         if (error) throw error;
       } else {
         const { data: row, error } = await supabase
           .from("house_data")
-          .insert({ ...payload, user_id: user.id, house_value: current.loan_amount, down_payment: 0 })
+          .insert({ ...payload, user_id: user.id })
           .select()
           .single();
         if (error) throw error;
         setCurrent((p) => ({ ...p, id: row.id }));
       }
-      setCurrent((p) => ({ ...p, monthly_payment: computedPayment }));
-      toast.success("Crédito atualizado em Minha Casa");
+      setCurrent((p) => ({ ...p, loan_amount: loanAmount, monthly_payment: computedPayment }));
+      toast.success("Dados da casa e crédito guardados");
       if (onSavedCurrent) await onSavedCurrent();
     } catch (e: any) {
       toast.error(e.message || "Erro ao guardar");
