@@ -985,6 +985,21 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 onChange={(e) => updateExtractedField("spread", e.target.value === "" ? null : Number(e.target.value))}
               />
             </div>
+            {(extracted.rate_type === "variable" || extracted.rate_type === "mixed") && (
+              <div>
+                <label className={labelCls}>Prazo da Euribor</label>
+                <select
+                  className={inputCls}
+                  value={extracted.euribor_term ?? ""}
+                  onChange={(e) => updateExtractedField("euribor_term", (e.target.value || null) as any)}
+                >
+                  <option value="">—</option>
+                  <option value="3m">Euribor 3 meses</option>
+                  <option value="6m">Euribor 6 meses</option>
+                  <option value="12m">Euribor 12 meses</option>
+                </select>
+              </div>
+            )}
             {extracted.rate_type === "mixed" && (
               <>
                 <div>
