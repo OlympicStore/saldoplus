@@ -332,6 +332,15 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         fixed_rate_initial: current.fixed_rate_initial,
       };
       if (current.id) {
+        // Preserve existing down_payment; adjust house_value so that
+        // (house_value - down_payment) === loan_amount entered no simulador
+        const { data: existing } = await supabase
+          .from("house_data")
+          .select("down_payment, house_value")
+          .eq("id", current.id)
+          .maybeSingle();
+        const existingDown = Number(existing?.down_payment ?? 0);
+        payload.house_value = current.loan_amount + existingDown;
         const { error } = await supabase.from("house_data").update(payload).eq("id", current.id);
         if (error) throw error;
       } else {
