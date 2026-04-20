@@ -507,9 +507,9 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     return Object.values(yearly);
   }, [baseSchedule]);
 
-  const yearlyTable = useMemo(() => {
+  const groupByYear = (schedule: AmortRow[]) => {
     const grouped: Record<number, AmortRow[]> = {};
-    baseSchedule.forEach((r) => {
+    schedule.forEach((r) => {
       if (!grouped[r.year]) grouped[r.year] = [];
       grouped[r.year].push(r);
     });
@@ -521,7 +521,9 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
       const rateAvg = rows.reduce((s, r) => s + r.rateApplied, 0) / rows.length;
       return { year: Number(year), rows, totalPayment, totalInterest, totalPrincipal, endBalance, rateAvg };
     });
-  }, [baseSchedule]);
+  };
+  const yearlyTable = useMemo(() => groupByYear(baseSchedule), [baseSchedule]);
+  const currentYearlyTable = useMemo(() => groupByYear(currentSchedule), [currentSchedule]);
 
   const insights = useMemo(() => {
     const items: string[] = [];
