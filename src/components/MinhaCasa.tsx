@@ -87,16 +87,17 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     return true;
   };
 
-  const reloadHouseData = async () => {
-    if (!user) return;
+  const reloadHouseData = async (): Promise<HouseData | null> => {
+    if (!user) return null;
     const [houseRes, historyRes] = await Promise.all([
       supabase.from("house_data").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("payment_history").select("*").eq("user_id", user.id).order("changed_at", { ascending: false }).limit(20),
     ]);
+    let fresh: HouseData | null = null;
     if (houseRes.data) {
       const row = houseRes.data;
       const payment = Number(row.monthly_payment) || 0;
-      setData({
+      fresh = {
         id: row.id,
         house_value: Number(row.house_value) || 0,
         monthly_payment: payment,
@@ -111,13 +112,15 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         fixed_rate_initial: Number((row as any).fixed_rate_initial) || 0,
         extra_expenses: ((row as any).extra_expenses as ExtraExpense[]) || [],
         monthly_payment_status: (row as any).monthly_payment_status || {},
-      });
+      };
+      setData(fresh);
       setPreviousPayment(payment);
     }
     if (historyRes.data) {
       setPaymentHistory(historyRes.data as PaymentHistoryEntry[]);
     }
     setLoading(false);
+    return fresh;
   };
 
   useEffect(() => {
@@ -126,8 +129,9 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   }, [user]);
 
   // Sync fixed expense + extra expenses to fixed_expenses table
-  const syncFixedExpenses = async () => {
+  const syncFixedExpenses = async (override?: HouseData | null) => {
     if (!user) return;
+    const src = override ?? data;
 
     const { data: existingPrestacao } = await supabase
       .from("fixed_expenses")
@@ -139,7 +143,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     const monthlyValues: Record<string, number> = {};
     const monthlyPaid: Record<string, boolean> = {};
     const years = new Set<number>();
-    for (const key of Object.keys(data.monthly_payment_status)) {
+    for (const key of Object.keys(src.monthly_payment_status)) {
       years.add(Number(key.split("-")[0]));
     }
     years.add(currentYear);
@@ -149,8 +153,8 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         if (!isMonthActive(year, m)) continue;
         const compositeKey = year * 100 + m;
         const sk = `${year}-${m}`;
-        monthlyValues[compositeKey] = data.monthly_payment;
-        monthlyPaid[compositeKey] = data.monthly_payment_status[sk] === "pago";
+        monthlyValues[compositeKey] = src.monthly_payment;
+        monthlyPaid[compositeKey] = src.monthly_payment_status[sk] === "pago";
       }
     }
 
@@ -171,7 +175,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     }
 
     // Sync each extra expense as a fixed expense
-    for (const extra of data.extra_expenses) {
+    for (const extra of src.extra_expenses) {
       if (!extra.name || extra.value <= 0) continue;
       const { data: existingExtra } = await supabase
         .from("fixed_expenses")
