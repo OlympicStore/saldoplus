@@ -297,7 +297,11 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
 
   // Calculations
   const effectivePayment = data.monthly_payment + stressExtra;
-  const extraTotal = data.extra_expenses.reduce((s, e) => s + e.value, 0);
+  // Monthly equivalent: distributes annual/quarterly insurances correctly
+  const extraTotal = data.extra_expenses.reduce((s, e) => s + monthlyEquivalent(e), 0);
+  // What's actually due this month (real cash-out)
+  const extrasDueThisMonth = data.extra_expenses.filter((e) => isExpenseDueInMonth(e, currentMonth));
+  const extrasDueThisMonthTotal = extrasDueThisMonth.reduce((s, e) => s + e.value, 0);
   const ratio = data.monthly_income > 0 ? (effectivePayment / data.monthly_income) * 100 : 0;
   const baseRatio = data.monthly_income > 0 ? (data.monthly_payment / data.monthly_income) * 100 : 0;
   const totalHousing = effectivePayment + extraTotal;
