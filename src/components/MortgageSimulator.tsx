@@ -466,10 +466,16 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     if (!user) return;
     setSavingCurrent(true);
     try {
-      const loanAmount = Math.max(0, current.house_value - current.down_payment);
+      // Se house_value não foi preenchido mas temos loan_amount (ex: vindo da escritura),
+      // reconstruir house_value = loan_amount + down_payment para que o reload funcione.
+      let houseValue = current.house_value;
+      if ((!houseValue || houseValue <= 0) && current.loan_amount > 0) {
+        houseValue = current.loan_amount + current.down_payment;
+      }
+      const loanAmount = Math.max(0, houseValue - current.down_payment);
       const computedPayment = calcPMT(loanAmount, currentEffectiveStartRate, current.term_years);
       const payload: any = {
-        house_value: current.house_value,
+        house_value: houseValue,
         down_payment: current.down_payment,
         monthly_income: current.monthly_income,
         extra_expenses: current.extra_expenses,
@@ -499,7 +505,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         if (error) throw error;
         setCurrent((p) => ({ ...p, id: row.id }));
       }
-      setCurrent((p) => ({ ...p, loan_amount: loanAmount, monthly_payment: computedPayment }));
+      setCurrent((p) => ({ ...p, house_value: houseValue, loan_amount: loanAmount, monthly_payment: computedPayment }));
       toast.success("Dados da casa e crédito guardados");
       if (onSavedCurrent) await onSavedCurrent();
     } catch (e: any) {
