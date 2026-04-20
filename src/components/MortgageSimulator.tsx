@@ -150,9 +150,18 @@ const buildSchedule = (p: ScheduleParams): AmortRow[] => {
   return rows;
 };
 
+interface ExtraExpense {
+  name: string;
+  value: number;
+}
+
 interface CurrentCredit {
   id?: string;
+  house_value: number;
+  down_payment: number;
   loan_amount: number;
+  monthly_income: number;
+  extra_expenses: ExtraExpense[];
   annual_rate: number;
   term_years: number;
   monthly_payment: number;
@@ -188,7 +197,11 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
 
   // === CRÉDITO ATUAL (sincroniza com house_data) ===
   const [current, setCurrent] = useState<CurrentCredit>({
+    house_value: 0,
+    down_payment: 0,
     loan_amount: 0,
+    monthly_income: 0,
+    extra_expenses: [],
     annual_rate: 0,
     term_years: 30,
     monthly_payment: 0,
@@ -201,6 +214,8 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
   });
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [savingCurrent, setSavingCurrent] = useState(false);
+  const [newExtraName, setNewExtraName] = useState("");
+  const [newExtraValue, setNewExtraValue] = useState("");
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -248,20 +263,34 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // Keep loan_amount derived from house_value - down_payment
+  useEffect(() => {
+    setCurrent((p) => {
+      const next = Math.max(0, p.house_value - p.down_payment);
+      return next === p.loan_amount ? p : { ...p, loan_amount: next };
+    });
+  }, [current.house_value, current.down_payment]);
+
   const loadCurrent = async () => {
     if (!user) return;
     setLoadingCurrent(true);
     const { data } = await supabase
       .from("house_data")
-      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment, monthly_payment_status, rate_type, indexante, spread, fixed_period_years, fixed_rate_initial")
+      .select("id, house_value, down_payment, monthly_income, extra_expenses, annual_rate, term_years, monthly_payment, monthly_payment_status, rate_type, indexante, spread, fixed_period_years, fixed_rate_initial")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
-      const loan = Math.max(0, Number(data.house_value || 0) - Number(data.down_payment || 0));
+      const houseValue = Number(data.house_value || 0);
+      const downPayment = Number((data as any).down_payment || 0);
+      const loan = Math.max(0, houseValue - downPayment);
       const d = data as any;
       setCurrent({
         id: data.id,
+        house_value: houseValue,
+        down_payment: downPayment,
         loan_amount: loan,
+        monthly_income: Number(d.monthly_income || 0),
+        extra_expenses: (d.extra_expenses as ExtraExpense[]) || [],
         annual_rate: Number(data.annual_rate || 0),
         term_years: Number(data.term_years || 30),
         monthly_payment: Number(data.monthly_payment || 0),
@@ -274,6 +303,18 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
       });
     }
     setLoadingCurrent(false);
+  };
+
+  const addExtraExpense = () => {
+    if (!newExtraName.trim()) return;
+    const val = parseFloat(newExtraValue.replace(",", ".")) || 0;
+    setCurrent((p) => ({ ...p, extra_expenses: [...p.extra_expenses, { name: newExtraName.trim(), value: val }] }));
+    setNewExtraName("");
+    setNewExtraValue("");
+  };
+
+  const removeExtraExpense = (idx: number) => {
+    setCurrent((p) => ({ ...p, extra_expenses: p.extra_expenses.filter((_, i) => i !== idx) }));
   };
 
   const togglePaymentStatus = async (year: number, month: number) => {
@@ -319,8 +360,13 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     if (!user) return;
     setSavingCurrent(true);
     try {
-      const computedPayment = calcPMT(current.loan_amount, currentEffectiveStartRate, current.term_years);
+      const loanAmount = Math.max(0, current.house_value - current.down_payment);
+      const computedPayment = calcPMT(loanAmount, currentEffectiveStartRate, current.term_years);
       const payload: any = {
+        house_value: current.house_value,
+        down_payment: current.down_payment,
+        monthly_income: current.monthly_income,
+        extra_expenses: current.extra_expenses,
         annual_rate:
           current.rate_type === "fixed" ? current.annual_rate : currentEffectiveStartRate,
         term_years: current.term_years,
@@ -332,28 +378,19 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         fixed_rate_initial: current.fixed_rate_initial,
       };
       if (current.id) {
-        // Preserve existing down_payment; adjust house_value so that
-        // (house_value - down_payment) === loan_amount entered no simulador
-        const { data: existing } = await supabase
-          .from("house_data")
-          .select("down_payment, house_value")
-          .eq("id", current.id)
-          .maybeSingle();
-        const existingDown = Number(existing?.down_payment ?? 0);
-        payload.house_value = current.loan_amount + existingDown;
         const { error } = await supabase.from("house_data").update(payload).eq("id", current.id);
         if (error) throw error;
       } else {
         const { data: row, error } = await supabase
           .from("house_data")
-          .insert({ ...payload, user_id: user.id, house_value: current.loan_amount, down_payment: 0 })
+          .insert({ ...payload, user_id: user.id })
           .select()
           .single();
         if (error) throw error;
         setCurrent((p) => ({ ...p, id: row.id }));
       }
-      setCurrent((p) => ({ ...p, monthly_payment: computedPayment }));
-      toast.success("Crédito atualizado em Minha Casa");
+      setCurrent((p) => ({ ...p, loan_amount: loanAmount, monthly_payment: computedPayment }));
+      toast.success("Dados da casa e crédito guardados");
       if (onSavedCurrent) await onSavedCurrent();
     } catch (e: any) {
       toast.error(e.message || "Erro ao guardar");
@@ -828,18 +865,101 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-3">
-                <div>
-                  <label className={labelCls}>Valor financiado (€)</label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    value={current.loan_amount === 0 ? "" : current.loan_amount}
-                    onChange={(e) => setCurrent((p) => ({ ...p, loan_amount: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
-                    className={inputCls}
-                    placeholder="Ex: 120000"
-                  />
+              {/* === DADOS DA CASA === */}
+              <div className="rounded-lg border border-border-subtle/60 bg-card/60 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Home className="h-3.5 w-3.5 text-muted-foreground" />
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dados da casa</h4>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Valor da casa (€)</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={current.house_value === 0 ? "" : current.house_value}
+                      onChange={(e) => setCurrent((p) => ({ ...p, house_value: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                      className={inputCls}
+                      placeholder="Ex: 200000"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Valor pago na entrada (€)</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={current.down_payment === 0 ? "" : current.down_payment}
+                      onChange={(e) => setCurrent((p) => ({ ...p, down_payment: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                      className={inputCls}
+                      placeholder="Ex: 20000"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Rendimento mensal (€)</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={current.monthly_income === 0 ? "" : current.monthly_income}
+                      onChange={(e) => setCurrent((p) => ({ ...p, monthly_income: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                      className={inputCls}
+                      placeholder="Ex: 2400"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Valor financiado (€) <span className="text-[10px] opacity-60">(automático)</span></label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={fmt(current.loan_amount)}
+                      className={`${inputCls} bg-muted/50 cursor-not-allowed`}
+                    />
+                  </div>
+                </div>
+
+                {/* Despesas adicionais */}
+                <div className="pt-2 border-t border-border-subtle/40">
+                  <p className={`${labelCls} mb-2`}>Despesas adicionais da casa <span className="opacity-60">(IMI, seguros, condomínio…)</span></p>
+                  {current.extra_expenses.length > 0 && (
+                    <div className="space-y-1.5 mb-2">
+                      {current.extra_expenses.map((extra, i) => (
+                        <div key={i} className="flex items-center gap-2 bg-secondary rounded-md px-2.5 py-1.5">
+                          <span className="text-xs text-foreground flex-1">{extra.name}</span>
+                          <span className="text-xs font-mono font-semibold">{fmt(extra.value)}/mês</span>
+                          <button onClick={() => removeExtraExpense(i)} className="text-muted-foreground hover:text-destructive">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Nome (ex: IMI)"
+                      value={newExtraName}
+                      onChange={(e) => setNewExtraName(e.target.value)}
+                      className="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
+                    />
+                    <input
+                      type="number"
+                      placeholder="€"
+                      value={newExtraValue}
+                      onChange={(e) => setNewExtraValue(e.target.value)}
+                      className="w-20 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={addExtraExpense}
+                      className="rounded-md bg-primary px-2.5 py-1.5 text-primary-foreground hover:opacity-90"
+                      title="Adicionar despesa"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
 
                 {/* Tipo de taxa */}
                 <div>

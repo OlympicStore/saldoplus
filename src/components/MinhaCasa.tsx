@@ -58,15 +58,11 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     monthly_payment_status: {},
   });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [stressExtra, setStressExtra] = useState(0);
   const [activeSection, setActiveSection] = useState<"esforco" | "progresso" | "simulador">("esforco");
   const [selectedCalendarYear, setSelectedCalendarYear] = useState(new Date().getFullYear());
-  const [newExpenseName, setNewExpenseName] = useState("");
-  const [newExpenseValue, setNewExpenseValue] = useState("");
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [showHouseForm, setShowHouseForm] = useState(true);
   const [previousPayment, setPreviousPayment] = useState<number | null>(null);
 
   const now = new Date();
@@ -87,16 +83,17 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     return true;
   };
 
-  const reloadHouseData = async () => {
-    if (!user) return;
+  const reloadHouseData = async (): Promise<HouseData | null> => {
+    if (!user) return null;
     const [houseRes, historyRes] = await Promise.all([
       supabase.from("house_data").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("payment_history").select("*").eq("user_id", user.id).order("changed_at", { ascending: false }).limit(20),
     ]);
+    let fresh: HouseData | null = null;
     if (houseRes.data) {
       const row = houseRes.data;
       const payment = Number(row.monthly_payment) || 0;
-      setData({
+      fresh = {
         id: row.id,
         house_value: Number(row.house_value) || 0,
         monthly_payment: payment,
@@ -111,13 +108,15 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         fixed_rate_initial: Number((row as any).fixed_rate_initial) || 0,
         extra_expenses: ((row as any).extra_expenses as ExtraExpense[]) || [],
         monthly_payment_status: (row as any).monthly_payment_status || {},
-      });
+      };
+      setData(fresh);
       setPreviousPayment(payment);
     }
     if (historyRes.data) {
       setPaymentHistory(historyRes.data as PaymentHistoryEntry[]);
     }
     setLoading(false);
+    return fresh;
   };
 
   useEffect(() => {
@@ -126,8 +125,9 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   }, [user]);
 
   // Sync fixed expense + extra expenses to fixed_expenses table
-  const syncFixedExpenses = async () => {
+  const syncFixedExpenses = async (override?: HouseData | null) => {
     if (!user) return;
+    const src = override ?? data;
 
     const { data: existingPrestacao } = await supabase
       .from("fixed_expenses")
@@ -139,7 +139,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     const monthlyValues: Record<string, number> = {};
     const monthlyPaid: Record<string, boolean> = {};
     const years = new Set<number>();
-    for (const key of Object.keys(data.monthly_payment_status)) {
+    for (const key of Object.keys(src.monthly_payment_status)) {
       years.add(Number(key.split("-")[0]));
     }
     years.add(currentYear);
@@ -149,8 +149,8 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         if (!isMonthActive(year, m)) continue;
         const compositeKey = year * 100 + m;
         const sk = `${year}-${m}`;
-        monthlyValues[compositeKey] = data.monthly_payment;
-        monthlyPaid[compositeKey] = data.monthly_payment_status[sk] === "pago";
+        monthlyValues[compositeKey] = src.monthly_payment;
+        monthlyPaid[compositeKey] = src.monthly_payment_status[sk] === "pago";
       }
     }
 
@@ -171,7 +171,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     }
 
     // Sync each extra expense as a fixed expense
-    for (const extra of data.extra_expenses) {
+    for (const extra of src.extra_expenses) {
       if (!extra.name || extra.value <= 0) continue;
       const { data: existingExtra } = await supabase
         .from("fixed_expenses")
@@ -207,62 +207,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     }
   };
 
-  const handleSave = async () => {
-    if (!user) return;
-    setSaving(true);
-    try {
-      // Track payment value changes
-      if (previousPayment !== null && previousPayment !== data.monthly_payment && previousPayment > 0) {
-        await supabase.from("payment_history").insert({
-          user_id: user.id,
-          old_value: previousPayment,
-          new_value: data.monthly_payment,
-        } as any);
-        setPaymentHistory(prev => [{
-          id: crypto.randomUUID(),
-          old_value: previousPayment,
-          new_value: data.monthly_payment,
-          changed_at: new Date().toISOString(),
-        }, ...prev]);
-      }
-      setPreviousPayment(data.monthly_payment);
-
-      const payload = {
-        house_value: data.house_value,
-        monthly_payment: data.monthly_payment,
-        estimated_expenses: 0,
-        monthly_income: data.monthly_income,
-        down_payment: data.down_payment,
-        annual_rate: data.annual_rate,
-        term_years: data.term_years,
-        rate_type: data.rate_type,
-        indexante: data.indexante,
-        spread: data.spread,
-        fixed_period_years: data.fixed_period_years,
-        fixed_rate_initial: data.fixed_rate_initial,
-        extra_expenses: data.extra_expenses as any,
-        monthly_payment_status: data.monthly_payment_status as any,
-      };
-
-      if (data.id) {
-        const { error } = await supabase.from("house_data").update(payload as any).eq("id", data.id);
-        if (error) throw error;
-      } else {
-        const { data: row, error } = await supabase.from("house_data").insert({ ...payload, user_id: user.id } as any).select().single();
-        if (error) throw error;
-        setData((prev) => ({ ...prev, id: row.id }));
-      }
-
-      await syncFixedExpenses();
-      if (onSave) await onSave();
-      toast.success("Dados guardados com sucesso.");
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao guardar.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const togglePaymentStatus = (key: string) => {
     const [y, m] = key.split("-").map(Number);
     if (!isMonthActive(y, m)) return;
@@ -271,24 +215,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
       const next = current === "pago" ? "pendente" : "pago";
       return { ...prev, monthly_payment_status: { ...prev.monthly_payment_status, [key]: next } };
     });
-  };
-
-  const addExtraExpense = () => {
-    if (!newExpenseName.trim()) return;
-    const val = parseFloat(newExpenseValue.replace(",", ".")) || 0;
-    setData((prev) => ({
-      ...prev,
-      extra_expenses: [...prev.extra_expenses, { name: newExpenseName.trim(), value: val }],
-    }));
-    setNewExpenseName("");
-    setNewExpenseValue("");
-  };
-
-  const removeExtraExpense = (index: number) => {
-    setData((prev) => ({
-      ...prev,
-      extra_expenses: prev.extra_expenses.filter((_, i) => i !== index),
-    }));
   };
 
   const exportReport = () => {
@@ -459,7 +385,13 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         </button>
       </div>
 
-      {activeSection === "simulador" && <MortgageSimulator onSavedCurrent={reloadHouseData} />}
+      {activeSection === "simulador" && (
+        <MortgageSimulator onSavedCurrent={async () => {
+          const fresh = await reloadHouseData();
+          await syncFixedExpenses(fresh);
+          if (onSave) await onSave();
+        }} />
+      )}
 
       {activeSection === "esforco" && (
         <>
@@ -877,214 +809,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         </div>
       )}
 
-      {/* Form */}
-      <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-        <button
-          onClick={() => setShowHouseForm((s) => !s)}
-          className="flex items-center justify-between w-full mb-4"
-        >
-          <h3 className="text-sm font-semibold text-foreground">Dados da habitação</h3>
-          {showHouseForm ? <ChevronUp className="h-4 w-4 text-text-muted" /> : <ChevronDown className="h-4 w-4 text-text-muted" />}
-        </button>
-        {showHouseForm && (<>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[
-            { label: "Valor da casa (€)", key: "house_value" as const },
-            { label: "Valor pago na entrada (€)", key: "down_payment" as const },
-            { label: "Prestação mensal (€)", key: "monthly_payment" as const },
-            { label: "Rendimento mensal (€)", key: "monthly_income" as const },
-            { label: "Prazo do crédito (anos)", key: "term_years" as const },
-          ].map((field) => (
-            <div key={field.key}>
-              <label className="text-sm font-medium text-foreground block mb-1.5">{field.label}</label>
-              <input
-                type="number"
-                min={0}
-                step={0.01}
-                value={data[field.key] || ""}
-                onChange={(e) => setData((prev) => ({ ...prev, [field.key]: Number(e.target.value) || 0 }))}
-                className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Tipo de taxa */}
-        <div className="mt-4">
-          <label className="text-sm font-medium text-foreground block mb-1.5">Tipo de taxa</label>
-          <div className="grid grid-cols-3 gap-1 rounded-lg p-1 bg-sidebar-accent">
-            {([
-              { v: "fixed", l: "Fixa" },
-              { v: "variable", l: "Variável" },
-              { v: "mixed", l: "Mista" },
-            ] as const).map((opt) => (
-              <button
-                key={opt.v}
-                type="button"
-                onClick={() => setData((p) => ({ ...p, rate_type: opt.v }))}
-                className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                  data.rate_type === opt.v
-                    ? "bg-primary text-primary-foreground font-medium"
-                    : "text-foreground hover:bg-background/50"
-                }`}
-              >
-                {opt.l}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Campos condicionais por tipo de taxa */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          {data.rate_type === "fixed" && (
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-1.5">Taxa de juro anual (%)</label>
-              <input
-                type="number"
-                min={0}
-                step={0.001}
-                value={data.annual_rate || ""}
-                onChange={(e) => setData((p) => ({ ...p, annual_rate: Number(e.target.value) || 0 }))}
-                className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-              />
-            </div>
-          )}
-
-          {data.rate_type === "variable" && (
-            <>
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">Indexante / Euribor (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.001}
-                  value={data.indexante || ""}
-                  onChange={(e) => setData((p) => ({ ...p, indexante: Number(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">Spread (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.001}
-                  value={data.spread || ""}
-                  onChange={(e) => setData((p) => ({ ...p, spread: Number(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-                />
-              </div>
-              <div className="sm:col-span-2 text-xs text-text-muted">
-                Taxa atual: <span className="font-mono font-semibold">{(data.indexante + data.spread).toFixed(3)}%</span>
-              </div>
-            </>
-          )}
-
-          {data.rate_type === "mixed" && (
-            <>
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">Anos com taxa fixa</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={data.fixed_period_years || ""}
-                  onChange={(e) => setData((p) => ({ ...p, fixed_period_years: Number(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">Taxa fixa inicial (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.001}
-                  value={data.fixed_rate_initial || ""}
-                  onChange={(e) => setData((p) => ({ ...p, fixed_rate_initial: Number(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">Indexante / Euribor (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.001}
-                  value={data.indexante || ""}
-                  onChange={(e) => setData((p) => ({ ...p, indexante: Number(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1.5">Spread (%)</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.001}
-                  value={data.spread || ""}
-                  onChange={(e) => setData((p) => ({ ...p, spread: Number(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2.5 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Extra expenses */}
-        <div className="mt-5 border-t border-border-subtle/60 pt-5">
-          <h4 className="text-sm font-semibold text-foreground mb-3">Despesas adicionais da casa</h4>
-          <p className="text-xs text-text-muted mb-3">IMI, impostos, seguros, condomínio, etc.</p>
-
-          {data.extra_expenses.length > 0 && (
-            <div className="space-y-2 mb-3">
-              {data.extra_expenses.map((extra, i) => (
-                <div key={i} className="flex items-center gap-2 bg-secondary rounded-lg px-3 py-2">
-                  <span className="text-sm text-foreground flex-1">{extra.name}</span>
-                  <span className="text-sm font-mono font-semibold text-foreground">{fmt(extra.value)}/mês</span>
-                  <button onClick={() => removeExtraExpense(i)} className="text-text-muted hover:text-status-negative transition-colors">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Nome (ex: IMI)"
-              value={newExpenseName}
-              onChange={(e) => setNewExpenseName(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <input
-              type="number"
-              placeholder="Valor €"
-              min={0}
-              step={0.01}
-              value={newExpenseValue}
-              onChange={(e) => setNewExpenseValue(e.target.value)}
-              className="w-24 px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-            />
-            <button
-              onClick={addExtraExpense}
-              className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm hover:opacity-90 transition-opacity"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="mt-5 w-full sm:w-auto px-6 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center justify-center gap-2"
-        >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
-          {saving ? "A guardar..." : "Guardar dados"}
-        </button>
-        </>)}
-      </div>
+      {/* Form moved to MortgageSimulator (secção "Dados da casa" dentro do Simulador de Crédito) */}
     </div>
   );
 };
