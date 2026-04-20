@@ -1410,6 +1410,52 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 </div>
               </div>
 
+              {/* === CUSTO REAL DA CASA === */}
+              {(() => {
+                const insuranceMonthly = current.extra_expenses
+                  .filter((e) => e.kind === "life_insurance" || e.kind === "multirisk_insurance")
+                  .reduce((s, e) => s + monthlyEquivalent(e), 0);
+                const otherExpensesMonthly = current.extra_expenses
+                  .filter((e) => e.kind !== "life_insurance" && e.kind !== "multirisk_insurance")
+                  .reduce((s, e) => s + monthlyEquivalent(e), 0);
+                const totalReal = currentPayment + insuranceMonthly + otherExpensesMonthly;
+                if (currentPayment <= 0 && insuranceMonthly <= 0 && otherExpensesMonthly <= 0) return null;
+                return (
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Home className="h-4 w-4 text-primary" />
+                      <h4 className="text-sm font-semibold">Custo real da casa</h4>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="rounded-lg bg-card border border-border-subtle/60 p-2.5">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                          <CreditCard className="h-3 w-3" /> Prestação
+                        </p>
+                        <p className="text-sm font-bold font-mono tabular-nums mt-0.5">{fmt2(currentPayment)}</p>
+                      </div>
+                      <div className="rounded-lg bg-card border border-border-subtle/60 p-2.5">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                          <ShieldCheck className="h-3 w-3" /> Seguros
+                        </p>
+                        <p className="text-sm font-bold font-mono tabular-nums mt-0.5">{fmt2(insuranceMonthly)}</p>
+                      </div>
+                      <div className="rounded-lg bg-card border border-border-subtle/60 p-2.5">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                          <Wallet className="h-3 w-3" /> Despesas
+                        </p>
+                        <p className="text-sm font-bold font-mono tabular-nums mt-0.5">{fmt2(otherExpensesMonthly)}</p>
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-primary/10 border border-primary/30 p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Esta casa vai custar-lhe</p>
+                      <p className="text-2xl font-bold font-mono tabular-nums text-primary mt-1">
+                        {fmt2(totalReal)}<span className="text-sm font-normal text-muted-foreground">/mês</span>
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-1">no total (prestação + seguros + despesas)</p>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="grid grid-cols-3 gap-2 pt-2">
                 <div className="rounded-lg bg-card border border-border-subtle/60 p-3">
