@@ -436,6 +436,27 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
       ? currentVariableRate
       : current.fixed_rate_initial;
 
+  // Detecção de fim da fase fixa (para taxa mista) — exige que utilizador atualize dados
+  const mixedPhaseStatus = useMemo(() => {
+    if (current.rate_type !== "mixed" || current.fixed_period_years <= 0) {
+      return { ended: false, monthsSinceStart: 0, switchMonth: 0 };
+    }
+    const loanStart = profile?.plan_started_at ? new Date(profile.plan_started_at) : null;
+    if (!loanStart) return { ended: false, monthsSinceStart: 0, switchMonth: 0 };
+    const now = new Date();
+    const monthsSinceStart =
+      (now.getFullYear() - loanStart.getFullYear()) * 12 + (now.getMonth() - loanStart.getMonth());
+    const switchMonth = current.fixed_period_years * 12;
+    return {
+      ended: monthsSinceStart >= switchMonth,
+      monthsSinceStart,
+      switchMonth,
+    };
+  }, [current.rate_type, current.fixed_period_years, profile?.plan_started_at]);
+
+  const needsMixedPhase2Update =
+    mixedPhaseStatus.ended && !current.mixed_phase2_acknowledged;
+
   const handleSaveCurrent = async () => {
     if (!user) return;
     setSavingCurrent(true);
