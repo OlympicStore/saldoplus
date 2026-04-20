@@ -671,7 +671,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-text-muted">Faltam</p>
                         <p className="text-sm font-semibold text-foreground tabular-nums">
-                          {Math.ceil(remaining / data.monthly_payment)} meses
+                          {remainingMonths} meses
                         </p>
                       </div>
                     </div>
@@ -680,7 +680,9 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-text-muted">Estimativa</p>
                         <p className="text-sm font-semibold text-foreground tabular-nums">
-                          ~{Math.ceil(remaining / data.monthly_payment / 12)} anos
+                          {remainingYears < 1
+                            ? `${remainingMonths} meses`
+                            : `~${Math.round(remainingYears)} anos`}
                         </p>
                       </div>
                     </div>
