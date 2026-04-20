@@ -211,62 +211,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
     }
   };
 
-  const handleSave = async () => {
-    if (!user) return;
-    setSaving(true);
-    try {
-      // Track payment value changes
-      if (previousPayment !== null && previousPayment !== data.monthly_payment && previousPayment > 0) {
-        await supabase.from("payment_history").insert({
-          user_id: user.id,
-          old_value: previousPayment,
-          new_value: data.monthly_payment,
-        } as any);
-        setPaymentHistory(prev => [{
-          id: crypto.randomUUID(),
-          old_value: previousPayment,
-          new_value: data.monthly_payment,
-          changed_at: new Date().toISOString(),
-        }, ...prev]);
-      }
-      setPreviousPayment(data.monthly_payment);
-
-      const payload = {
-        house_value: data.house_value,
-        monthly_payment: data.monthly_payment,
-        estimated_expenses: 0,
-        monthly_income: data.monthly_income,
-        down_payment: data.down_payment,
-        annual_rate: data.annual_rate,
-        term_years: data.term_years,
-        rate_type: data.rate_type,
-        indexante: data.indexante,
-        spread: data.spread,
-        fixed_period_years: data.fixed_period_years,
-        fixed_rate_initial: data.fixed_rate_initial,
-        extra_expenses: data.extra_expenses as any,
-        monthly_payment_status: data.monthly_payment_status as any,
-      };
-
-      if (data.id) {
-        const { error } = await supabase.from("house_data").update(payload as any).eq("id", data.id);
-        if (error) throw error;
-      } else {
-        const { data: row, error } = await supabase.from("house_data").insert({ ...payload, user_id: user.id } as any).select().single();
-        if (error) throw error;
-        setData((prev) => ({ ...prev, id: row.id }));
-      }
-
-      await syncFixedExpenses();
-      if (onSave) await onSave();
-      toast.success("Dados guardados com sucesso.");
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao guardar.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const togglePaymentStatus = (key: string) => {
     const [y, m] = key.split("-").map(Number);
     if (!isMonthActive(y, m)) return;
@@ -275,24 +219,6 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
       const next = current === "pago" ? "pendente" : "pago";
       return { ...prev, monthly_payment_status: { ...prev.monthly_payment_status, [key]: next } };
     });
-  };
-
-  const addExtraExpense = () => {
-    if (!newExpenseName.trim()) return;
-    const val = parseFloat(newExpenseValue.replace(",", ".")) || 0;
-    setData((prev) => ({
-      ...prev,
-      extra_expenses: [...prev.extra_expenses, { name: newExpenseName.trim(), value: val }],
-    }));
-    setNewExpenseName("");
-    setNewExpenseValue("");
-  };
-
-  const removeExtraExpense = (index: number) => {
-    setData((prev) => ({
-      ...prev,
-      extra_expenses: prev.extra_expenses.filter((_, i) => i !== index),
-    }));
   };
 
   const exportReport = () => {
