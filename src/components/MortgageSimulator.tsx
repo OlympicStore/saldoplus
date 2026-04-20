@@ -184,7 +184,7 @@ interface ExtractedDoc {
 }
 
 const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<void> | void }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   // === CRÉDITO ATUAL (sincroniza com house_data) ===
   const [current, setCurrent] = useState<CurrentCredit>({
