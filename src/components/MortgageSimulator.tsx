@@ -356,12 +356,41 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     setLoadingCurrent(false);
   };
 
+  const [newExtraFreq, setNewExtraFreq] = useState<ExpenseFrequency>("monthly");
+  const [newExtraKind, setNewExtraKind] = useState<ExpenseKind>("expense");
+
   const addExtraExpense = () => {
     if (!newExtraName.trim()) return;
     const val = parseFloat(newExtraValue.replace(",", ".")) || 0;
-    setCurrent((p) => ({ ...p, extra_expenses: [...p.extra_expenses, { name: newExtraName.trim(), value: val }] }));
+    setCurrent((p) => ({
+      ...p,
+      extra_expenses: [
+        ...p.extra_expenses,
+        { name: newExtraName.trim(), value: val, frequency: newExtraFreq, kind: newExtraKind },
+      ],
+    }));
     setNewExtraName("");
     setNewExtraValue("");
+    setNewExtraFreq("monthly");
+    setNewExtraKind("expense");
+  };
+
+  const addInsurance = (kind: "life_insurance" | "multirisk_insurance") => {
+    const defaultName = kind === "life_insurance" ? "Seguro de vida" : "Seguro multirriscos";
+    setCurrent((p) => ({
+      ...p,
+      extra_expenses: [
+        ...p.extra_expenses,
+        { name: defaultName, value: 0, frequency: "monthly", kind },
+      ],
+    }));
+  };
+
+  const updateExtra = (idx: number, patch: Partial<ExtraExpense>) => {
+    setCurrent((p) => ({
+      ...p,
+      extra_expenses: p.extra_expenses.map((e, i) => (i === idx ? { ...e, ...patch } : e)),
+    }));
   };
 
   const removeExtraExpense = (idx: number) => {
