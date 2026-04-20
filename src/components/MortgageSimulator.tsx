@@ -24,6 +24,8 @@ import {
   ScanLine,
   CheckCircle2,
   X,
+  CreditCard,
+  ShieldCheck,
 } from "lucide-react";
 import {
   LineChart,
