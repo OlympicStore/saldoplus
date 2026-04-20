@@ -865,18 +865,101 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-3">
-                <div>
-                  <label className={labelCls}>Valor financiado (€)</label>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    value={current.loan_amount === 0 ? "" : current.loan_amount}
-                    onChange={(e) => setCurrent((p) => ({ ...p, loan_amount: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
-                    className={inputCls}
-                    placeholder="Ex: 120000"
-                  />
+              {/* === DADOS DA CASA === */}
+              <div className="rounded-lg border border-border-subtle/60 bg-card/60 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Home className="h-3.5 w-3.5 text-muted-foreground" />
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dados da casa</h4>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Valor da casa (€)</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={current.house_value === 0 ? "" : current.house_value}
+                      onChange={(e) => setCurrent((p) => ({ ...p, house_value: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                      className={inputCls}
+                      placeholder="Ex: 200000"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Valor pago na entrada (€)</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={current.down_payment === 0 ? "" : current.down_payment}
+                      onChange={(e) => setCurrent((p) => ({ ...p, down_payment: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                      className={inputCls}
+                      placeholder="Ex: 20000"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Rendimento mensal (€)</label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={current.monthly_income === 0 ? "" : current.monthly_income}
+                      onChange={(e) => setCurrent((p) => ({ ...p, monthly_income: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                      className={inputCls}
+                      placeholder="Ex: 2400"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Valor financiado (€) <span className="text-[10px] opacity-60">(automático)</span></label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={fmt(current.loan_amount)}
+                      className={`${inputCls} bg-muted/50 cursor-not-allowed`}
+                    />
+                  </div>
+                </div>
+
+                {/* Despesas adicionais */}
+                <div className="pt-2 border-t border-border-subtle/40">
+                  <p className={`${labelCls} mb-2`}>Despesas adicionais da casa <span className="opacity-60">(IMI, seguros, condomínio…)</span></p>
+                  {current.extra_expenses.length > 0 && (
+                    <div className="space-y-1.5 mb-2">
+                      {current.extra_expenses.map((extra, i) => (
+                        <div key={i} className="flex items-center gap-2 bg-secondary rounded-md px-2.5 py-1.5">
+                          <span className="text-xs text-foreground flex-1">{extra.name}</span>
+                          <span className="text-xs font-mono font-semibold">{fmt(extra.value)}/mês</span>
+                          <button onClick={() => removeExtraExpense(i)} className="text-muted-foreground hover:text-destructive">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Nome (ex: IMI)"
+                      value={newExtraName}
+                      onChange={(e) => setNewExtraName(e.target.value)}
+                      className="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
+                    />
+                    <input
+                      type="number"
+                      placeholder="€"
+                      value={newExtraValue}
+                      onChange={(e) => setNewExtraValue(e.target.value)}
+                      className="w-20 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={addExtraExpense}
+                      className="rounded-md bg-primary px-2.5 py-1.5 text-primary-foreground hover:opacity-90"
+                      title="Adicionar despesa"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
 
                 {/* Tipo de taxa */}
                 <div>
