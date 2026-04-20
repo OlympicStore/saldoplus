@@ -839,16 +839,179 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     <div className="space-y-5">
       {/* Header */}
       <div className="rounded-xl border border-border-subtle/60 bg-gradient-to-br from-primary/5 to-primary/0 p-5">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-primary/10 p-2.5">
-            <Calculator className="h-5 w-5 text-primary" />
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-primary/10 p-2.5">
+              <Calculator className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">O Meu Crédito Habitação</h2>
+              <p className="text-sm text-muted-foreground">Coloque todos os dados do seu crédito habitação.</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">O Meu Crédito Habitação</h2>
-            <p className="text-sm text-muted-foreground">Coloque todos os dados do seu crédito habitação.</p>
+          <div className="flex flex-col items-end gap-1">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf,image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            <button
+              type="button"
+              onClick={handleFilePick}
+              disabled={uploading}
+              className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/15 disabled:opacity-60"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              {uploading ? "A analisar documento…" : "Importar escritura"}
+            </button>
+            <p className="text-[10px] text-muted-foreground">PDF, JPG, PNG ou WEBP (máx 10MB) · IA</p>
           </div>
         </div>
       </div>
+
+      {/* Extracted data confirmation */}
+      {extracted && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <ScanLine className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">Dados extraídos da escritura</h3>
+            {typeof extracted.confidence === "number" && (
+              <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                Confiança: {Math.round(extracted.confidence * 100)}%
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Reveja e edite se necessário. Campos não encontrados ficam vazios. Nada é aplicado sem a sua confirmação.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Valor do empréstimo (€)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={extracted.loan_amount ?? ""}
+                onChange={(e) => updateExtractedField("loan_amount", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Prazo (anos)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={extracted.term_years ?? ""}
+                onChange={(e) => updateExtractedField("term_years", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Tipo de taxa</label>
+              <select
+                className={inputCls}
+                value={extracted.rate_type ?? ""}
+                onChange={(e) => updateExtractedField("rate_type", (e.target.value || null) as any)}
+              >
+                <option value="">—</option>
+                <option value="fixed">Fixa</option>
+                <option value="variable">Variável</option>
+                <option value="mixed">Mista</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Taxa anual (%) — fixa</label>
+              <input
+                type="number"
+                step="0.001"
+                className={inputCls}
+                value={extracted.annual_rate ?? ""}
+                onChange={(e) => updateExtractedField("annual_rate", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Indexante (%) {extracted.indexante_label ? `— ${extracted.indexante_label}` : ""}</label>
+              <input
+                type="number"
+                step="0.001"
+                className={inputCls}
+                value={extracted.indexante ?? ""}
+                onChange={(e) => updateExtractedField("indexante", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Spread (%)</label>
+              <input
+                type="number"
+                step="0.001"
+                className={inputCls}
+                value={extracted.spread ?? ""}
+                onChange={(e) => updateExtractedField("spread", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            {extracted.rate_type === "mixed" && (
+              <>
+                <div>
+                  <label className={labelCls}>Anos da fase fixa</label>
+                  <input
+                    type="number"
+                    className={inputCls}
+                    value={extracted.fixed_period_years ?? ""}
+                    onChange={(e) => updateExtractedField("fixed_period_years", e.target.value === "" ? null : Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Taxa fixa inicial (%)</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    className={inputCls}
+                    value={extracted.fixed_rate_initial ?? ""}
+                    onChange={(e) => updateExtractedField("fixed_rate_initial", e.target.value === "" ? null : Number(e.target.value))}
+                  />
+                </div>
+              </>
+            )}
+            <div>
+              <label className={labelCls}>Prestação mensal (€)</label>
+              <input
+                type="number"
+                step="0.01"
+                className={inputCls}
+                value={extracted.monthly_payment ?? ""}
+                onChange={(e) => updateExtractedField("monthly_payment", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+          </div>
+          {extracted.insurance_notes && (
+            <div className="text-xs text-muted-foreground">
+              <strong>Seguros:</strong> {extracted.insurance_notes}
+            </div>
+          )}
+          {extracted.notes && (
+            <div className="text-xs text-muted-foreground">
+              <strong>Notas IA:</strong> {extracted.notes}
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2 pt-2">
+            <button
+              type="button"
+              onClick={applyExtracted}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Confirmar e aplicar dados
+            </button>
+            <button
+              type="button"
+              onClick={() => { setExtracted(null); setExtractedFileName(""); }}
+              className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+            >
+              <X className="h-4 w-4" />
+              Descartar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* PRESTAÇÃO ATUAL — estado de pagamento */}
       {!loadingCurrent && current.loan_amount > 0 && (() => {
