@@ -436,12 +436,40 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
             <p className="text-sm text-text-muted">Acompanhe o impacto da sua habitação no orçamento</p>
           </div>
         </div>
-        <button
-          onClick={exportReport}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover text-xs font-medium transition-colors"
-        >
-          <Download className="h-3.5 w-3.5" /> Exportar
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportReport}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover text-xs font-medium transition-colors"
+          >
+            <Download className="h-3.5 w-3.5" /> Exportar
+          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-status-negative/30 text-status-negative hover:bg-status-negative/10 text-xs font-medium transition-colors">
+                <RotateCcw className="h-3.5 w-3.5" /> Redefinir
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Redefinir dados da casa?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação apaga permanentemente todos os dados do seu crédito habitação:
+                  valor da casa, entrada, prestação, taxa, prazo, despesas adicionais (seguros)
+                  e o histórico de prestações pagas. Não é possível desfazer.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleResetAll}
+                  className="bg-status-negative text-white hover:bg-status-negative/90"
+                >
+                  Sim, redefinir tudo
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       {/* Payment reminder banner */}
