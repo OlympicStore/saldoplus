@@ -318,11 +318,17 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const totalInterest = Math.max(0, totalCredit - loanAmount);
   const totalCostOfHouse = data.down_payment + totalCredit; // entrada + tudo o que paga ao banco
 
-  // Progress calculations
+  // Progress calculations — alinhado com o prazo do crédito (totalMonths)
   const paidMonths = Object.values(data.monthly_payment_status).filter(v => v === "pago").length;
+  const remainingMonths = Math.max(0, totalMonths - paidMonths);
+  const remainingYears = remainingMonths / 12;
   const totalPaid = data.down_payment + (paidMonths * data.monthly_payment);
-  const remaining = Math.max(0, data.house_value - totalPaid);
-  const progressPct = data.house_value > 0 ? Math.min(100, (totalPaid / data.house_value) * 100) : 0;
+  // Falta pagar ao banco (capital + juros) com base no prazo real do crédito
+  const remaining = Math.max(0, remainingMonths * data.monthly_payment);
+  // % progresso: prestações pagas vs total de prestações (ou fallback para valor da casa se não há prazo)
+  const progressPct = totalMonths > 0
+    ? Math.min(100, (paidMonths / totalMonths) * 100)
+    : (data.house_value > 0 ? Math.min(100, (totalPaid / data.house_value) * 100) : 0);
 
   const getStatus = (r: number) => {
     if (r < 30) return { label: "Seguro", color: "text-status-paid", bg: "bg-status-paid/10", icon: ShieldCheck };
@@ -665,7 +671,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-text-muted">Faltam</p>
                         <p className="text-sm font-semibold text-foreground tabular-nums">
-                          {Math.ceil(remaining / data.monthly_payment)} meses
+                          {remainingMonths} meses
                         </p>
                       </div>
                     </div>
@@ -674,7 +680,9 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-text-muted">Estimativa</p>
                         <p className="text-sm font-semibold text-foreground tabular-nums">
-                          ~{Math.ceil(remaining / data.monthly_payment / 12)} anos
+                          {remainingYears < 1
+                            ? `${remainingMonths} meses`
+                            : `~${Math.round(remainingYears)} anos`}
                         </p>
                       </div>
                     </div>
