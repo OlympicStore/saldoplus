@@ -346,12 +346,16 @@ export type Database = {
           created_at: string
           down_payment: number
           estimated_expenses: number
+          euribor_term: string
           extra_expenses: Json
+          fixed_indexante: number
           fixed_period_years: number
           fixed_rate_initial: number
+          fixed_spread: number
           house_value: number
           id: string
           indexante: number
+          mixed_phase2_acknowledged: boolean
           monthly_income: number
           monthly_payment: number
           monthly_payment_status: Json
@@ -366,12 +370,16 @@ export type Database = {
           created_at?: string
           down_payment?: number
           estimated_expenses?: number
+          euribor_term?: string
           extra_expenses?: Json
+          fixed_indexante?: number
           fixed_period_years?: number
           fixed_rate_initial?: number
+          fixed_spread?: number
           house_value?: number
           id?: string
           indexante?: number
+          mixed_phase2_acknowledged?: boolean
           monthly_income?: number
           monthly_payment?: number
           monthly_payment_status?: Json
@@ -386,12 +394,16 @@ export type Database = {
           created_at?: string
           down_payment?: number
           estimated_expenses?: number
+          euribor_term?: string
           extra_expenses?: Json
+          fixed_indexante?: number
           fixed_period_years?: number
           fixed_rate_initial?: number
+          fixed_spread?: number
           house_value?: number
           id?: string
           indexante?: number
+          mixed_phase2_acknowledged?: boolean
           monthly_income?: number
           monthly_payment?: number
           monthly_payment_status?: Json
