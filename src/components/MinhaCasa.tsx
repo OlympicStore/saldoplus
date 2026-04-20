@@ -5,10 +5,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+type ExpenseFrequency = "monthly" | "quarterly" | "semiannual" | "annual";
+type ExpenseKind = "expense" | "life_insurance" | "multirisk_insurance";
+
 interface ExtraExpense {
   name: string;
   value: number;
+  frequency?: ExpenseFrequency;
+  kind?: ExpenseKind;
 }
+
+const FREQ_MONTHS: Record<ExpenseFrequency, number> = {
+  monthly: 1,
+  quarterly: 3,
+  semiannual: 6,
+  annual: 12,
+};
+const FREQ_LABEL: Record<ExpenseFrequency, string> = {
+  monthly: "Mensal",
+  quarterly: "Trimestral",
+  semiannual: "Semestral",
+  annual: "Anual",
+};
+const monthlyEquivalent = (e: ExtraExpense) => e.value / FREQ_MONTHS[e.frequency ?? "monthly"];
+// Returns true if a periodic expense is due in given month (0-based), assuming Jan as anchor
+const isExpenseDueInMonth = (e: ExtraExpense, monthIdx: number) => {
+  const period = FREQ_MONTHS[e.frequency ?? "monthly"];
+  return monthIdx % period === 0;
+};
 
 interface PaymentHistoryEntry {
   id: string;
@@ -273,7 +297,11 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
 
   // Calculations
   const effectivePayment = data.monthly_payment + stressExtra;
-  const extraTotal = data.extra_expenses.reduce((s, e) => s + e.value, 0);
+  // Monthly equivalent: distributes annual/quarterly insurances correctly
+  const extraTotal = data.extra_expenses.reduce((s, e) => s + monthlyEquivalent(e), 0);
+  // What's actually due this month (real cash-out)
+  const extrasDueThisMonth = data.extra_expenses.filter((e) => isExpenseDueInMonth(e, currentMonth));
+  const extrasDueThisMonthTotal = extrasDueThisMonth.reduce((s, e) => s + e.value, 0);
   const ratio = data.monthly_income > 0 ? (effectivePayment / data.monthly_income) * 100 : 0;
   const baseRatio = data.monthly_income > 0 ? (data.monthly_payment / data.monthly_income) * 100 : 0;
   const totalHousing = effectivePayment + extraTotal;
@@ -540,62 +568,167 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
             )}
           </div>
 
-          {/* House progress */}
-          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <PieChart className="h-5 w-5 text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">Progresso do Pagamento</h3>
-            </div>
+          {/* House progress — Hero visual */}
+          <div className="relative overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-br from-primary/10 via-surface to-surface shadow-card">
+            {/* Decorative house icon */}
+            <Home className="absolute -right-6 -bottom-6 h-40 w-40 text-primary/5 pointer-events-none" strokeWidth={1} />
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5 text-sm">
-              <div className="bg-secondary rounded-lg p-3">
-                <span className="text-text-muted text-xs block mb-0.5">Valor da casa</span>
-                <span className="font-semibold text-foreground font-mono">{fmt(data.house_value)}</span>
-              </div>
-              <div className="bg-secondary rounded-lg p-3">
-                <span className="text-text-muted text-xs block mb-0.5">Entrada paga</span>
-                <span className="font-semibold text-foreground font-mono">{fmt(data.down_payment)}</span>
-              </div>
-              <div className="bg-status-paid/10 rounded-lg p-3">
-                <span className="text-text-muted text-xs block mb-0.5">Total pago</span>
-                <span className="font-semibold text-status-paid font-mono">{fmt(totalPaid)}</span>
-              </div>
-              <div className="bg-secondary rounded-lg p-3">
-                <span className="text-text-muted text-xs block mb-0.5">Falta pagar</span>
-                <span className="font-semibold text-foreground font-mono">{fmt(remaining)}</span>
-              </div>
-            </div>
-
-            {/* Progress bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-text-muted">
-                <span>{progressPct.toFixed(1)}% pago</span>
-                <span>{fmt(remaining)} restantes</span>
-              </div>
-              <div className="h-4 rounded-full bg-secondary overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-all relative"
-                  style={{ width: `${progressPct}%` }}
-                >
-                  {progressPct > 5 && (
-                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary-foreground">
-                      {progressPct.toFixed(1)}%
-                    </span>
-                  )}
+            <div className="relative p-6 space-y-6">
+              {/* Header + big % */}
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <PieChart className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">Progresso da sua casa</h3>
+                  </div>
+                  <p className="text-xs text-text-muted">Quanto da casa já é seu</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-4xl font-bold font-mono tabular-nums text-primary leading-none">
+                    {progressPct.toFixed(1)}<span className="text-2xl">%</span>
+                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-text-muted mt-1">conquistado</p>
                 </div>
               </div>
-            </div>
 
-            {data.monthly_payment > 0 && remaining > 0 && (
-              <p className="text-xs text-text-muted mt-3">
-                Ao ritmo atual ({fmt(data.monthly_payment)}/mês), faltam aproximadamente{" "}
-                <span className="font-semibold text-foreground">
-                  {Math.ceil(remaining / data.monthly_payment)} meses
-                </span>{" "}
-                ({Math.ceil(remaining / data.monthly_payment / 12)} anos) para terminar o pagamento.
-              </p>
-            )}
+              {/* Progress bar with milestones */}
+              <div className="space-y-3">
+                <div className="relative h-6 rounded-full bg-secondary/60 overflow-hidden border border-border-subtle/40">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-700 ease-out shadow-[0_0_16px_hsl(var(--primary)/0.4)]"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                  {/* Milestone marks: 25/50/75% */}
+                  {[25, 50, 75].map((m) => (
+                    <div
+                      key={m}
+                      className="absolute top-0 bottom-0 w-px bg-background/70"
+                      style={{ left: `${m}%` }}
+                      aria-hidden
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-between text-[10px] text-text-muted font-mono">
+                  <span>0%</span>
+                  <span>25%</span>
+                  <span>50%</span>
+                  <span>75%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              {/* Stats grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="rounded-xl border border-border-subtle/60 bg-surface/80 backdrop-blur-sm p-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Home className="h-3 w-3 text-blue-500" />
+                    <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">Valor casa</span>
+                  </div>
+                  <p className="font-mono font-semibold text-sm text-foreground tabular-nums">{fmt(data.house_value)}</p>
+                </div>
+                <div className="rounded-xl border border-border-subtle/60 bg-surface/80 backdrop-blur-sm p-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Wallet className="h-3 w-3 text-purple-500" />
+                    <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">Entrada</span>
+                  </div>
+                  <p className="font-mono font-semibold text-sm text-foreground tabular-nums">{fmt(data.down_payment)}</p>
+                </div>
+                <div className="rounded-xl border border-status-paid/30 bg-status-paid/10 p-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <CheckCircle2 className="h-3 w-3 text-status-paid" />
+                    <span className="text-[10px] uppercase tracking-wider text-status-paid font-medium">Já pago</span>
+                  </div>
+                  <p className="font-mono font-semibold text-sm text-status-paid tabular-nums">{fmt(totalPaid)}</p>
+                </div>
+                <div className="rounded-xl border border-border-subtle/60 bg-surface/80 backdrop-blur-sm p-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Clock className="h-3 w-3 text-yellow-600" />
+                    <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">Falta</span>
+                  </div>
+                  <p className="font-mono font-semibold text-sm text-foreground tabular-nums">{fmt(remaining)}</p>
+                </div>
+              </div>
+
+              {/* Footer: pace */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-border-subtle/40">
+                <div className="flex items-center gap-2 px-1">
+                  <CheckCircle2 className="h-4 w-4 text-status-paid shrink-0" />
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-text-muted">Prestações pagas</p>
+                    <p className="text-sm font-semibold text-foreground tabular-nums">{paidMonths}</p>
+                  </div>
+                </div>
+                {data.monthly_payment > 0 && remaining > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 px-1">
+                      <Clock className="h-4 w-4 text-yellow-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Faltam</p>
+                        <p className="text-sm font-semibold text-foreground tabular-nums">
+                          {Math.ceil(remaining / data.monthly_payment)} meses
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 px-1">
+                      <TrendingUp className="h-4 w-4 text-primary shrink-0" />
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-text-muted">Estimativa</p>
+                        <p className="text-sm font-semibold text-foreground tabular-nums">
+                          ~{Math.ceil(remaining / data.monthly_payment / 12)} anos
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
+
+          {/* Despesas que ocorrem este mês (seguros distribuídos corretamente) */}
+          {extrasDueThisMonth.length > 0 && (
+            <div className="rounded-xl border border-border-subtle/60 bg-surface shadow-card p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <BellRing className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">
+                  Despesas da casa em {MONTH_FULL[currentMonth]}
+                </h3>
+              </div>
+              <p className="text-xs text-text-muted mb-3">
+                Seguros e despesas adicionais que vencem este mês (já distribuídos pela frequência configurada).
+              </p>
+              <div className="space-y-1.5">
+                {extrasDueThisMonth.map((e, i) => {
+                  const isInsurance = e.kind === "life_insurance" || e.kind === "multirisk_insurance";
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between gap-2 rounded-lg bg-secondary/50 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${isInsurance ? "text-primary" : "text-text-muted"}`} />
+                        <span className="text-sm text-foreground truncate">{e.name}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-text-muted bg-background px-1.5 py-0.5 rounded">
+                          {FREQ_LABEL[e.frequency ?? "monthly"]}
+                        </span>
+                      </div>
+                      <span className="font-mono font-semibold text-sm text-foreground tabular-nums shrink-0">
+                        {fmt(e.value)}
+                      </span>
+                    </div>
+                  );
+                })}
+                <div className="flex items-center justify-between pt-2 mt-1 border-t border-border-subtle/60">
+                  <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Total este mês</span>
+                  <span className="font-mono font-bold text-base text-foreground tabular-nums">
+                    {fmt(extrasDueThisMonthTotal)}
+                  </span>
+                </div>
+                <p className="text-[10px] text-text-muted mt-1">
+                  Equivalente mensal médio: <span className="font-mono font-semibold">{fmt(extraTotal)}</span>
+                </p>
+              </div>
+            </div>
+          )}
         </>
       )}
 
