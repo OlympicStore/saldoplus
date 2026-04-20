@@ -318,7 +318,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     setLoadingCurrent(true);
     const { data } = await supabase
       .from("house_data")
-      .select("id, house_value, down_payment, monthly_income, extra_expenses, annual_rate, term_years, monthly_payment, monthly_payment_status, rate_type, indexante, spread, fixed_period_years, fixed_rate_initial")
+      .select("id, house_value, down_payment, monthly_income, extra_expenses, annual_rate, term_years, monthly_payment, monthly_payment_status, rate_type, indexante, spread, fixed_period_years, fixed_rate_initial, euribor_term, mixed_phase2_acknowledged, fixed_indexante, fixed_spread")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
@@ -332,7 +332,12 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         down_payment: downPayment,
         loan_amount: loan,
         monthly_income: Number(d.monthly_income || 0),
-        extra_expenses: (d.extra_expenses as ExtraExpense[]) || [],
+        extra_expenses: ((d.extra_expenses as ExtraExpense[]) || []).map((e) => ({
+          name: e.name,
+          value: Number(e.value || 0),
+          frequency: (e.frequency as ExpenseFrequency) || "monthly",
+          kind: (e.kind as ExpenseKind) || "expense",
+        })),
         annual_rate: Number(data.annual_rate || 0),
         term_years: Number(data.term_years || 30),
         monthly_payment: Number(data.monthly_payment || 0),
@@ -342,6 +347,10 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
         spread: Number(d.spread || 0),
         fixed_period_years: Number(d.fixed_period_years || 0),
         fixed_rate_initial: Number(d.fixed_rate_initial || 0),
+        euribor_term: (d.euribor_term as EuriborTerm) || "6m",
+        mixed_phase2_acknowledged: Boolean(d.mixed_phase2_acknowledged),
+        fixed_indexante: Number(d.fixed_indexante || 0),
+        fixed_spread: Number(d.fixed_spread || 0),
       });
     }
     setLoadingCurrent(false);
