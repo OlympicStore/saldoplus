@@ -150,9 +150,18 @@ const buildSchedule = (p: ScheduleParams): AmortRow[] => {
   return rows;
 };
 
+interface ExtraExpense {
+  name: string;
+  value: number;
+}
+
 interface CurrentCredit {
   id?: string;
+  house_value: number;
+  down_payment: number;
   loan_amount: number;
+  monthly_income: number;
+  extra_expenses: ExtraExpense[];
   annual_rate: number;
   term_years: number;
   monthly_payment: number;
