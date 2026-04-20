@@ -373,7 +373,7 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
             activeSection === "simulador" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground hover:bg-surface-hover"
           }`}
         >
-          <Calculator className="h-4 w-4" /> Simulador de Crédito
+          <Calculator className="h-4 w-4" /> O Meu Crédito
         </button>
         <button
           onClick={() => setActiveSection("esforco")}
