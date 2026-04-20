@@ -1023,48 +1023,31 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                   </div>
                 </div>
 
-                {/* Despesas adicionais */}
-                <div className="pt-2 border-t border-border-subtle/40">
-                  <p className={`${labelCls} mb-2`}>Despesas adicionais da casa <span className="opacity-60">(IMI, seguros, condomínio…)</span></p>
-                  {current.extra_expenses.length > 0 && (
-                    <div className="space-y-1.5 mb-2">
-                      {current.extra_expenses.map((extra, i) => (
-                        <div key={i} className="flex items-center gap-2 bg-secondary rounded-md px-2.5 py-1.5">
-                          <span className="text-xs text-foreground flex-1">{extra.name}</span>
-                          <span className="text-xs font-mono font-semibold">{fmt(extra.value)}/mês</span>
-                          <button onClick={() => removeExtraExpense(i)} className="text-muted-foreground hover:text-destructive">
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex gap-1.5">
-                    <input
-                      type="text"
-                      placeholder="Nome (ex: IMI)"
-                      value={newExtraName}
-                      onChange={(e) => setNewExtraName(e.target.value)}
-                      className="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
-                    />
-                    <input
-                      type="number"
-                      placeholder="€"
-                      value={newExtraValue}
-                      onChange={(e) => setNewExtraValue(e.target.value)}
-                      className="w-20 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono"
-                    />
-                    <button
-                      type="button"
-                      onClick={addExtraExpense}
-                      className="rounded-md bg-primary px-2.5 py-1.5 text-primary-foreground hover:opacity-90"
-                      title="Adicionar despesa"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
               </div>
+
+              {/* === BANNER FIM DA FASE FIXA (taxa mista) === */}
+              {needsMixedPhase2Update && (
+                <div className="rounded-lg border-2 border-yellow-500/40 bg-yellow-500/10 p-4 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-foreground">O período de taxa fixa terminou</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Os {current.fixed_period_years} anos da fase fixa já passaram. Atualize manualmente o <strong>indexante (Euribor)</strong>, <strong>spread</strong> e <strong>prazo da Euribor</strong> da nova fase variável e confirme abaixo.
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-1 italic">
+                        Enquanto não confirmar, a prestação da fase variável fica congelada.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setCurrent((p) => ({ ...p, mixed_phase2_acknowledged: true }))}
+                    className="w-full rounded-md bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium py-2 transition-colors"
+                  >
+                    ✓ Confirmar dados atualizados da nova taxa variável
+                  </button>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 gap-3">
 
@@ -1079,7 +1062,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                         <button
                           key={rt}
                           type="button"
-                          onClick={() => setCurrent((p) => ({ ...p, rate_type: rt }))}
+                          onClick={() => setCurrent((p) => ({ ...p, rate_type: rt, mixed_phase2_acknowledged: false }))}
                           className={`rounded-md px-2 py-1.5 text-xs font-medium border transition-colors ${
                             active
                               ? "bg-blue-500 text-white border-blue-500"
@@ -1095,68 +1078,18 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
 
                 {/* Campos condicionais ao tipo de taxa */}
                 {current.rate_type === "fixed" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className={labelCls}>Taxa anual (%)</label>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        step="0.01"
-                        value={current.annual_rate === 0 ? "" : current.annual_rate}
-                        onChange={(e) => setCurrent((p) => ({ ...p, annual_rate: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
-                        className={inputCls}
-                        placeholder="Ex: 3.5"
-                      />
-                    </div>
-                    <div>
-                      <label className={labelCls}>Prazo (anos)</label>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={current.term_years === 0 ? "" : current.term_years}
-                        onChange={(e) => setCurrent((p) => ({ ...p, term_years: e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))) }))}
-                        className={inputCls}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {current.rate_type === "variable" && (
                   <>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className={labelCls}>Indexante (%)</label>
+                        <label className={labelCls}>Taxa anual (%)</label>
                         <input
                           type="number"
                           inputMode="decimal"
-                          step="0.001"
-                          value={current.indexante === 0 ? "" : current.indexante}
-                          onChange={(e) => setCurrent((p) => ({ ...p, indexante: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                          step="0.01"
+                          value={current.annual_rate === 0 ? "" : current.annual_rate}
+                          onChange={(e) => setCurrent((p) => ({ ...p, annual_rate: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
                           className={inputCls}
-                          placeholder="Ex: 2.5"
-                        />
-                      </div>
-                      <div>
-                        <label className={labelCls}>Spread (%)</label>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          step="0.001"
-                          value={current.spread === 0 ? "" : current.spread}
-                          onChange={(e) => setCurrent((p) => ({ ...p, spread: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
-                          className={inputCls}
-                          placeholder="Ex: 1.0"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className={labelCls}>Taxa atual (%)</label>
-                        <input
-                          type="number"
-                          value={currentVariableRate.toFixed(3)}
-                          readOnly
-                          className={`${inputCls} bg-muted/50 cursor-not-allowed`}
+                          placeholder="Ex: 3.5"
                         />
                       </div>
                       <div>
@@ -1169,6 +1102,98 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                           className={inputCls}
                         />
                       </div>
+                    </div>
+                    {/* Campos informativos opcionais — NÃO afetam cálculo */}
+                    <div className="rounded-md border border-border-subtle/40 bg-muted/20 p-3 space-y-2">
+                      <p className="text-[11px] text-muted-foreground">
+                        ℹ️ Dados informativos (opcionais, não alteram o cálculo da prestação) — úteis para comparar com taxa variável.
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className={labelCls}>Euribor de referência (%)</label>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            step="0.001"
+                            value={current.fixed_indexante === 0 ? "" : current.fixed_indexante}
+                            onChange={(e) => setCurrent((p) => ({ ...p, fixed_indexante: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                            className={inputCls}
+                            placeholder="Ex: 2.5"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelCls}>Spread de referência (%)</label>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            step="0.001"
+                            value={current.fixed_spread === 0 ? "" : current.fixed_spread}
+                            onChange={(e) => setCurrent((p) => ({ ...p, fixed_spread: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                            className={inputCls}
+                            placeholder="Ex: 1.0"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {current.rate_type === "variable" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Indexante / Euribor (%)</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.001"
+                          value={current.indexante === 0 ? "" : current.indexante}
+                          onChange={(e) => setCurrent((p) => ({ ...p, indexante: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                          className={inputCls}
+                          placeholder="Ex: 2.5"
+                        />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Prazo da Euribor</label>
+                        <select
+                          value={current.euribor_term}
+                          onChange={(e) => setCurrent((p) => ({ ...p, euribor_term: e.target.value as EuriborTerm }))}
+                          className={inputCls}
+                        >
+                          <option value="3m">3 meses</option>
+                          <option value="6m">6 meses</option>
+                          <option value="12m">12 meses</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Spread (%)</label>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.001"
+                          value={current.spread === 0 ? "" : current.spread}
+                          onChange={(e) => setCurrent((p) => ({ ...p, spread: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
+                          className={inputCls}
+                          placeholder="Ex: 1.0"
+                        />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Prazo (anos)</label>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={current.term_years === 0 ? "" : current.term_years}
+                          onChange={(e) => setCurrent((p) => ({ ...p, term_years: e.target.value === "" ? 0 : Math.max(1, Math.min(50, Number(e.target.value))) }))}
+                          className={inputCls}
+                        />
+                      </div>
+                    </div>
+                    <div className="rounded-md bg-muted/30 border border-border-subtle/40 px-3 py-2">
+                      <p className="text-[11px] text-muted-foreground">
+                        Taxa atual = <strong className="font-mono text-foreground">{currentVariableRate.toFixed(3)}%</strong> · Atualiza a cada <strong>{EURIBOR_TERM_LABEL[current.euribor_term].replace("Euribor a ", "")}</strong>
+                      </p>
                     </div>
                   </>
                 )}
@@ -1200,18 +1225,33 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className={labelCls}>Indexante (%)</label>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          step="0.001"
-                          value={current.indexante === 0 ? "" : current.indexante}
-                          onChange={(e) => setCurrent((p) => ({ ...p, indexante: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) }))}
-                          className={inputCls}
-                          placeholder="Ex: 2.5"
-                        />
+                    <div className="rounded-md border border-border-subtle/40 bg-muted/20 p-3 space-y-2">
+                      <p className="text-[11px] text-muted-foreground font-medium">Fase variável (após {current.fixed_period_years} anos)</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className={labelCls}>Indexante / Euribor (%)</label>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            step="0.001"
+                            value={current.indexante === 0 ? "" : current.indexante}
+                            onChange={(e) => setCurrent((p) => ({ ...p, indexante: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)), mixed_phase2_acknowledged: needsMixedPhase2Update ? p.mixed_phase2_acknowledged : p.mixed_phase2_acknowledged }))}
+                            className={inputCls}
+                            placeholder="Ex: 2.5"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelCls}>Prazo da Euribor</label>
+                          <select
+                            value={current.euribor_term}
+                            onChange={(e) => setCurrent((p) => ({ ...p, euribor_term: e.target.value as EuriborTerm }))}
+                            className={inputCls}
+                          >
+                            <option value="3m">3 meses</option>
+                            <option value="6m">6 meses</option>
+                            <option value="12m">12 meses</option>
+                          </select>
+                        </div>
                       </div>
                       <div>
                         <label className={labelCls}>Spread (%)</label>
@@ -1238,11 +1278,138 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                     </div>
                     <p className="text-[11px] text-muted-foreground">
                       Fase 1: <strong>{current.fixed_rate_initial.toFixed(2)}%</strong> durante {current.fixed_period_years} anos.
-                      Fase 2: <strong>{currentVariableRate.toFixed(3)}%</strong> (indexante + spread) nos restantes {Math.max(0, current.term_years - current.fixed_period_years)} anos.
+                      Fase 2: <strong>{currentVariableRate.toFixed(3)}%</strong> (indexante + spread, atualiza a cada {EURIBOR_TERM_LABEL[current.euribor_term].replace("Euribor a ", "")}) nos restantes {Math.max(0, current.term_years - current.fixed_period_years)} anos.
                     </p>
                   </>
                 )}
               </div>
+
+              {/* === DESPESAS DA CASA (FORA DO CRÉDITO) === */}
+              <div className="rounded-lg border border-border-subtle/60 bg-card/60 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Despesas da casa (fora do crédito)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-muted-foreground -mt-1">
+                  IMI, condomínio, seguros e outras despesas. <strong>Não alteram a prestação</strong>, mas entram no cálculo da margem mensal e do custo real.
+                </p>
+
+                {/* Botões para adicionar seguros pré-definidos */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => addInsurance("life_insurance")}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border-subtle/60 bg-card text-xs hover:bg-surface-hover"
+                  >
+                    🛡️ Adicionar seguro de vida
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => addInsurance("multirisk_insurance")}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border-subtle/60 bg-card text-xs hover:bg-surface-hover"
+                  >
+                    🏠 Adicionar seguro multirriscos
+                  </button>
+                </div>
+
+                {current.extra_expenses.length > 0 && (
+                  <div className="space-y-2">
+                    {current.extra_expenses.map((extra, i) => {
+                      const freq = extra.frequency ?? "monthly";
+                      const isInsurance = extra.kind === "life_insurance" || extra.kind === "multirisk_insurance";
+                      const meq = monthlyEquivalent(extra);
+                      return (
+                        <div key={i} className="rounded-md border border-border-subtle/40 bg-secondary/40 p-2 space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">
+                              {extra.kind === "life_insurance" ? "🛡️" : extra.kind === "multirisk_insurance" ? "🏠" : "💶"}
+                            </span>
+                            <input
+                              type="text"
+                              value={extra.name}
+                              onChange={(e) => updateExtra(i, { name: e.target.value })}
+                              className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-xs"
+                              placeholder="Nome"
+                            />
+                            <button onClick={() => removeExtraExpense(i)} className="text-muted-foreground hover:text-destructive p-1">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              step="0.01"
+                              value={extra.value === 0 ? "" : extra.value}
+                              onChange={(e) => updateExtra(i, { value: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) })}
+                              className="rounded-md border border-input bg-background px-2 py-1 text-xs font-mono"
+                              placeholder="Valor (€)"
+                            />
+                            <select
+                              value={freq}
+                              onChange={(e) => updateExtra(i, { frequency: e.target.value as ExpenseFrequency })}
+                              className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                            >
+                              <option value="monthly">Mensal</option>
+                              <option value="quarterly">Trimestral</option>
+                              <option value="semiannual">Semestral</option>
+                              <option value="annual">Anual</option>
+                            </select>
+                          </div>
+                          {freq !== "monthly" && (
+                            <p className="text-[10px] text-muted-foreground">
+                              ≈ <span className="font-mono">{fmt2(meq)}</span> /mês equivalente
+                              {isInsurance && " · pago a cada " + (freq === "quarterly" ? "3 meses" : freq === "semiannual" ? "6 meses" : "ano")}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Adicionar despesa simples */}
+                <div className="pt-2 border-t border-border-subtle/40 space-y-1.5">
+                  <p className="text-[11px] text-muted-foreground">Adicionar outra despesa</p>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Nome (ex: IMI)"
+                      value={newExtraName}
+                      onChange={(e) => setNewExtraName(e.target.value)}
+                      className="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
+                    />
+                    <input
+                      type="number"
+                      placeholder="€"
+                      value={newExtraValue}
+                      onChange={(e) => setNewExtraValue(e.target.value)}
+                      className="w-20 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono"
+                    />
+                    <select
+                      value={newExtraFreq}
+                      onChange={(e) => setNewExtraFreq(e.target.value as ExpenseFrequency)}
+                      className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+                    >
+                      <option value="monthly">Mensal</option>
+                      <option value="quarterly">Trim.</option>
+                      <option value="semiannual">Sem.</option>
+                      <option value="annual">Anual</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={addExtraExpense}
+                      className="rounded-md bg-primary px-2.5 py-1.5 text-primary-foreground hover:opacity-90"
+                      title="Adicionar despesa"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
 
               <div className="grid grid-cols-3 gap-2 pt-2">
                 <div className="rounded-lg bg-card border border-border-subtle/60 p-3">
