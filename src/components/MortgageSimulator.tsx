@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -507,9 +507,9 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     return Object.values(yearly);
   }, [baseSchedule]);
 
-  const yearlyTable = useMemo(() => {
+  const groupByYear = (schedule: AmortRow[]) => {
     const grouped: Record<number, AmortRow[]> = {};
-    baseSchedule.forEach((r) => {
+    schedule.forEach((r) => {
       if (!grouped[r.year]) grouped[r.year] = [];
       grouped[r.year].push(r);
     });
@@ -521,7 +521,9 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
       const rateAvg = rows.reduce((s, r) => s + r.rateApplied, 0) / rows.length;
       return { year: Number(year), rows, totalPayment, totalInterest, totalPrincipal, endBalance, rateAvg };
     });
-  }, [baseSchedule]);
+  };
+  const yearlyTable = useMemo(() => groupByYear(baseSchedule), [baseSchedule]);
+  const currentYearlyTable = useMemo(() => groupByYear(currentSchedule), [currentSchedule]);
 
   const insights = useMemo(() => {
     const items: string[] = [];
@@ -1163,6 +1165,71 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
               <p className="text-[11px] text-muted-foreground text-center">
                 Estes dados aparecem automaticamente nos painéis de Esforço e Progresso
               </p>
+
+              {currentYearlyTable.length > 0 && (
+                <div className="mt-4 rounded-xl border border-border-subtle/60 bg-card overflow-hidden">
+                  <button
+                    onClick={() => setTableCollapsed((v) => !v)}
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors"
+                  >
+                    <span className="text-sm font-semibold flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-primary" />
+                      Plano de amortização (mês a mês)
+                    </span>
+                    {tableCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                  </button>
+
+                  {!tableCollapsed && (
+                    <div className="border-t border-border-subtle/60 max-h-[480px] overflow-auto">
+                      <table className="w-full text-xs">
+                        <thead className="bg-muted/40 sticky top-0">
+                          <tr className="text-left">
+                            <th className="px-3 py-2 font-medium text-muted-foreground">Ano / Mês</th>
+                            <th className="px-3 py-2 font-medium text-muted-foreground text-right">Taxa</th>
+                            <th className="px-3 py-2 font-medium text-muted-foreground text-right">Prestação</th>
+                            <th className="px-3 py-2 font-medium text-muted-foreground text-right">Juros</th>
+                            <th className="px-3 py-2 font-medium text-muted-foreground text-right">Capital</th>
+                            <th className="px-3 py-2 font-medium text-muted-foreground text-right">Dívida</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentYearlyTable.map((y) => (
+                            <React.Fragment key={`y-${y.year}`}>
+                              <tr
+                                className="bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors border-t border-border-subtle/40"
+                                onClick={() => setExpandedYear(expandedYear === y.year ? null : y.year)}
+                              >
+                                <td className="px-3 py-2 font-semibold">
+                                  <span className="inline-flex items-center gap-1">
+                                    {expandedYear === y.year ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                    Ano {y.year}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2 text-right font-mono tabular-nums">{y.rateAvg.toFixed(2)}%</td>
+                                <td className="px-3 py-2 text-right font-mono tabular-nums">{fmt(y.totalPayment)}</td>
+                                <td className="px-3 py-2 text-right font-mono tabular-nums text-destructive">{fmt(y.totalInterest)}</td>
+                                <td className="px-3 py-2 text-right font-mono tabular-nums text-primary">{fmt(y.totalPrincipal)}</td>
+                                <td className="px-3 py-2 text-right font-mono tabular-nums">{fmt(y.endBalance)}</td>
+                              </tr>
+                              {expandedYear === y.year &&
+                                y.rows.map((r, idx) => (
+                                  <tr key={`m-${y.year}-${idx}`} className="border-t border-border-subtle/30">
+                                    <td className="px-3 py-1.5 pl-8 text-muted-foreground">Mês {idx + 1}</td>
+                                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-muted-foreground">{r.rateApplied.toFixed(3)}%</td>
+                                    <td className="px-3 py-1.5 text-right font-mono tabular-nums">{fmt2(r.payment)}</td>
+                                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-destructive">{fmt2(r.interest)}</td>
+                                    <td className="px-3 py-1.5 text-right font-mono tabular-nums text-primary">{fmt2(r.principal)}</td>
+                                    <td className="px-3 py-1.5 text-right font-mono tabular-nums">{fmt2(r.balance)}</td>
+                                  </tr>
+                                ))}
+                            </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
