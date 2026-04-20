@@ -825,11 +825,27 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
       if (extracted.indexante != null) setIndexante(extracted.indexante);
       if (extracted.spread != null) setSpread(extracted.spread);
     }
+    // Aplica também ao crédito atual: valor da casa, entrada e prazo da Euribor
+    setCurrent((prev) => ({
+      ...prev,
+      house_value: extracted.house_value && extracted.house_value > 0 ? extracted.house_value : prev.house_value,
+      down_payment: extracted.down_payment != null && extracted.down_payment >= 0 ? extracted.down_payment : prev.down_payment,
+      loan_amount: extracted.loan_amount && extracted.loan_amount > 0 ? extracted.loan_amount : prev.loan_amount,
+      term_years: extracted.term_years && extracted.term_years > 0 ? extracted.term_years : prev.term_years,
+      euribor_term: extracted.euribor_term ?? prev.euribor_term,
+      rate_type: rt,
+      annual_rate: rt === "fixed" && extracted.annual_rate != null ? extracted.annual_rate : prev.annual_rate,
+      indexante: (rt === "variable" || rt === "mixed") && extracted.indexante != null ? extracted.indexante : prev.indexante,
+      spread: (rt === "variable" || rt === "mixed") && extracted.spread != null ? extracted.spread : prev.spread,
+      fixed_rate_initial: rt === "mixed" && extracted.fixed_rate_initial != null ? extracted.fixed_rate_initial : prev.fixed_rate_initial,
+      fixed_period_years: rt === "mixed" && extracted.fixed_period_years != null ? extracted.fixed_period_years : prev.fixed_period_years,
+    }));
     setSimName(`Escritura ${extractedFileName.replace(/\.[^.]+$/, "")}`.slice(0, 100));
-    toast.success("Dados aplicados ao simulador");
+    toast.success("Dados aplicados ao simulador e ao crédito atual");
     setExtracted(null);
     setExtractedFileName("");
   };
+
 
   const updateExtractedField = <K extends keyof ExtractedDoc>(key: K, value: ExtractedDoc[K]) => {
     setExtracted((prev) => (prev ? { ...prev, [key]: value } : prev));
