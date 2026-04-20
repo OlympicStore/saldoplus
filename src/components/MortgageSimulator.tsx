@@ -150,10 +150,42 @@ const buildSchedule = (p: ScheduleParams): AmortRow[] => {
   return rows;
 };
 
+type ExpenseFrequency = "monthly" | "quarterly" | "semiannual" | "annual";
+type ExpenseKind = "expense" | "life_insurance" | "multirisk_insurance";
+type EuriborTerm = "3m" | "6m" | "12m";
+
 interface ExtraExpense {
   name: string;
   value: number;
+  /** New: defaults to "monthly" when missing (back-compat) */
+  frequency?: ExpenseFrequency;
+  /** New: defaults to "expense" when missing */
+  kind?: ExpenseKind;
 }
+
+const FREQ_LABEL: Record<ExpenseFrequency, string> = {
+  monthly: "Mensal",
+  quarterly: "Trimestral",
+  semiannual: "Semestral",
+  annual: "Anual",
+};
+const FREQ_MONTHS: Record<ExpenseFrequency, number> = {
+  monthly: 1,
+  quarterly: 3,
+  semiannual: 6,
+  annual: 12,
+};
+const monthlyEquivalent = (e: ExtraExpense) => {
+  const f = e.frequency ?? "monthly";
+  return e.value / FREQ_MONTHS[f];
+};
+
+const EURIBOR_TERM_MONTHS: Record<EuriborTerm, number> = { "3m": 3, "6m": 6, "12m": 12 };
+const EURIBOR_TERM_LABEL: Record<EuriborTerm, string> = {
+  "3m": "Euribor a 3 meses",
+  "6m": "Euribor a 6 meses",
+  "12m": "Euribor a 12 meses",
+};
 
 interface CurrentCredit {
   id?: string;
@@ -171,6 +203,12 @@ interface CurrentCredit {
   spread: number;
   fixed_period_years: number;
   fixed_rate_initial: number;
+  // novos campos
+  euribor_term: EuriborTerm;
+  mixed_phase2_acknowledged: boolean;
+  fixed_indexante: number; // informativo apenas (taxa fixa)
+  fixed_spread: number;    // informativo apenas (taxa fixa)
+  plan_started_at?: string | null;
 }
 
 const MONTH_NAMES_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
