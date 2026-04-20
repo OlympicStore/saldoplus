@@ -5,10 +5,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+type ExpenseFrequency = "monthly" | "quarterly" | "semiannual" | "annual";
+type ExpenseKind = "expense" | "life_insurance" | "multirisk_insurance";
+
 interface ExtraExpense {
   name: string;
   value: number;
+  frequency?: ExpenseFrequency;
+  kind?: ExpenseKind;
 }
+
+const FREQ_MONTHS: Record<ExpenseFrequency, number> = {
+  monthly: 1,
+  quarterly: 3,
+  semiannual: 6,
+  annual: 12,
+};
+const FREQ_LABEL: Record<ExpenseFrequency, string> = {
+  monthly: "Mensal",
+  quarterly: "Trimestral",
+  semiannual: "Semestral",
+  annual: "Anual",
+};
+const monthlyEquivalent = (e: ExtraExpense) => e.value / FREQ_MONTHS[e.frequency ?? "monthly"];
+// Returns true if a periodic expense is due in given month (0-based), assuming Jan as anchor
+const isExpenseDueInMonth = (e: ExtraExpense, monthIdx: number) => {
+  const period = FREQ_MONTHS[e.frequency ?? "monthly"];
+  return monthIdx % period === 0;
+};
 
 interface PaymentHistoryEntry {
   id: string;
