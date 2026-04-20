@@ -842,8 +842,8 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
             <Calculator className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Simulador de Crédito Habitação</h2>
-            <p className="text-sm text-muted-foreground">Compare o seu crédito atual com cenários alternativos</p>
+            <h2 className="text-lg font-semibold">O Meu Crédito Habitação</h2>
+            <p className="text-sm text-muted-foreground">Coloque todos os dados do seu crédito habitação.</p>
           </div>
         </div>
       </div>
