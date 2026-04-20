@@ -217,11 +217,14 @@ const MONTH_NAMES_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set"
 const MONTH_NAMES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 interface ExtractedDoc {
+  house_value?: number | null;
+  down_payment?: number | null;
   loan_amount?: number | null;
   rate_type?: RateType | null;
   annual_rate?: number | null;
   indexante?: number | null;
   indexante_label?: string | null;
+  euribor_term?: "3m" | "6m" | "12m" | null;
   spread?: number | null;
   fixed_period_years?: number | null;
   fixed_rate_initial?: number | null;
@@ -822,11 +825,27 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
       if (extracted.indexante != null) setIndexante(extracted.indexante);
       if (extracted.spread != null) setSpread(extracted.spread);
     }
+    // Aplica também ao crédito atual: valor da casa, entrada e prazo da Euribor
+    setCurrent((prev) => ({
+      ...prev,
+      house_value: extracted.house_value && extracted.house_value > 0 ? extracted.house_value : prev.house_value,
+      down_payment: extracted.down_payment != null && extracted.down_payment >= 0 ? extracted.down_payment : prev.down_payment,
+      loan_amount: extracted.loan_amount && extracted.loan_amount > 0 ? extracted.loan_amount : prev.loan_amount,
+      term_years: extracted.term_years && extracted.term_years > 0 ? extracted.term_years : prev.term_years,
+      euribor_term: extracted.euribor_term ?? prev.euribor_term,
+      rate_type: rt,
+      annual_rate: rt === "fixed" && extracted.annual_rate != null ? extracted.annual_rate : prev.annual_rate,
+      indexante: (rt === "variable" || rt === "mixed") && extracted.indexante != null ? extracted.indexante : prev.indexante,
+      spread: (rt === "variable" || rt === "mixed") && extracted.spread != null ? extracted.spread : prev.spread,
+      fixed_rate_initial: rt === "mixed" && extracted.fixed_rate_initial != null ? extracted.fixed_rate_initial : prev.fixed_rate_initial,
+      fixed_period_years: rt === "mixed" && extracted.fixed_period_years != null ? extracted.fixed_period_years : prev.fixed_period_years,
+    }));
     setSimName(`Escritura ${extractedFileName.replace(/\.[^.]+$/, "")}`.slice(0, 100));
-    toast.success("Dados aplicados ao simulador");
+    toast.success("Dados aplicados ao simulador e ao crédito atual");
     setExtracted(null);
     setExtractedFileName("");
   };
+
 
   const updateExtractedField = <K extends keyof ExtractedDoc>(key: K, value: ExtractedDoc[K]) => {
     setExtracted((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -888,6 +907,24 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
+              <label className={labelCls}>Valor da casa (€)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={extracted.house_value ?? ""}
+                onChange={(e) => updateExtractedField("house_value", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Entrada paga (€)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={extracted.down_payment ?? ""}
+                onChange={(e) => updateExtractedField("down_payment", e.target.value === "" ? null : Number(e.target.value))}
+              />
+            </div>
+            <div>
               <label className={labelCls}>Valor do empréstimo (€)</label>
               <input
                 type="number"
@@ -948,6 +985,21 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 onChange={(e) => updateExtractedField("spread", e.target.value === "" ? null : Number(e.target.value))}
               />
             </div>
+            {(extracted.rate_type === "variable" || extracted.rate_type === "mixed") && (
+              <div>
+                <label className={labelCls}>Prazo da Euribor</label>
+                <select
+                  className={inputCls}
+                  value={extracted.euribor_term ?? ""}
+                  onChange={(e) => updateExtractedField("euribor_term", (e.target.value || null) as any)}
+                >
+                  <option value="">—</option>
+                  <option value="3m">Euribor 3 meses</option>
+                  <option value="6m">Euribor 6 meses</option>
+                  <option value="12m">Euribor 12 meses</option>
+                </select>
+              </div>
+            )}
             {extracted.rate_type === "mixed" && (
               <>
                 <div>

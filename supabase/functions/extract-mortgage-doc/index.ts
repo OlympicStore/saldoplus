@@ -27,6 +27,8 @@ Regras:
 - Se um campo não for claro ou não estiver presente, devolve null para esse campo.
 - Para taxa variável: separa indexante (ex: Euribor 6M = 3.5) e spread (ex: 1.2).
 - Para taxa mista: identifica o período inicial fixo em anos, a taxa fixa inicial, e depois indexante + spread da fase variável.
+- Identifica o prazo da Euribor usado (3, 6 ou 12 meses) e devolve "3m", "6m" ou "12m".
+- Identifica o valor total da casa (preço de aquisição do imóvel) e o valor da entrada (down payment / capitais próprios) se mencionados.
 - Confiança: devolve um nível de confiança global de 0 a 1 (1 = totalmente confiante).`;
 
 const TOOL_DEFINITION = {
@@ -37,6 +39,8 @@ const TOOL_DEFINITION = {
     parameters: {
       type: "object",
       properties: {
+        house_value: { type: ["number", "null"], description: "Valor total da casa / preço de aquisição em euros" },
+        down_payment: { type: ["number", "null"], description: "Valor da entrada / capitais próprios em euros" },
         loan_amount: { type: ["number", "null"], description: "Valor total do empréstimo em euros" },
         rate_type: {
           type: ["string", "null"],
@@ -51,6 +55,11 @@ const TOOL_DEFINITION = {
         indexante_label: {
           type: ["string", "null"],
           description: "Nome do indexante (ex: 'Euribor 6 meses')",
+        },
+        euribor_term: {
+          type: ["string", "null"],
+          enum: ["3m", "6m", "12m", null],
+          description: "Prazo da Euribor: '3m', '6m' ou '12m' — apenas variável/mista",
         },
         spread: { type: ["number", "null"], description: "Spread em % — apenas variável/mista" },
         fixed_period_years: {
