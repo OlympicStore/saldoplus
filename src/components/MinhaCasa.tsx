@@ -459,7 +459,14 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
         </button>
       </div>
 
-      {activeSection === "simulador" && <MortgageSimulator onSavedCurrent={reloadHouseData} />}
+      {activeSection === "simulador" && (
+        <MortgageSimulator onSavedCurrent={async () => {
+          await reloadHouseData();
+          // Sync prestação + extras para a tabela de Despesas Fixas
+          await syncFixedExpenses();
+          if (onSave) await onSave();
+        }} />
+      )}
 
       {activeSection === "esforco" && (
         <>
