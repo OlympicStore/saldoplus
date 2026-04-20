@@ -263,6 +263,14 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // Keep loan_amount derived from house_value - down_payment
+  useEffect(() => {
+    setCurrent((p) => {
+      const next = Math.max(0, p.house_value - p.down_payment);
+      return next === p.loan_amount ? p : { ...p, loan_amount: next };
+    });
+  }, [current.house_value, current.down_payment]);
+
   const loadCurrent = async () => {
     if (!user) return;
     setLoadingCurrent(true);
