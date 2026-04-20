@@ -332,7 +332,8 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   // Progress calculations — alinhado com o prazo do crédito (totalMonths)
   const paidMonths = Object.values(data.monthly_payment_status).filter(v => v === "pago").length;
   const remainingMonths = Math.max(0, totalMonths - paidMonths);
-  const remainingYears = remainingMonths / 12;
+  const remainingYears = Math.floor(remainingMonths / 12);
+  const remainingExtraMonths = remainingMonths % 12;
   const totalPaid = data.down_payment + (paidMonths * data.monthly_payment);
   // Falta pagar ao banco (capital + juros) com base no prazo real do crédito
   const remaining = Math.max(0, remainingMonths * data.monthly_payment);
@@ -340,6 +341,33 @@ const MinhaCasa = ({ onSave }: { onSave?: () => Promise<void> }) => {
   const progressPct = totalMonths > 0
     ? Math.min(100, (paidMonths / totalMonths) * 100)
     : (data.house_value > 0 ? Math.min(100, (totalPaid / data.house_value) * 100) : 0);
+
+  // Detectar 100% financiado
+  const isFullyFinanced = data.house_value > 0 && data.down_payment === 0;
+
+  // Capital amortizado vs Juros pagos — via tabela de amortização (sistema francês)
+  const { capitalPaid, interestPaid } = useMemo(() => {
+    if (loanAmount <= 0 || data.monthly_payment <= 0 || paidMonths <= 0) {
+      return { capitalPaid: 0, interestPaid: 0 };
+    }
+    let annualRate = data.annual_rate;
+    if (data.rate_type === "variable") annualRate = data.indexante + data.spread;
+    else if (data.rate_type === "mixed") annualRate = data.fixed_rate_initial;
+    const monthlyRate = annualRate / 100 / 12;
+    let balance = loanAmount;
+    let capSum = 0;
+    let intSum = 0;
+    const months = Math.min(paidMonths, totalMonths || paidMonths);
+    for (let i = 0; i < months; i++) {
+      const interest = balance * monthlyRate;
+      const capital = Math.max(0, data.monthly_payment - interest);
+      capSum += capital;
+      intSum += interest;
+      balance = Math.max(0, balance - capital);
+      if (balance === 0) break;
+    }
+    return { capitalPaid: capSum, interestPaid: intSum };
+  }, [loanAmount, data.monthly_payment, paidMonths, totalMonths, data.annual_rate, data.rate_type, data.indexante, data.spread, data.fixed_rate_initial]);
 
   const getStatus = (r: number) => {
     if (r < 30) return { label: "Seguro", color: "text-status-paid", bg: "bg-status-paid/10", icon: ShieldCheck };
