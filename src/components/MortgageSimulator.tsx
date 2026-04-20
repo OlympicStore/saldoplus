@@ -268,15 +268,21 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
     setLoadingCurrent(true);
     const { data } = await supabase
       .from("house_data")
-      .select("id, house_value, down_payment, annual_rate, term_years, monthly_payment, monthly_payment_status, rate_type, indexante, spread, fixed_period_years, fixed_rate_initial")
+      .select("id, house_value, down_payment, monthly_income, extra_expenses, annual_rate, term_years, monthly_payment, monthly_payment_status, rate_type, indexante, spread, fixed_period_years, fixed_rate_initial")
       .eq("user_id", user.id)
       .maybeSingle();
     if (data) {
-      const loan = Math.max(0, Number(data.house_value || 0) - Number(data.down_payment || 0));
+      const houseValue = Number(data.house_value || 0);
+      const downPayment = Number((data as any).down_payment || 0);
+      const loan = Math.max(0, houseValue - downPayment);
       const d = data as any;
       setCurrent({
         id: data.id,
+        house_value: houseValue,
+        down_payment: downPayment,
         loan_amount: loan,
+        monthly_income: Number(d.monthly_income || 0),
+        extra_expenses: (d.extra_expenses as ExtraExpense[]) || [],
         annual_rate: Number(data.annual_rate || 0),
         term_years: Number(data.term_years || 30),
         monthly_payment: Number(data.monthly_payment || 0),
@@ -289,6 +295,18 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
       });
     }
     setLoadingCurrent(false);
+  };
+
+  const addExtraExpense = () => {
+    if (!newExtraName.trim()) return;
+    const val = parseFloat(newExtraValue.replace(",", ".")) || 0;
+    setCurrent((p) => ({ ...p, extra_expenses: [...p.extra_expenses, { name: newExtraName.trim(), value: val }] }));
+    setNewExtraName("");
+    setNewExtraValue("");
+  };
+
+  const removeExtraExpense = (idx: number) => {
+    setCurrent((p) => ({ ...p, extra_expenses: p.extra_expenses.filter((_, i) => i !== idx) }));
   };
 
   const togglePaymentStatus = async (year: number, month: number) => {
