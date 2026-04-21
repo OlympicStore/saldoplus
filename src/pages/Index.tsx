@@ -523,6 +523,8 @@ const Index = () => {
             variableExpenses={yearVariableExpenses}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
+            onAddCategory={data.addCategory}
+            onDeleteCategory={data.deleteCategory}
           />
         )}
         {activeTab === "minha_casa" && <MinhaCasa onSave={data.refetchFixedExpenses} />}

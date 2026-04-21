@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
-import { AlertTriangle, Plus, Trash2, Pencil, Check, X, TrendingUp, Wallet, Target, Sparkles, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertTriangle, Plus, Trash2, Pencil, Check, X, TrendingUp, Wallet, Target, Sparkles, CheckCircle2, PlusCircle } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { VariableExpense } from "@/types/expense";
@@ -15,6 +16,8 @@ interface CategoryBudgetsProps {
   variableExpenses: VariableExpense[];
   selectedMonth: number;
   selectedYear: number;
+  onAddCategory?: (cat: string) => void;
+  onDeleteCategory?: (cat: string) => void;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -26,13 +29,22 @@ const statusFor = (pct: number) => {
   return { tone: "ok" as const, label: "Dentro do orçamento", color: "text-status-paid", bg: "bg-status-paid", soft: "bg-[hsl(var(--status-paid)/0.1)]", border: "border-[hsl(var(--status-paid)/0.25)]" };
 };
 
-export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, selectedYear }: CategoryBudgetsProps) => {
+export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, selectedYear, onAddCategory, onDeleteCategory }: CategoryBudgetsProps) => {
   const { user } = useAuth();
   const userId = user?.id;
   const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [editVal, setEditVal] = useState("");
   const [loaded, setLoaded] = useState(false);
+
+  // New budget dialog
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newLimit, setNewLimit] = useState("");
+
+  // Rename dialog
+  const [renamingCat, setRenamingCat] = useState<string | null>(null);
+  const [renameVal, setRenameVal] = useState("");
 
   useEffect(() => {
     if (!userId) return;
@@ -116,6 +128,53 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
     setEditingCat(null);
   };
 
+  // Create new budget = create category (if needed) + set limit
+  const handleCreateBudget = () => {
+    const name = newName.trim();
+    if (!name) { toast.error("Indique um nome"); return; }
+    if (name.length > 50) { toast.error("Nome máx. 50 caracteres"); return; }
+    const limitNum = parseFloat(newLimit.replace(",", "."));
+    if (isNaN(limitNum) || limitNum <= 0) { toast.error("Limite inválido"); return; }
+    if (limitNum > 1_000_000) { toast.error("Limite demasiado alto"); return; }
+
+    const exists = categories.some(c => c.toLowerCase() === name.toLowerCase());
+    if (!exists) {
+      if (!onAddCategory) { toast.error("Não é possível criar categorias aqui"); return; }
+      onAddCategory(name);
+    }
+    setBudgetValue(name, limitNum);
+    toast.success(exists ? "Orçamento atualizado" : "Orçamento criado");
+    setNewName(""); setNewLimit(""); setShowNewDialog(false);
+  };
+
+  // Rename: create new category + copy budget + delete old
+  const handleRename = (oldCat: string) => {
+    const name = renameVal.trim();
+    if (!name || name === oldCat) { setRenamingCat(null); return; }
+    if (name.length > 50) { toast.error("Nome máx. 50 caracteres"); return; }
+    if (categories.some(c => c.toLowerCase() === name.toLowerCase())) {
+      toast.error("Já existe uma categoria com esse nome"); return;
+    }
+    if (!onAddCategory || !onDeleteCategory) { toast.error("Renomear indisponível"); return; }
+    const oldBudget = getBudget(oldCat);
+    onAddCategory(name);
+    if (oldBudget) {
+      setBudgetValue(name, oldBudget.limit);
+      removeBudget(oldCat);
+    }
+    onDeleteCategory(oldCat);
+    toast.success("Orçamento renomeado");
+    setRenamingCat(null);
+  };
+
+  // Delete fully = remove budget + remove category
+  const handleDeleteFully = (cat: string) => {
+    if (!confirm(`Remover o orçamento e a categoria "${cat}"? As despesas existentes mantêm-se.`)) return;
+    removeBudget(cat);
+    if (onDeleteCategory) onDeleteCategory(cat);
+    toast.success("Orçamento removido");
+  };
+
   // Aggregates
   const totalBudget = budgets.reduce((s, b) => s + b.limit, 0);
   const budgetedSpent = budgets.reduce((s, b) => s + getSpent(b.category), 0);
@@ -155,12 +214,23 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
   return (
     <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Orçamentos por Categoria</h2>
           <p className="text-sm text-text-muted mt-0.5">Controlo em tempo real dos seus gastos mensais</p>
         </div>
-        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[hsl(var(--status-paid)/0.15)] text-status-paid">PRO</span>
+        <div className="flex items-center gap-2">
+          {onAddCategory && (
+            <button
+              onClick={() => { setNewName(""); setNewLimit(""); setShowNewDialog(true); }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Novo orçamento
+            </button>
+          )}
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[hsl(var(--status-paid)/0.15)] text-status-paid">PRO</span>
+        </div>
       </div>
 
       {/* Global Summary */}
@@ -272,12 +342,25 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
               {/* Top row: name + status pill + actions */}
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                  <span className="text-sm font-semibold text-foreground truncate">{cat}</span>
-                  {budget && (
+                  {renamingCat === cat ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        autoFocus value={renameVal}
+                        onChange={(e) => setRenameVal(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleRename(cat); if (e.key === "Escape") setRenamingCat(null); }}
+                        maxLength={50}
+                        className="text-sm bg-background border border-border-subtle rounded-lg px-2 py-1 font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <button onClick={() => handleRename(cat)} className="text-status-paid p-1 hover:bg-[hsl(var(--status-paid)/0.1)] rounded"><Check className="h-4 w-4" /></button>
+                      <button onClick={() => setRenamingCat(null)} className="text-text-muted p-1 hover:bg-secondary rounded"><X className="h-4 w-4" /></button>
+                    </div>
+                  ) : (
+                    <span className="text-sm font-semibold text-foreground truncate">{cat}</span>
+                  )}
+                  {budget && renamingCat !== cat && (
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${status.soft} ${status.color} border ${status.border}`}>
                       {status.tone === "ok" && <CheckCircle2 className="h-3 w-3" />}
-                      {status.tone === "warn" && <AlertTriangle className="h-3 w-3" />}
-                      {status.tone === "over" && <AlertTriangle className="h-3 w-3" />}
+                      {(status.tone === "warn" || status.tone === "over") && <AlertTriangle className="h-3 w-3" />}
                       {status.tone === "ok" ? "OK" : status.tone === "warn" ? "Atenção" : "Excedido"}
                     </span>
                   )}
@@ -298,10 +381,19 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
                     </div>
                   ) : budget ? (
                     <>
-                      <button onClick={() => startEdit(cat)} className="text-text-muted hover:text-foreground transition-colors p-1.5 hover:bg-secondary rounded-md" title="Ajustar orçamento">
+                      {onAddCategory && onDeleteCategory && (
+                        <button onClick={() => { setRenameVal(cat); setRenamingCat(cat); }} className="text-text-muted hover:text-foreground transition-colors p-1.5 hover:bg-secondary rounded-md text-[11px] font-medium" title="Renomear">
+                          Renomear
+                        </button>
+                      )}
+                      <button onClick={() => startEdit(cat)} className="text-text-muted hover:text-foreground transition-colors p-1.5 hover:bg-secondary rounded-md" title="Ajustar limite">
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => removeBudget(cat)} className="text-text-muted hover:text-status-negative transition-colors p-1.5 hover:bg-[hsl(var(--status-negative)/0.1)] rounded-md" title="Remover orçamento">
+                      <button
+                        onClick={() => onDeleteCategory ? handleDeleteFully(cat) : removeBudget(cat)}
+                        className="text-text-muted hover:text-status-negative transition-colors p-1.5 hover:bg-[hsl(var(--status-negative)/0.1)] rounded-md"
+                        title={onDeleteCategory ? "Eliminar orçamento e categoria" : "Remover limite"}
+                      >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </>
@@ -390,10 +482,84 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
 
         {sortedCategories.length === 0 && (
           <div className="text-center py-10 text-sm text-text-muted bg-surface rounded-2xl border border-border-subtle/60">
-            Adicione categorias variáveis em Configuração → Categorias para começar.
+            {onAddCategory
+              ? <>Ainda não tem orçamentos. Clique em <span className="font-semibold text-foreground">Novo orçamento</span> para começar.</>
+              : <>Adicione categorias variáveis em Configuração → Categorias para começar.</>}
           </div>
         )}
       </div>
+
+      {/* New budget dialog */}
+      <AnimatePresence>
+        {showNewDialog && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowNewDialog(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.18 }}
+              className="bg-surface rounded-2xl shadow-xl border border-border-subtle/60 w-full max-w-md p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Novo orçamento</h3>
+                <button onClick={() => setShowNewDialog(false)} className="text-text-muted hover:text-foreground p-1 rounded">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1.5 block">Nome da categoria</label>
+                  <input
+                    autoFocus value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreateBudget(); }}
+                    placeholder="Ex: Supermercado, Restaurantes..."
+                    maxLength={50}
+                    className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                  />
+                  {categories.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {categories.slice(0, 6).map(c => (
+                        <button key={c} type="button" onClick={() => setNewName(c)}
+                          className="text-[11px] px-2 py-1 rounded-md bg-secondary hover:bg-secondary/70 text-text-secondary transition-colors">
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1.5 block">Limite mensal (€)</label>
+                  <input
+                    value={newLimit}
+                    onChange={(e) => setNewLimit(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreateBudget(); }}
+                    placeholder="0,00"
+                    inputMode="decimal"
+                    className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2.5 font-mono focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setShowNewDialog(false)}
+                    className="flex-1 px-4 py-2.5 rounded-lg border border-border-subtle text-sm font-medium text-text-secondary hover:bg-secondary transition-colors">
+                    Cancelar
+                  </button>
+                  <button onClick={handleCreateBudget}
+                    className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+                    Criar orçamento
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
