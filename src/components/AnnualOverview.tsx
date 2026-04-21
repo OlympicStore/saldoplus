@@ -230,13 +230,13 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
               {personData.map((p) => {
                 const pct = totalYear > 0 ? (p.value / totalYear) * 100 : 0;
                 return (
-                  <div key={p.name} className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-foreground w-20 shrink-0">{p.name}</span>
-                    <div className="flex-1 h-2.5 bg-secondary rounded-full overflow-hidden">
+                  <div key={p.name} className="flex items-center gap-2 sm:gap-3">
+                    <span className="text-xs sm:text-sm font-medium text-foreground w-16 sm:w-20 shrink-0 truncate">{p.name}</span>
+                    <div className="flex-1 min-w-0 h-2.5 bg-secondary rounded-full overflow-hidden">
                       <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.5 }}
                         className="h-full bg-primary rounded-full" />
                     </div>
-                    <span className="text-xs font-mono tabular-nums text-text-secondary w-24 text-right">{fmt(p.value)}</span>
+                    <span className="text-[11px] sm:text-xs font-mono tabular-nums text-text-secondary w-20 sm:w-24 text-right shrink-0 truncate">{fmt(p.value)}</span>
                   </div>
                 );
               })}
