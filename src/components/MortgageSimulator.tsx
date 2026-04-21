@@ -1176,7 +1176,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 <Home className="h-4 w-4 text-blue-500" />
               </div>
               <div>
-                <h3 className="font-semibold">O Seu Crédito Atual</h3>
+                <h3 className="font-semibold">O Meu Crédito Atual</h3>
                 <p className="text-xs text-muted-foreground">Sincronizado com Minha Casa</p>
               </div>
             </div>
