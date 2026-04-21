@@ -1596,39 +1596,42 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 {/* Adicionar despesa simples */}
                 <div className="pt-2 border-t border-border-subtle/40 space-y-1.5">
                   <p className="text-[11px] text-muted-foreground">Adicionar outra despesa</p>
-                  <div className="flex gap-1.5">
+                  <div className="flex flex-col sm:flex-row gap-1.5">
                     <input
                       type="text"
                       placeholder="Nome (ex: IMI)"
                       value={newExtraName}
                       onChange={(e) => setNewExtraName(e.target.value)}
-                      className="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
+                      className="flex-1 min-w-0 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
                     />
-                    <input
-                      type="number"
-                      placeholder="€"
-                      value={newExtraValue}
-                      onChange={(e) => setNewExtraValue(e.target.value)}
-                      className="w-20 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono"
-                    />
-                    <select
-                      value={newExtraFreq}
-                      onChange={(e) => setNewExtraFreq(e.target.value as ExpenseFrequency)}
-                      className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
-                    >
-                      <option value="monthly">Mensal</option>
-                      <option value="quarterly">Trim.</option>
-                      <option value="semiannual">Sem.</option>
-                      <option value="annual">Anual</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={addExtraExpense}
-                      className="rounded-md bg-primary px-2.5 py-1.5 text-primary-foreground hover:opacity-90"
-                      title="Adicionar despesa"
-                    >
-                      +
-                    </button>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        placeholder="€"
+                        value={newExtraValue}
+                        onChange={(e) => setNewExtraValue(e.target.value)}
+                        className="flex-1 sm:w-20 sm:flex-initial rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono"
+                      />
+                      <select
+                        value={newExtraFreq}
+                        onChange={(e) => setNewExtraFreq(e.target.value as ExpenseFrequency)}
+                        className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+                      >
+                        <option value="monthly">Mensal</option>
+                        <option value="quarterly">Trim.</option>
+                        <option value="semiannual">Sem.</option>
+                        <option value="annual">Anual</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={addExtraExpense}
+                        className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:opacity-90 text-sm font-semibold"
+                        title="Adicionar despesa"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
