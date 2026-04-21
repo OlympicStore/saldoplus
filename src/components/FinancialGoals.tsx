@@ -121,25 +121,25 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
     <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-3 sm:p-4 min-w-0">
           <span className="label-caps">Total Poupado</span>
-          <p className="text-lg sm:text-xl font-semibold text-primary font-mono tabular-nums mt-1">{fmt(totalCurrent)}</p>
+          <p className="text-base sm:text-xl font-semibold text-primary font-mono tabular-nums mt-1 truncate">{fmt(totalCurrent)}</p>
         </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-3 sm:p-4 min-w-0">
           <span className="label-caps">Objetivo Total</span>
-          <p className="text-lg sm:text-xl font-semibold text-foreground font-mono tabular-nums mt-1">{fmt(totalTarget)}</p>
+          <p className="text-base sm:text-xl font-semibold text-foreground font-mono tabular-nums mt-1 truncate">{fmt(totalTarget)}</p>
         </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-3 sm:p-4 min-w-0">
           <span className="label-caps">Progresso Geral</span>
-          <p className="text-lg sm:text-xl font-semibold text-accent font-mono tabular-nums mt-1">{totalProgress.toFixed(1)}%</p>
+          <p className="text-base sm:text-xl font-semibold text-accent font-mono tabular-nums mt-1">{totalProgress.toFixed(1)}%</p>
           <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
             <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(totalProgress, 100)}%` }}
               transition={{ duration: 0.8 }} className="h-full bg-accent rounded-full" />
           </div>
         </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-3 sm:p-4 min-w-0">
           <span className="label-caps">Mensal Necessário</span>
-          <p className="text-lg sm:text-xl font-semibold text-status-pending font-mono tabular-nums mt-1">{fmt(totalMonthly)}</p>
+          <p className="text-base sm:text-xl font-semibold text-status-pending font-mono tabular-nums mt-1 truncate">{fmt(totalMonthly)}</p>
         </div>
       </div>
 
