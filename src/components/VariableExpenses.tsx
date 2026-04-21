@@ -255,41 +255,41 @@ export const VariableExpenses = ({
                   {editingId === expense.id && editField === "description" ? (
                     <input autoFocus value={editValue} onChange={(e) => setEditValue(e.target.value)}
                       onBlur={() => saveEdit(expense.id)} onKeyDown={(e) => e.key === "Enter" && saveEdit(expense.id)}
-                      className="flex-1 text-sm font-semibold bg-transparent border border-primary rounded-lg px-2 py-1 focus:outline-none" />
+                      className="flex-1 min-w-0 text-sm font-semibold bg-transparent border border-primary rounded-lg px-2 py-1 focus:outline-none" />
                   ) : (
-                    <button onClick={() => startEdit(expense, "description")} className="text-sm font-semibold text-foreground text-left">{expense.description}</button>
+                    <button onClick={() => startEdit(expense, "description")} className="flex-1 min-w-0 text-sm font-semibold text-foreground text-left truncate">{expense.description}</button>
                   )}
-                  <button onClick={() => onDelete(expense.id)} className="text-xs text-text-muted hover:text-status-negative transition-colors shrink-0 pt-0.5">
+                  {editingId === expense.id && editField === "value" ? (
+                    <input autoFocus value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => saveEdit(expense.id)} onKeyDown={(e) => e.key === "Enter" && saveEdit(expense.id)}
+                      className="w-24 text-sm font-mono text-right bg-transparent border border-primary rounded-lg px-2 py-1 focus:outline-none shrink-0" />
+                  ) : (
+                    <button onClick={() => startEdit(expense, "value")} className="font-mono text-sm font-semibold text-foreground tabular-nums shrink-0">
+                      € {expense.value.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}
+                    </button>
+                  )}
+                  <button onClick={() => onDelete(expense.id)} className="text-text-muted hover:text-status-negative transition-colors shrink-0 pt-0.5">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 min-w-0 flex-wrap">
                     {editingId === expense.id && editField === "date" ? (
                       <input autoFocus type="date" value={editValue} onChange={(e) => setEditValue(e.target.value)}
                         onBlur={() => saveEdit(expense.id)} onKeyDown={(e) => e.key === "Enter" && saveEdit(expense.id)}
                         className="w-32 text-xs bg-transparent border border-primary rounded-lg px-2 py-1 focus:outline-none" />
                     ) : (
-                      <button onClick={() => startEdit(expense, "date")} className="text-xs text-text-muted">
+                      <button onClick={() => startEdit(expense, "date")} className="text-xs text-text-muted shrink-0">
                         {new Date(expense.date).toLocaleDateString("pt-PT")}
                       </button>
                     )}
                     <select value={expense.category} onChange={(e) => onUpdate(expense.id, { category: e.target.value as any })}
-                      className="text-xs text-text-muted bg-background px-2 py-0.5 rounded-md border border-border-subtle">
+                      className="max-w-[140px] text-xs text-text-muted bg-background px-2 py-0.5 rounded-md border border-border-subtle truncate">
                       {categories.map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
-                  {editingId === expense.id && editField === "value" ? (
-                    <input autoFocus value={editValue} onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => saveEdit(expense.id)} onKeyDown={(e) => e.key === "Enter" && saveEdit(expense.id)}
-                      className="w-28 text-sm font-mono text-right bg-transparent border border-primary rounded-lg px-2 py-1 focus:outline-none" />
-                  ) : (
-                    <button onClick={() => startEdit(expense, "value")} className="font-mono text-sm text-text-secondary tabular-nums">
-                      € {expense.value.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}
-                    </button>
-                  )}
+                  <PersonBadge person={expense.responsible} people={people} />
                 </div>
-                <PersonBadge person={expense.responsible} people={people} />
               </div>
             </div>
           ))

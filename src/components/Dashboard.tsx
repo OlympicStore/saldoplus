@@ -259,14 +259,14 @@ export const Dashboard = ({
 
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
           <span className="label-caps mb-3 block">Contas Pendentes</span>
-          <div className="flex items-center gap-4 mb-3">
-            <div className="flex-1">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-text-muted mb-1">Valor Total Pendente</p>
-              <p className="text-xl font-semibold text-status-pending font-mono tabular-nums">{fmt(pendingFixed)}</p>
+              <p className="text-lg sm:text-xl font-semibold text-status-pending font-mono tabular-nums truncate">{fmt(pendingFixed)}</p>
             </div>
-            <div className="text-right">
+            <div className="text-right shrink-0">
               <p className="text-xs text-text-muted mb-1">Pendentes</p>
-              <p className="text-xl font-semibold text-foreground">{pendingExpenses.length}<span className="text-sm text-text-muted">/{fixedExpenses.length}</span></p>
+              <p className="text-lg sm:text-xl font-semibold text-foreground">{pendingExpenses.length}<span className="text-sm text-text-muted">/{fixedExpenses.length}</span></p>
             </div>
           </div>
           {nextDue ? (
@@ -467,14 +467,14 @@ export const Dashboard = ({
             return (
               <div key={person}>
                 <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                  <span className={`px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium w-16 sm:w-20 text-center shrink-0 ${colors.bg} ${colors.text} truncate`}>{person}</span>
-                  <div className="flex-1 h-3 bg-background rounded-full overflow-hidden">
+                  <span className={`px-2 sm:px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-medium w-14 sm:w-20 text-center shrink-0 ${colors.bg} ${colors.text} truncate`}>{person}</span>
+                  <div className="flex-1 min-w-0 h-3 bg-background rounded-full overflow-hidden">
                     <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: "easeOut" }}
                       className={`h-full rounded-full ${colors.bar}`} />
                   </div>
-                  <span className="font-mono text-xs sm:text-sm text-foreground tabular-nums text-right shrink-0 font-semibold">{fmt(details.total)}</span>
+                  <span className="font-mono text-[11px] sm:text-sm text-foreground tabular-nums text-right shrink-0 font-semibold">{fmt(details.total)}</span>
                 </div>
-                <div className="ml-0 sm:ml-[92px] pl-2 flex flex-wrap gap-x-3 sm:gap-x-4 gap-y-1">
+                <div className="ml-0 sm:ml-[92px] sm:pl-2 flex flex-wrap gap-x-3 sm:gap-x-4 gap-y-1">
                   <span className="text-[11px] sm:text-xs text-text-muted">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-status-paid mr-1 align-middle" />
                     Pagou: {fmt(details.totalPaid)}

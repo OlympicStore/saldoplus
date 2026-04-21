@@ -154,21 +154,21 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
 
         {/* Summary cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-3 sm:p-4 min-w-0">
             <span className="label-caps">Total Anual</span>
-            <p className="text-lg sm:text-xl font-semibold text-foreground font-mono tabular-nums mt-1">{fmt(totalYear)}</p>
+            <p className="text-base sm:text-xl font-semibold text-foreground font-mono tabular-nums mt-1 truncate">{fmt(totalYear)}</p>
           </div>
-          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-3 sm:p-4 min-w-0">
             <span className="label-caps">Gastos Fixos</span>
-            <p className="text-lg sm:text-xl font-semibold text-primary font-mono tabular-nums mt-1">{fmt(totalFixedYear)}</p>
+            <p className="text-base sm:text-xl font-semibold text-primary font-mono tabular-nums mt-1 truncate">{fmt(totalFixedYear)}</p>
           </div>
-          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-3 sm:p-4 min-w-0">
             <span className="label-caps">Gastos Variáveis</span>
-            <p className="text-lg sm:text-xl font-semibold text-accent font-mono tabular-nums mt-1">{fmt(totalVariableYear)}</p>
+            <p className="text-base sm:text-xl font-semibold text-accent font-mono tabular-nums mt-1 truncate">{fmt(totalVariableYear)}</p>
           </div>
-          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4">
+          <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-3 sm:p-4 min-w-0">
             <span className="label-caps">Metas</span>
-            <p className="text-lg sm:text-xl font-semibold text-status-paid font-mono tabular-nums mt-1">{goalsPct.toFixed(1)}%</p>
+            <p className="text-base sm:text-xl font-semibold text-status-paid font-mono tabular-nums mt-1">{goalsPct.toFixed(1)}%</p>
             <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
               <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(goalsPct, 100)}%` }}
                 transition={{ duration: 0.8 }} className="h-full bg-status-paid rounded-full" />
@@ -282,16 +282,18 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
       {showAddBill ? (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 mb-4">
-          <div className="flex gap-2 items-end">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+            <div className="flex-1 min-w-0">
               <label className="label-caps mb-1.5 block">Nome da despesa</label>
               <input value={newBillName} onChange={(e) => setNewBillName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddBill()}
                 placeholder="Ex: Água, Eletricidade, Internet..."
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <button onClick={handleAddBill} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
-            <button onClick={() => { setShowAddBill(false); setNewBillName(""); }} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
+            <div className="flex gap-2">
+              <button onClick={handleAddBill} className="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
+              <button onClick={() => { setShowAddBill(false); setNewBillName(""); }} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
+            </div>
           </div>
         </motion.div>
       ) : (
