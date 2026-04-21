@@ -342,12 +342,25 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
               {/* Top row: name + status pill + actions */}
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                  <span className="text-sm font-semibold text-foreground truncate">{cat}</span>
-                  {budget && (
+                  {renamingCat === cat ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        autoFocus value={renameVal}
+                        onChange={(e) => setRenameVal(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleRename(cat); if (e.key === "Escape") setRenamingCat(null); }}
+                        maxLength={50}
+                        className="text-sm bg-background border border-border-subtle rounded-lg px-2 py-1 font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <button onClick={() => handleRename(cat)} className="text-status-paid p-1 hover:bg-[hsl(var(--status-paid)/0.1)] rounded"><Check className="h-4 w-4" /></button>
+                      <button onClick={() => setRenamingCat(null)} className="text-text-muted p-1 hover:bg-secondary rounded"><X className="h-4 w-4" /></button>
+                    </div>
+                  ) : (
+                    <span className="text-sm font-semibold text-foreground truncate">{cat}</span>
+                  )}
+                  {budget && renamingCat !== cat && (
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${status.soft} ${status.color} border ${status.border}`}>
                       {status.tone === "ok" && <CheckCircle2 className="h-3 w-3" />}
-                      {status.tone === "warn" && <AlertTriangle className="h-3 w-3" />}
-                      {status.tone === "over" && <AlertTriangle className="h-3 w-3" />}
+                      {(status.tone === "warn" || status.tone === "over") && <AlertTriangle className="h-3 w-3" />}
                       {status.tone === "ok" ? "OK" : status.tone === "warn" ? "Atenção" : "Excedido"}
                     </span>
                   )}
@@ -368,10 +381,19 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
                     </div>
                   ) : budget ? (
                     <>
-                      <button onClick={() => startEdit(cat)} className="text-text-muted hover:text-foreground transition-colors p-1.5 hover:bg-secondary rounded-md" title="Ajustar orçamento">
+                      {onAddCategory && onDeleteCategory && (
+                        <button onClick={() => { setRenameVal(cat); setRenamingCat(cat); }} className="text-text-muted hover:text-foreground transition-colors p-1.5 hover:bg-secondary rounded-md text-[11px] font-medium" title="Renomear">
+                          Renomear
+                        </button>
+                      )}
+                      <button onClick={() => startEdit(cat)} className="text-text-muted hover:text-foreground transition-colors p-1.5 hover:bg-secondary rounded-md" title="Ajustar limite">
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => removeBudget(cat)} className="text-text-muted hover:text-status-negative transition-colors p-1.5 hover:bg-[hsl(var(--status-negative)/0.1)] rounded-md" title="Remover orçamento">
+                      <button
+                        onClick={() => onDeleteCategory ? handleDeleteFully(cat) : removeBudget(cat)}
+                        className="text-text-muted hover:text-status-negative transition-colors p-1.5 hover:bg-[hsl(var(--status-negative)/0.1)] rounded-md"
+                        title={onDeleteCategory ? "Eliminar orçamento e categoria" : "Remover limite"}
+                      >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </>
