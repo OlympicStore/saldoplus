@@ -214,12 +214,23 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
   return (
     <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Orçamentos por Categoria</h2>
           <p className="text-sm text-text-muted mt-0.5">Controlo em tempo real dos seus gastos mensais</p>
         </div>
-        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[hsl(var(--status-paid)/0.15)] text-status-paid">PRO</span>
+        <div className="flex items-center gap-2">
+          {onAddCategory && (
+            <button
+              onClick={() => { setNewName(""); setNewLimit(""); setShowNewDialog(true); }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Novo orçamento
+            </button>
+          )}
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[hsl(var(--status-paid)/0.15)] text-status-paid">PRO</span>
+        </div>
       </div>
 
       {/* Global Summary */}
