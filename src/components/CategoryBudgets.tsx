@@ -29,13 +29,22 @@ const statusFor = (pct: number) => {
   return { tone: "ok" as const, label: "Dentro do orçamento", color: "text-status-paid", bg: "bg-status-paid", soft: "bg-[hsl(var(--status-paid)/0.1)]", border: "border-[hsl(var(--status-paid)/0.25)]" };
 };
 
-export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, selectedYear }: CategoryBudgetsProps) => {
+export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, selectedYear, onAddCategory, onDeleteCategory }: CategoryBudgetsProps) => {
   const { user } = useAuth();
   const userId = user?.id;
   const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [editVal, setEditVal] = useState("");
   const [loaded, setLoaded] = useState(false);
+
+  // New budget dialog
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newLimit, setNewLimit] = useState("");
+
+  // Rename dialog
+  const [renamingCat, setRenamingCat] = useState<string | null>(null);
+  const [renameVal, setRenameVal] = useState("");
 
   useEffect(() => {
     if (!userId) return;
