@@ -128,6 +128,53 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
     setEditingCat(null);
   };
 
+  // Create new budget = create category (if needed) + set limit
+  const handleCreateBudget = () => {
+    const name = newName.trim();
+    if (!name) { toast.error("Indique um nome"); return; }
+    if (name.length > 50) { toast.error("Nome máx. 50 caracteres"); return; }
+    const limitNum = parseFloat(newLimit.replace(",", "."));
+    if (isNaN(limitNum) || limitNum <= 0) { toast.error("Limite inválido"); return; }
+    if (limitNum > 1_000_000) { toast.error("Limite demasiado alto"); return; }
+
+    const exists = categories.some(c => c.toLowerCase() === name.toLowerCase());
+    if (!exists) {
+      if (!onAddCategory) { toast.error("Não é possível criar categorias aqui"); return; }
+      onAddCategory(name);
+    }
+    setBudgetValue(name, limitNum);
+    toast.success(exists ? "Orçamento atualizado" : "Orçamento criado");
+    setNewName(""); setNewLimit(""); setShowNewDialog(false);
+  };
+
+  // Rename: create new category + copy budget + delete old
+  const handleRename = (oldCat: string) => {
+    const name = renameVal.trim();
+    if (!name || name === oldCat) { setRenamingCat(null); return; }
+    if (name.length > 50) { toast.error("Nome máx. 50 caracteres"); return; }
+    if (categories.some(c => c.toLowerCase() === name.toLowerCase())) {
+      toast.error("Já existe uma categoria com esse nome"); return;
+    }
+    if (!onAddCategory || !onDeleteCategory) { toast.error("Renomear indisponível"); return; }
+    const oldBudget = getBudget(oldCat);
+    onAddCategory(name);
+    if (oldBudget) {
+      setBudgetValue(name, oldBudget.limit);
+      removeBudget(oldCat);
+    }
+    onDeleteCategory(oldCat);
+    toast.success("Orçamento renomeado");
+    setRenamingCat(null);
+  };
+
+  // Delete fully = remove budget + remove category
+  const handleDeleteFully = (cat: string) => {
+    if (!confirm(`Remover o orçamento e a categoria "${cat}"? As despesas existentes mantêm-se.`)) return;
+    removeBudget(cat);
+    if (onDeleteCategory) onDeleteCategory(cat);
+    toast.success("Orçamento removido");
+  };
+
   // Aggregates
   const totalBudget = budgets.reduce((s, b) => s + b.limit, 0);
   const budgetedSpent = budgets.reduce((s, b) => s + getSpent(b.category), 0);
