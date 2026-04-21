@@ -1134,7 +1134,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex gap-1.5">
+            <div className="grid grid-cols-6 sm:flex sm:gap-1.5 gap-1">
               {MONTH_NAMES_SHORT.map((name, i) => {
                 const key = `${calendarYear}-${i}`;
                 const st = current.monthly_payment_status[key];
@@ -1145,7 +1145,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                   <button
                     key={i}
                     onClick={() => { setSelectedMonth(i); setSelectedYear(calendarYear); }}
-                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    className={`py-1.5 rounded-lg text-[10px] font-medium transition-all sm:flex-1 ${
                       isSelected
                         ? "bg-primary text-primary-foreground ring-2 ring-primary/40"
                         : st === "pago"
@@ -1596,39 +1596,42 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 {/* Adicionar despesa simples */}
                 <div className="pt-2 border-t border-border-subtle/40 space-y-1.5">
                   <p className="text-[11px] text-muted-foreground">Adicionar outra despesa</p>
-                  <div className="flex gap-1.5">
+                  <div className="flex flex-col sm:flex-row gap-1.5">
                     <input
                       type="text"
                       placeholder="Nome (ex: IMI)"
                       value={newExtraName}
                       onChange={(e) => setNewExtraName(e.target.value)}
-                      className="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
+                      className="flex-1 min-w-0 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
                     />
-                    <input
-                      type="number"
-                      placeholder="€"
-                      value={newExtraValue}
-                      onChange={(e) => setNewExtraValue(e.target.value)}
-                      className="w-20 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono"
-                    />
-                    <select
-                      value={newExtraFreq}
-                      onChange={(e) => setNewExtraFreq(e.target.value as ExpenseFrequency)}
-                      className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
-                    >
-                      <option value="monthly">Mensal</option>
-                      <option value="quarterly">Trim.</option>
-                      <option value="semiannual">Sem.</option>
-                      <option value="annual">Anual</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={addExtraExpense}
-                      className="rounded-md bg-primary px-2.5 py-1.5 text-primary-foreground hover:opacity-90"
-                      title="Adicionar despesa"
-                    >
-                      +
-                    </button>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        placeholder="€"
+                        value={newExtraValue}
+                        onChange={(e) => setNewExtraValue(e.target.value)}
+                        className="flex-1 sm:w-20 sm:flex-initial rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono"
+                      />
+                      <select
+                        value={newExtraFreq}
+                        onChange={(e) => setNewExtraFreq(e.target.value as ExpenseFrequency)}
+                        className="rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+                      >
+                        <option value="monthly">Mensal</option>
+                        <option value="quarterly">Trim.</option>
+                        <option value="semiannual">Sem.</option>
+                        <option value="annual">Anual</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={addExtraExpense}
+                        className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:opacity-90 text-sm font-semibold"
+                        title="Adicionar despesa"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1649,7 +1652,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                       <Home className="h-4 w-4 text-primary" />
                       <h4 className="text-sm font-semibold">Custo real da casa</h4>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div className="rounded-lg bg-card border border-border-subtle/60 p-2.5">
                         <p className="text-[10px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
                           <CreditCard className="h-3 w-3" /> Prestação
@@ -1680,7 +1683,7 @@ const MortgageSimulator = ({ onSavedCurrent }: { onSavedCurrent?: () => Promise<
                 );
               })()}
 
-              <div className="grid grid-cols-3 gap-2 pt-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2">
                 <div className="rounded-lg bg-card border border-border-subtle/60 p-3">
                   <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Prestação</p>
                   <p className="text-sm font-bold font-mono tabular-nums mt-0.5">{fmt2(currentPayment)}</p>

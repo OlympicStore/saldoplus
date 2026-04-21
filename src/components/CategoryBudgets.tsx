@@ -236,7 +236,7 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
       {/* Global Summary */}
       <div className="mb-6 rounded-2xl border border-border-subtle/60 bg-gradient-to-br from-surface to-surface/50 shadow-card overflow-hidden">
         <div className="p-5">
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
             <div>
               <div className="flex items-center gap-1.5 text-text-muted mb-1">
                 <Wallet className="h-3.5 w-3.5" />
