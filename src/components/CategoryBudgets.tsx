@@ -482,10 +482,84 @@ export const CategoryBudgets = ({ categories, variableExpenses, selectedMonth, s
 
         {sortedCategories.length === 0 && (
           <div className="text-center py-10 text-sm text-text-muted bg-surface rounded-2xl border border-border-subtle/60">
-            Adicione categorias variáveis em Configuração → Categorias para começar.
+            {onAddCategory
+              ? <>Ainda não tem orçamentos. Clique em <span className="font-semibold text-foreground">Novo orçamento</span> para começar.</>
+              : <>Adicione categorias variáveis em Configuração → Categorias para começar.</>}
           </div>
         )}
       </div>
+
+      {/* New budget dialog */}
+      <AnimatePresence>
+        {showNewDialog && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowNewDialog(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.18 }}
+              className="bg-surface rounded-2xl shadow-xl border border-border-subtle/60 w-full max-w-md p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Novo orçamento</h3>
+                <button onClick={() => setShowNewDialog(false)} className="text-text-muted hover:text-foreground p-1 rounded">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1.5 block">Nome da categoria</label>
+                  <input
+                    autoFocus value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreateBudget(); }}
+                    placeholder="Ex: Supermercado, Restaurantes..."
+                    maxLength={50}
+                    className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                  />
+                  {categories.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {categories.slice(0, 6).map(c => (
+                        <button key={c} type="button" onClick={() => setNewName(c)}
+                          className="text-[11px] px-2 py-1 rounded-md bg-secondary hover:bg-secondary/70 text-text-secondary transition-colors">
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1.5 block">Limite mensal (€)</label>
+                  <input
+                    value={newLimit}
+                    onChange={(e) => setNewLimit(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreateBudget(); }}
+                    placeholder="0,00"
+                    inputMode="decimal"
+                    className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2.5 font-mono focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setShowNewDialog(false)}
+                    className="flex-1 px-4 py-2.5 rounded-lg border border-border-subtle text-sm font-medium text-text-secondary hover:bg-secondary transition-colors">
+                    Cancelar
+                  </button>
+                  <button onClick={handleCreateBudget}
+                    className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+                    Criar orçamento
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
