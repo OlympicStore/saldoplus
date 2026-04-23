@@ -75,6 +75,8 @@ const PartnerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showInviteUser, setShowInviteUser] = useState(false);
   const [showCreateConsultant, setShowCreateConsultant] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientFilter, setClientFilter] = useState<"all" | "house" | "no-house" | "no-consultant" | "this-month">("all");
   const [inviting, setInviting] = useState(false);
   const [creatingConsultant, setCreatingConsultant] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
