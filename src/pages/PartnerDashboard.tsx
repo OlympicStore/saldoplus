@@ -77,6 +77,8 @@ const PartnerDashboard = () => {
   const [showCreateConsultant, setShowCreateConsultant] = useState(false);
   const [clientSearch, setClientSearch] = useState("");
   const [clientFilter, setClientFilter] = useState<"all" | "house" | "no-house" | "no-consultant" | "this-month">("all");
+  const [collapsedClients, setCollapsedClients] = useState<Set<string>>(new Set());
+  const [allCollapsed, setAllCollapsed] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [creatingConsultant, setCreatingConsultant] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -652,9 +654,27 @@ const PartnerDashboard = () => {
                 <Users className="h-4 w-4 text-primary" />
                 <span className="label-caps">Clientes ({filteredClients.length}{filteredClients.length !== realClients.length ? ` / ${realClients.length}` : ""})</span>
               </div>
-              <span className="text-xs text-text-muted hidden sm:inline">
-                {realClients.filter(c => clientHouseData.find(h => h.user_id === c.id)).length} com habitação
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-text-muted hidden sm:inline">
+                  {realClients.filter(c => clientHouseData.find(h => h.user_id === c.id)).length} com habitação
+                </span>
+                <button
+                  onClick={() => {
+                    if (allCollapsed) {
+                      setCollapsedClients(new Set());
+                      setAllCollapsed(false);
+                    } else {
+                      setCollapsedClients(new Set(filteredClients.map((c) => c.id)));
+                      setAllCollapsed(true);
+                    }
+                  }}
+                  className="text-xs px-2 py-1 rounded-md border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors flex items-center gap-1"
+                  title={allCollapsed ? "Expandir todos" : "Minimizar todos"}
+                >
+                  {allCollapsed ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
+                  <span className="hidden sm:inline">{allCollapsed ? "Expandir" : "Minimizar"}</span>
+                </button>
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
@@ -707,6 +727,7 @@ const PartnerDashboard = () => {
                 const currentConsultantId = invite?.consultant_id || "";
                 const initials = (client.full_name || client.email)
                   .split(/[\s@.]/).filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase()).join("");
+                const isCollapsed = collapsedClients.has(client.id);
                 return (
                   <div key={client.id} className="p-4 sm:p-5 hover:bg-surface-hover transition-colors">
                     <div className="flex items-start justify-between gap-3 mb-3">
@@ -745,6 +766,22 @@ const PartnerDashboard = () => {
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </button>
+                        {house && (
+                          <button
+                            onClick={() => {
+                              setCollapsedClients((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(client.id)) next.delete(client.id);
+                                else next.add(client.id);
+                                return next;
+                              });
+                            }}
+                            className="p-1.5 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
+                            title={isCollapsed ? "Expandir" : "Minimizar"}
+                          >
+                            {isCollapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleRemoveClient(client)}
                           className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
@@ -754,7 +791,7 @@ const PartnerDashboard = () => {
                         </button>
                       </div>
                     </div>
-                    {house && (
+                    {house && !isCollapsed && (
                       <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-3 pt-3 border-t border-border-subtle/40">
                         <div className="bg-secondary/30 rounded-lg p-2.5 sm:p-3">
                           <p className="text-[10px] text-text-muted uppercase tracking-wide font-medium">Valor Casa</p>
