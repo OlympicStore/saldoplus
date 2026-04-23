@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Building2, Users, Send, Loader2, Mail, ArrowLeft, Upload, Palette,
-  User, Phone, X, Home, ChevronDown, ChevronUp, Trash2, Check, Camera, Plus, Eye, EyeOff,
+  User, Phone, X, Home, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Trash2, Check, Camera, Plus, Eye, EyeOff,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
