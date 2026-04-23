@@ -621,32 +621,55 @@ const PartnerDashboard = () => {
 
         {/* Clients */}
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden mb-6">
-          <div className="p-4 border-b border-border-subtle/60 flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" />
-            <span className="label-caps">Clientes ({realClients.length})</span>
+          <div className="p-4 border-b border-border-subtle/60 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="label-caps">Clientes ({realClients.length})</span>
+            </div>
+            <span className="text-xs text-text-muted hidden sm:inline">
+              {realClients.filter(c => clientHouseData.find(h => h.user_id === c.id)).length} com habitação
+            </span>
           </div>
           <div className="divide-y divide-border-subtle/40">
             {realClients.length === 0 ? (
-              <div className="px-5 py-8 text-center text-sm text-text-muted">
-                Nenhum cliente ainda. Convide utilizadores para começar.
+              <div className="px-5 py-12 text-center">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-secondary/40 mb-3">
+                  <Users className="h-6 w-6 text-text-muted" />
+                </div>
+                <p className="text-sm text-text-muted">Nenhum cliente ainda.</p>
+                <p className="text-xs text-text-muted/70 mt-1">Convide utilizadores para começar.</p>
               </div>
             ) : (
               realClients.map((client) => {
                 const house = clientHouseData.find((h) => h.user_id === client.id);
                 const invite = invites.find((i) => i.email === client.email);
                 const currentConsultantId = invite?.consultant_id || "";
+                const initials = (client.full_name || client.email)
+                  .split(/[\s@.]/).filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase()).join("");
                 return (
-                  <div key={client.id} className="p-4 hover:bg-surface-hover transition-colors">
-                    <div className="flex items-center justify-between gap-3 mb-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{client.full_name || "—"}</p>
-                        <p className="text-xs text-text-muted truncate">{client.email}</p>
+                  <div key={client.id} className="p-4 sm:p-5 hover:bg-surface-hover transition-colors">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
+                          {initials || "?"}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-foreground truncate">{client.full_name || "—"}</p>
+                            {house && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">
+                                <Home className="h-2.5 w-2.5" /> Habitação
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-text-muted truncate">{client.email}</p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0">
                         <select
                           value={currentConsultantId}
                           onChange={(e) => handleAssignConsultantToClient(client, e.target.value)}
-                          className="text-xs px-2 py-1 bg-background border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary max-w-[160px]"
+                          className="text-xs px-2 py-1.5 bg-background border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary max-w-[140px] sm:max-w-[160px]"
                           title="Atribuir consultor"
                         >
                           <option value="">— Sem consultor —</option>
@@ -671,18 +694,24 @@ const PartnerDashboard = () => {
                       </div>
                     </div>
                     {house && (
-                      <div className="grid grid-cols-3 gap-3 mt-2">
-                        <div>
-                          <p className="text-[10px] text-text-muted uppercase">Valor Casa</p>
-                          <p className="text-sm font-mono text-foreground">€ {house.house_value.toLocaleString("pt-PT")}</p>
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-3 pt-3 border-t border-border-subtle/40">
+                        <div className="bg-secondary/30 rounded-lg p-2.5 sm:p-3">
+                          <p className="text-[10px] text-text-muted uppercase tracking-wide font-medium">Valor Casa</p>
+                          <p className="text-sm sm:text-base font-mono font-semibold text-foreground mt-0.5 truncate">
+                            € {house.house_value.toLocaleString("pt-PT")}
+                          </p>
                         </div>
-                        <div>
-                          <p className="text-[10px] text-text-muted uppercase">Prestação</p>
-                          <p className="text-sm font-mono text-foreground">€ {house.monthly_payment.toLocaleString("pt-PT")}</p>
+                        <div className="bg-secondary/30 rounded-lg p-2.5 sm:p-3">
+                          <p className="text-[10px] text-text-muted uppercase tracking-wide font-medium">Prestação</p>
+                          <p className="text-sm sm:text-base font-mono font-semibold text-primary mt-0.5 truncate">
+                            € {house.monthly_payment.toLocaleString("pt-PT")}
+                          </p>
                         </div>
-                        <div>
-                          <p className="text-[10px] text-text-muted uppercase">Entrada</p>
-                          <p className="text-sm font-mono text-foreground">€ {house.down_payment.toLocaleString("pt-PT")}</p>
+                        <div className="bg-secondary/30 rounded-lg p-2.5 sm:p-3">
+                          <p className="text-[10px] text-text-muted uppercase tracking-wide font-medium">Entrada</p>
+                          <p className="text-sm sm:text-base font-mono font-semibold text-foreground mt-0.5 truncate">
+                            € {house.down_payment.toLocaleString("pt-PT")}
+                          </p>
                         </div>
                       </div>
                     )}
