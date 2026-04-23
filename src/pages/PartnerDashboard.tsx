@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Building2, Users, Send, Loader2, Mail, ArrowLeft, Upload, Palette,
-  User, Phone, X, Home, ChevronDown, ChevronUp, Trash2, Check, Camera, Plus, Eye, EyeOff,
+  User, Phone, X, Home, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Trash2, Check, Camera, Plus, Eye, EyeOff,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -79,6 +79,7 @@ const PartnerDashboard = () => {
   const [clientFilter, setClientFilter] = useState<"all" | "house" | "no-house" | "no-consultant" | "this-month">("all");
   const [collapsedClients, setCollapsedClients] = useState<Set<string>>(new Set());
   const [allCollapsed, setAllCollapsed] = useState(false);
+  const [chartYear, setChartYear] = useState<number>(new Date().getFullYear());
   const [inviting, setInviting] = useState(false);
   const [creatingConsultant, setCreatingConsultant] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -423,32 +424,34 @@ const PartnerDashboard = () => {
     return new Set(acceptedThisMonth.map((i) => i.email.toLowerCase())).size;
   }, [partnerInvites]);
 
-  // Monthly breakdown — last 12 months of accepted clients
+  // Available years from invites (always include current year)
+  const availableYears = useMemo(() => {
+    const set = new Set<number>([new Date().getFullYear()]);
+    partnerInvites.forEach((inv) => set.add(new Date(inv.created_at).getFullYear()));
+    return Array.from(set).sort((a, b) => b - a);
+  }, [partnerInvites]);
+
+  // Monthly breakdown — Jan to Dec of selected year
   const monthlyBreakdown = useMemo(() => {
     const MONTH_NAMES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-    const now = new Date();
-    const months: { key: string; label: string; year: number; accepted: number; pending: number; total: number }[] = [];
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      months.push({
-        key,
-        label: MONTH_NAMES[d.getMonth()],
-        year: d.getFullYear(),
+    const months: { key: string; label: string; year: number; accepted: number; pending: number; total: number }[] =
+      MONTH_NAMES.map((label, i) => ({
+        key: `${chartYear}-${i}`,
+        label,
+        year: chartYear,
         accepted: 0,
         pending: 0,
         total: 0,
-      });
-    }
+      }));
     const seenAccepted = new Set<string>();
     partnerInvites.forEach((inv) => {
       const d = new Date(inv.created_at);
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      const bucket = months.find((m) => m.key === key);
+      if (d.getFullYear() !== chartYear) return;
+      const bucket = months[d.getMonth()];
       if (!bucket) return;
       bucket.total += 1;
       if (inv.status === "accepted") {
-        const dedupeKey = `${key}|${inv.email.toLowerCase()}`;
+        const dedupeKey = `${bucket.key}|${inv.email.toLowerCase()}`;
         if (!seenAccepted.has(dedupeKey)) {
           seenAccepted.add(dedupeKey);
           bucket.accepted += 1;
@@ -459,7 +462,7 @@ const PartnerDashboard = () => {
     });
     const max = Math.max(1, ...months.map((m) => m.accepted));
     return { months, max };
-  }, [partnerInvites]);
+  }, [partnerInvites, chartYear]);
 
   const getConsultantName = (invite: Invite) => {
     if (invite.consultant_id) {
@@ -527,11 +530,37 @@ const PartnerDashboard = () => {
         {/* Monthly breakdown */}
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden mb-6">
           <div className="p-4 border-b border-border-subtle/60 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              <span className="label-caps">Clientes por mês</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Users className="h-4 w-4 text-primary shrink-0" />
+              <span className="label-caps truncate">Clientes por mês</span>
             </div>
-            <span className="text-xs text-text-muted">Últimos 12 meses</span>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => setChartYear((y) => y - 1)}
+                className="p-1 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
+                title="Ano anterior"
+                aria-label="Ano anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <select
+                value={chartYear}
+                onChange={(e) => setChartYear(Number(e.target.value))}
+                className="text-xs font-semibold px-2 py-1 bg-background border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary tabular-nums"
+              >
+                {availableYears.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => setChartYear((y) => y + 1)}
+                className="p-1 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
+                title="Ano seguinte"
+                aria-label="Ano seguinte"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
           <div className="p-4 sm:p-5 overflow-x-auto">
             <div className="min-w-[480px] sm:min-w-0">
@@ -564,24 +593,30 @@ const PartnerDashboard = () => {
             </div>
           </div>
           <div className="px-4 sm:px-5 pb-4 pt-2 border-t border-border-subtle/40 grid grid-cols-3 gap-3 text-center">
-            <div>
-              <p className="text-lg font-bold text-foreground tabular-nums">
-                {monthlyBreakdown.months.reduce((s, m) => s + m.accepted, 0)}
-              </p>
-              <p className="label-caps mt-0.5">Aceites (12m)</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground tabular-nums">
-                {(monthlyBreakdown.months.reduce((s, m) => s + m.accepted, 0) / 12).toFixed(1)}
-              </p>
-              <p className="label-caps mt-0.5">Média/mês</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-primary tabular-nums">
-                {monthlyBreakdown.months[monthlyBreakdown.months.length - 1]?.accepted ?? 0}
-              </p>
-              <p className="label-caps mt-0.5">Este mês</p>
-            </div>
+            {(() => {
+              const totalYear = monthlyBreakdown.months.reduce((s, m) => s + m.accepted, 0);
+              const now = new Date();
+              const isCurrentYear = chartYear === now.getFullYear();
+              const monthsElapsed = isCurrentYear ? now.getMonth() + 1 : 12;
+              const avg = totalYear / Math.max(1, monthsElapsed);
+              const currentMonthValue = isCurrentYear ? (monthlyBreakdown.months[now.getMonth()]?.accepted ?? 0) : totalYear;
+              return (
+                <>
+                  <div>
+                    <p className="text-lg font-bold text-foreground tabular-nums">{totalYear}</p>
+                    <p className="label-caps mt-0.5">Aceites ({chartYear})</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-foreground tabular-nums">{avg.toFixed(1)}</p>
+                    <p className="label-caps mt-0.5">Média/mês</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-primary tabular-nums">{currentMonthValue}</p>
+                    <p className="label-caps mt-0.5">{isCurrentYear ? "Este mês" : "Total ano"}</p>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 
