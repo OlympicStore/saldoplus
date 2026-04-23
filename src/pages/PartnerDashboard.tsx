@@ -646,26 +646,62 @@ const PartnerDashboard = () => {
 
         {/* Clients */}
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden mb-6">
-          <div className="p-4 border-b border-border-subtle/60 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              <span className="label-caps">Clientes ({realClients.length})</span>
+          <div className="p-4 border-b border-border-subtle/60 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="label-caps">Clientes ({filteredClients.length}{filteredClients.length !== realClients.length ? ` / ${realClients.length}` : ""})</span>
+              </div>
+              <span className="text-xs text-text-muted hidden sm:inline">
+                {realClients.filter(c => clientHouseData.find(h => h.user_id === c.id)).length} com habitação
+              </span>
             </div>
-            <span className="text-xs text-text-muted hidden sm:inline">
-              {realClients.filter(c => clientHouseData.find(h => h.user_id === c.id)).length} com habitação
-            </span>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={clientSearch}
+                onChange={(e) => setClientSearch(e.target.value)}
+                placeholder="Pesquisar por nome ou email..."
+                className="flex-1 px-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0">
+                {([
+                  { k: "all", label: "Todos" },
+                  { k: "house", label: "Com habitação" },
+                  { k: "no-house", label: "Sem habitação" },
+                  { k: "no-consultant", label: "Sem consultor" },
+                  { k: "this-month", label: "Este mês" },
+                ] as const).map((f) => (
+                  <button
+                    key={f.k}
+                    onClick={() => setClientFilter(f.k)}
+                    className={`shrink-0 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      clientFilter === f.k
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-text-muted border-border-subtle hover:text-foreground"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="divide-y divide-border-subtle/40">
-            {realClients.length === 0 ? (
+            {filteredClients.length === 0 ? (
               <div className="px-5 py-12 text-center">
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-secondary/40 mb-3">
                   <Users className="h-6 w-6 text-text-muted" />
                 </div>
-                <p className="text-sm text-text-muted">Nenhum cliente ainda.</p>
-                <p className="text-xs text-text-muted/70 mt-1">Convide utilizadores para começar.</p>
+                <p className="text-sm text-text-muted">
+                  {realClients.length === 0 ? "Nenhum cliente ainda." : "Nenhum cliente corresponde aos filtros."}
+                </p>
+                <p className="text-xs text-text-muted/70 mt-1">
+                  {realClients.length === 0 ? "Convide utilizadores para começar." : "Ajuste a pesquisa ou os filtros."}
+                </p>
               </div>
             ) : (
-              realClients.map((client) => {
+              filteredClients.map((client) => {
                 const house = clientHouseData.find((h) => h.user_id === client.id);
                 const invite = invites.find((i) => i.email === client.email);
                 const currentConsultantId = invite?.consultant_id || "";
