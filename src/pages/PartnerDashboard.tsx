@@ -424,12 +424,12 @@ const PartnerDashboard = () => {
     return new Set(acceptedThisMonth.map((i) => i.email.toLowerCase())).size;
   }, [partnerInvites]);
 
-  // Available years from invites (always include current year)
+  // Available years from invites (always include current year + selected year)
   const availableYears = useMemo(() => {
-    const set = new Set<number>([new Date().getFullYear()]);
+    const set = new Set<number>([new Date().getFullYear(), chartYear]);
     partnerInvites.forEach((inv) => set.add(new Date(inv.created_at).getFullYear()));
     return Array.from(set).sort((a, b) => b - a);
-  }, [partnerInvites]);
+  }, [partnerInvites, chartYear]);
 
   // Monthly breakdown — Jan to Dec of selected year
   const monthlyBreakdown = useMemo(() => {
