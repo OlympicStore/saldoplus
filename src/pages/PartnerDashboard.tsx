@@ -727,6 +727,7 @@ const PartnerDashboard = () => {
                 const currentConsultantId = invite?.consultant_id || "";
                 const initials = (client.full_name || client.email)
                   .split(/[\s@.]/).filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase()).join("");
+                const isCollapsed = collapsedClients.has(client.id);
                 return (
                   <div key={client.id} className="p-4 sm:p-5 hover:bg-surface-hover transition-colors">
                     <div className="flex items-start justify-between gap-3 mb-3">
@@ -765,6 +766,22 @@ const PartnerDashboard = () => {
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </button>
+                        {house && (
+                          <button
+                            onClick={() => {
+                              setCollapsedClients((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(client.id)) next.delete(client.id);
+                                else next.add(client.id);
+                                return next;
+                              });
+                            }}
+                            className="p-1.5 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
+                            title={isCollapsed ? "Expandir" : "Minimizar"}
+                          >
+                            {isCollapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleRemoveClient(client)}
                           className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
@@ -774,7 +791,7 @@ const PartnerDashboard = () => {
                         </button>
                       </div>
                     </div>
-                    {house && (
+                    {house && !isCollapsed && (
                       <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-3 pt-3 border-t border-border-subtle/40">
                         <div className="bg-secondary/30 rounded-lg p-2.5 sm:p-3">
                           <p className="text-[10px] text-text-muted uppercase tracking-wide font-medium">Valor Casa</p>
