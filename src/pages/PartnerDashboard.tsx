@@ -389,6 +389,29 @@ const PartnerDashboard = () => {
     (c) => !consultantUserIds.has(c.id) && c.email?.toLowerCase() !== partnerEmail
   );
 
+  const filteredClients = (() => {
+    const q = clientSearch.trim().toLowerCase();
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    return realClients.filter((c) => {
+      if (q) {
+        const hay = `${c.full_name || ""} ${c.email || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      const house = clientHouseData.find((h) => h.user_id === c.id);
+      const invite = invites.find((i) => i.email === c.email);
+      if (clientFilter === "house" && !house) return false;
+      if (clientFilter === "no-house" && house) return false;
+      if (clientFilter === "no-consultant" && invite?.consultant_id) return false;
+      if (clientFilter === "this-month") {
+        const created = invite ? new Date(invite.created_at) : null;
+        if (!created || created < monthStart) return false;
+      }
+      return true;
+    });
+  })();
+
   const currentMonthInvites = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
