@@ -396,6 +396,44 @@ const PartnerDashboard = () => {
     return new Set(acceptedThisMonth.map((i) => i.email.toLowerCase())).size;
   }, [partnerInvites]);
 
+  // Monthly breakdown — last 12 months of accepted clients
+  const monthlyBreakdown = useMemo(() => {
+    const MONTH_NAMES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    const now = new Date();
+    const months: { key: string; label: string; year: number; accepted: number; pending: number; total: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      months.push({
+        key,
+        label: MONTH_NAMES[d.getMonth()],
+        year: d.getFullYear(),
+        accepted: 0,
+        pending: 0,
+        total: 0,
+      });
+    }
+    const seenAccepted = new Set<string>();
+    partnerInvites.forEach((inv) => {
+      const d = new Date(inv.created_at);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const bucket = months.find((m) => m.key === key);
+      if (!bucket) return;
+      bucket.total += 1;
+      if (inv.status === "accepted") {
+        const dedupeKey = `${key}|${inv.email.toLowerCase()}`;
+        if (!seenAccepted.has(dedupeKey)) {
+          seenAccepted.add(dedupeKey);
+          bucket.accepted += 1;
+        }
+      } else if (inv.status === "pending") {
+        bucket.pending += 1;
+      }
+    });
+    const max = Math.max(1, ...months.map((m) => m.accepted));
+    return { months, max };
+  }, [partnerInvites]);
+
   const getConsultantName = (invite: Invite) => {
     if (invite.consultant_id) {
       const c = consultants.find(x => x.id === invite.consultant_id);
