@@ -530,11 +530,37 @@ const PartnerDashboard = () => {
         {/* Monthly breakdown */}
         <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden mb-6">
           <div className="p-4 border-b border-border-subtle/60 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              <span className="label-caps">Clientes por mês</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Users className="h-4 w-4 text-primary shrink-0" />
+              <span className="label-caps truncate">Clientes por mês</span>
             </div>
-            <span className="text-xs text-text-muted">Últimos 12 meses</span>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => setChartYear((y) => y - 1)}
+                className="p-1 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
+                title="Ano anterior"
+                aria-label="Ano anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <select
+                value={chartYear}
+                onChange={(e) => setChartYear(Number(e.target.value))}
+                className="text-xs font-semibold px-2 py-1 bg-background border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary tabular-nums"
+              >
+                {availableYears.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => setChartYear((y) => y + 1)}
+                className="p-1 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
+                title="Ano seguinte"
+                aria-label="Ano seguinte"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
           <div className="p-4 sm:p-5 overflow-x-auto">
             <div className="min-w-[480px] sm:min-w-0">
