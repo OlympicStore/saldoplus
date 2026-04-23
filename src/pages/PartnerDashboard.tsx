@@ -79,6 +79,7 @@ const PartnerDashboard = () => {
   const [clientFilter, setClientFilter] = useState<"all" | "house" | "no-house" | "no-consultant" | "this-month">("all");
   const [collapsedClients, setCollapsedClients] = useState<Set<string>>(new Set());
   const [allCollapsed, setAllCollapsed] = useState(false);
+  const [chartYear, setChartYear] = useState<number>(new Date().getFullYear());
   const [inviting, setInviting] = useState(false);
   const [creatingConsultant, setCreatingConsultant] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
