@@ -593,24 +593,30 @@ const PartnerDashboard = () => {
             </div>
           </div>
           <div className="px-4 sm:px-5 pb-4 pt-2 border-t border-border-subtle/40 grid grid-cols-3 gap-3 text-center">
-            <div>
-              <p className="text-lg font-bold text-foreground tabular-nums">
-                {monthlyBreakdown.months.reduce((s, m) => s + m.accepted, 0)}
-              </p>
-              <p className="label-caps mt-0.5">Aceites (12m)</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground tabular-nums">
-                {(monthlyBreakdown.months.reduce((s, m) => s + m.accepted, 0) / 12).toFixed(1)}
-              </p>
-              <p className="label-caps mt-0.5">Média/mês</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-primary tabular-nums">
-                {monthlyBreakdown.months[monthlyBreakdown.months.length - 1]?.accepted ?? 0}
-              </p>
-              <p className="label-caps mt-0.5">Este mês</p>
-            </div>
+            {(() => {
+              const totalYear = monthlyBreakdown.months.reduce((s, m) => s + m.accepted, 0);
+              const now = new Date();
+              const isCurrentYear = chartYear === now.getFullYear();
+              const monthsElapsed = isCurrentYear ? now.getMonth() + 1 : 12;
+              const avg = totalYear / Math.max(1, monthsElapsed);
+              const currentMonthValue = isCurrentYear ? (monthlyBreakdown.months[now.getMonth()]?.accepted ?? 0) : totalYear;
+              return (
+                <>
+                  <div>
+                    <p className="text-lg font-bold text-foreground tabular-nums">{totalYear}</p>
+                    <p className="label-caps mt-0.5">Aceites ({chartYear})</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-foreground tabular-nums">{avg.toFixed(1)}</p>
+                    <p className="label-caps mt-0.5">Média/mês</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-primary tabular-nums">{currentMonthValue}</p>
+                    <p className="label-caps mt-0.5">{isCurrentYear ? "Este mês" : "Total ano"}</p>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 
