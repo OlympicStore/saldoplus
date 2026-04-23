@@ -396,6 +396,44 @@ const PartnerDashboard = () => {
     return new Set(acceptedThisMonth.map((i) => i.email.toLowerCase())).size;
   }, [partnerInvites]);
 
+  // Monthly breakdown — last 12 months of accepted clients
+  const monthlyBreakdown = useMemo(() => {
+    const MONTH_NAMES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    const now = new Date();
+    const months: { key: string; label: string; year: number; accepted: number; pending: number; total: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      months.push({
+        key,
+        label: MONTH_NAMES[d.getMonth()],
+        year: d.getFullYear(),
+        accepted: 0,
+        pending: 0,
+        total: 0,
+      });
+    }
+    const seenAccepted = new Set<string>();
+    partnerInvites.forEach((inv) => {
+      const d = new Date(inv.created_at);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const bucket = months.find((m) => m.key === key);
+      if (!bucket) return;
+      bucket.total += 1;
+      if (inv.status === "accepted") {
+        const dedupeKey = `${key}|${inv.email.toLowerCase()}`;
+        if (!seenAccepted.has(dedupeKey)) {
+          seenAccepted.add(dedupeKey);
+          bucket.accepted += 1;
+        }
+      } else if (inv.status === "pending") {
+        bucket.pending += 1;
+      }
+    });
+    const max = Math.max(1, ...months.map((m) => m.accepted));
+    return { months, max };
+  }, [partnerInvites]);
+
   const getConsultantName = (invite: Invite) => {
     if (invite.consultant_id) {
       const c = consultants.find(x => x.id === invite.consultant_id);
@@ -456,6 +494,65 @@ const PartnerDashboard = () => {
           <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 text-center">
             <p className="text-2xl font-bold text-foreground">{consultants.filter(c => c.active).length}</p>
             <p className="label-caps mt-1">Consultores</p>
+          </div>
+        </div>
+
+        {/* Monthly breakdown */}
+        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 overflow-hidden mb-6">
+          <div className="p-4 border-b border-border-subtle/60 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="label-caps">Clientes por mês</span>
+            </div>
+            <span className="text-xs text-text-muted">Últimos 12 meses</span>
+          </div>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-end justify-between gap-1 sm:gap-2 h-36 mb-2">
+              {monthlyBreakdown.months.map((m) => {
+                const pct = (m.accepted / monthlyBreakdown.max) * 100;
+                return (
+                  <div key={m.key} className="flex-1 flex flex-col items-center gap-1 min-w-0 group">
+                    <span className="text-[10px] sm:text-xs font-semibold text-foreground tabular-nums">
+                      {m.accepted || ""}
+                    </span>
+                    <div className="w-full bg-secondary/40 rounded-t-md relative" style={{ height: "100%" }}>
+                      <div
+                        className="absolute bottom-0 left-0 right-0 bg-primary rounded-t-md transition-all"
+                        style={{ height: `${pct}%`, minHeight: m.accepted > 0 ? "4px" : "0" }}
+                        title={`${m.label} ${m.year}: ${m.accepted} aceites · ${m.pending} pendentes`}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-between gap-1 sm:gap-2">
+              {monthlyBreakdown.months.map((m) => (
+                <div key={m.key} className="flex-1 text-center min-w-0">
+                  <p className="text-[10px] sm:text-xs text-text-muted truncate">{m.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="px-4 sm:px-5 pb-4 pt-2 border-t border-border-subtle/40 grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="text-lg font-bold text-foreground tabular-nums">
+                {monthlyBreakdown.months.reduce((s, m) => s + m.accepted, 0)}
+              </p>
+              <p className="label-caps mt-0.5">Aceites (12m)</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-foreground tabular-nums">
+                {(monthlyBreakdown.months.reduce((s, m) => s + m.accepted, 0) / 12).toFixed(1)}
+              </p>
+              <p className="label-caps mt-0.5">Média/mês</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-primary tabular-nums">
+                {monthlyBreakdown.months[monthlyBreakdown.months.length - 1]?.accepted ?? 0}
+              </p>
+              <p className="label-caps mt-0.5">Este mês</p>
+            </div>
           </div>
         </div>
 
