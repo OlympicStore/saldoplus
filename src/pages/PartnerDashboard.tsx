@@ -654,9 +654,27 @@ const PartnerDashboard = () => {
                 <Users className="h-4 w-4 text-primary" />
                 <span className="label-caps">Clientes ({filteredClients.length}{filteredClients.length !== realClients.length ? ` / ${realClients.length}` : ""})</span>
               </div>
-              <span className="text-xs text-text-muted hidden sm:inline">
-                {realClients.filter(c => clientHouseData.find(h => h.user_id === c.id)).length} com habitação
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-text-muted hidden sm:inline">
+                  {realClients.filter(c => clientHouseData.find(h => h.user_id === c.id)).length} com habitação
+                </span>
+                <button
+                  onClick={() => {
+                    if (allCollapsed) {
+                      setCollapsedClients(new Set());
+                      setAllCollapsed(false);
+                    } else {
+                      setCollapsedClients(new Set(filteredClients.map((c) => c.id)));
+                      setAllCollapsed(true);
+                    }
+                  }}
+                  className="text-xs px-2 py-1 rounded-md border border-border-subtle text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors flex items-center gap-1"
+                  title={allCollapsed ? "Expandir todos" : "Minimizar todos"}
+                >
+                  {allCollapsed ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
+                  <span className="hidden sm:inline">{allCollapsed ? "Expandir" : "Minimizar"}</span>
+                </button>
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
               <input
