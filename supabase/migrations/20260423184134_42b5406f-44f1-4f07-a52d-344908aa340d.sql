@@ -1,0 +1,1 @@
+CREATE POLICY "Partners can delete own invites" ON public.partner_invites FOR DELETE USING (partner_id = (SELECT p.partner_id FROM public.profiles p WHERE p.id = auth.uid()));
