@@ -732,12 +732,12 @@ const PartnerDashboard = () => {
                 const isCollapsed = collapsedClients.has(client.id);
                 return (
                   <div key={client.id} className="p-4 sm:p-5 hover:bg-surface-hover transition-colors">
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
                           {initials || "?"}
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-semibold text-foreground truncate">{client.full_name || "—"}</p>
                             {house && (
@@ -748,12 +748,28 @@ const PartnerDashboard = () => {
                           </div>
                           <p className="text-xs text-text-muted truncate">{client.email}</p>
                         </div>
+                        {house && (
+                          <button
+                            onClick={() => {
+                              setCollapsedClients((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(client.id)) next.delete(client.id);
+                                else next.add(client.id);
+                                return next;
+                              });
+                            }}
+                            className="sm:hidden p-1.5 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
+                            title={isCollapsed ? "Expandir" : "Minimizar"}
+                          >
+                            {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                          </button>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0 w-full sm:w-auto">
                         <select
                           value={currentConsultantId}
                           onChange={(e) => handleAssignConsultantToClient(client, e.target.value)}
-                          className="text-xs px-2 py-1.5 bg-background border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary max-w-[140px] sm:max-w-[160px]"
+                          className="text-xs px-2 py-1.5 bg-background border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary flex-1 sm:flex-none sm:max-w-[160px] min-w-0"
                           title="Atribuir consultor"
                         >
                           <option value="">— Sem consultor —</option>
@@ -763,7 +779,7 @@ const PartnerDashboard = () => {
                         </select>
                         <button
                           onClick={() => setShowCreateConsultant(true)}
-                          className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors"
+                          className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
                           title="Criar novo consultor"
                         >
                           <Plus className="h-3.5 w-3.5" />
@@ -778,7 +794,7 @@ const PartnerDashboard = () => {
                                 return next;
                               });
                             }}
-                            className="p-1.5 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors"
+                            className="hidden sm:inline-flex p-1.5 rounded-md text-text-muted hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
                             title={isCollapsed ? "Expandir" : "Minimizar"}
                           >
                             {isCollapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -786,7 +802,7 @@ const PartnerDashboard = () => {
                         )}
                         <button
                           onClick={() => handleRemoveClient(client)}
-                          className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          className="p-1.5 rounded-md text-text-muted hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
                           title="Remover cliente"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
