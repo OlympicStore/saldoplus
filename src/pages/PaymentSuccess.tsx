@@ -7,11 +7,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { fbTrackPurchase } from "@/lib/fbPixel";
 
+const EBOOK_URL = "/downloads/SaldoPlus_Guia_Financas.pdf";
+
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
   const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
+  const [hasEbook, setHasEbook] = useState(false);
 
   useEffect(() => {
     const verify = async () => {
@@ -30,6 +33,8 @@ const PaymentSuccess = () => {
         if (error) throw error;
         if (data?.success) {
           setStatus("success");
+          const bumps: string[] = Array.isArray(data.bumps) ? data.bumps : [];
+          if (bumps.includes("ebook")) setHasEbook(true);
           const PLAN_VALUES: Record<string, number> = { essencial: 15.99, casa: 28.99, pro: 47.99 };
           fbTrackPurchase(plan, PLAN_VALUES[plan] || 0);
           await refreshProfile();
@@ -68,6 +73,15 @@ const PaymentSuccess = () => {
             <p className="text-sm text-text-muted">
               O seu plano foi ativado. Pode começar a usar todas as funcionalidades.
             </p>
+            {hasEbook && (
+              <a
+                href={EBOOK_URL}
+                download
+                className="mt-2 inline-flex items-center justify-center gap-2 w-full px-6 py-2.5 rounded-lg border border-primary/30 bg-primary/5 text-primary text-sm font-medium hover:bg-primary/10 transition-colors"
+              >
+                📘 Descarregar Guia de Finanças (PDF)
+              </a>
+            )}
             <button
               onClick={() => navigate("/app")}
               className="mt-4 px-6 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
