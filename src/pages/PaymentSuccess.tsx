@@ -7,11 +7,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { fbTrackPurchase } from "@/lib/fbPixel";
 
+const EBOOK_URL = "/downloads/SaldoPlus_Guia_Financas.pdf";
+
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
   const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
+  const [hasEbook, setHasEbook] = useState(false);
 
   useEffect(() => {
     const verify = async () => {
