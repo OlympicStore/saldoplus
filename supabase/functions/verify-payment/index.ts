@@ -44,9 +44,23 @@ serve(async (req) => {
       throw new Error("Payment does not belong to this user");
     }
 
-    // Check if lifetime bump was included
-    const bumps = session.metadata?.bumps || "";
-    const hasLifetime = bumps.split(",").includes("lifetime");
+    // Validate bumps against actual Stripe line items (don't trust metadata alone)
+    const BUMP_PRICE_IDS: Record<string, string> = {
+      lifetime: "price_1TIJZTImKoY4gMb70G2tP7Gc",
+      ebook: "price_1TIJZpImKoY4gMb7rW65hJo7",
+    };
+
+    const lineItems = await stripe.checkout.sessions.listLineItems(session_id, { limit: 100 });
+    const purchasedPriceIds = new Set(
+      lineItems.data.map((li: any) => li.price?.id).filter(Boolean)
+    );
+
+    const verifiedBumps: string[] = [];
+    for (const [bumpKey, priceId] of Object.entries(BUMP_PRICE_IDS)) {
+      if (purchasedPriceIds.has(priceId)) verifiedBumps.push(bumpKey);
+    }
+
+    const hasLifetime = verifiedBumps.includes("lifetime");
 
     // Calculate expiration: lifetime = far future, otherwise 1 year minus 1 day
     const now = new Date();
@@ -109,8 +123,7 @@ serve(async (req) => {
       } catch (_) { /* ignore telegram errors */ }
     }
 
-    const bumpsList = bumps ? bumps.split(",").filter(Boolean) : [];
-    return new Response(JSON.stringify({ success: true, plan, expires_at: expiresAt.toISOString(), bumps: bumpsList }), {
+    return new Response(JSON.stringify({ success: true, plan, expires_at: expiresAt.toISOString(), bumps: verifiedBumps }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
