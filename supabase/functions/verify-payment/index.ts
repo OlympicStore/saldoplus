@@ -109,7 +109,8 @@ serve(async (req) => {
       } catch (_) { /* ignore telegram errors */ }
     }
 
-    return new Response(JSON.stringify({ success: true, plan, expires_at: expiresAt.toISOString() }), {
+    const bumpsList = bumps ? bumps.split(",").filter(Boolean) : [];
+    return new Response(JSON.stringify({ success: true, plan, expires_at: expiresAt.toISOString(), bumps: bumpsList }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
