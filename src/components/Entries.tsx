@@ -1,6 +1,15 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Briefcase, Laptop, Award, RotateCcw, TrendingUp, MoreHorizontal } from "lucide-react";
+
+const CATEGORIES = [
+  { value: "Salário", icon: Briefcase, color: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-500" },
+  { value: "Freelance", icon: Laptop, color: "text-blue-600", bg: "bg-blue-50", ring: "ring-blue-500" },
+  { value: "Prémio", icon: Award, color: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-500" },
+  { value: "Reembolso", icon: RotateCcw, color: "text-purple-600", bg: "bg-purple-50", ring: "ring-purple-500" },
+  { value: "Investimento", icon: TrendingUp, color: "text-teal-600", bg: "bg-teal-50", ring: "ring-teal-500" },
+  { value: "Outros", icon: MoreHorizontal, color: "text-slate-600", bg: "bg-slate-100", ring: "ring-slate-400" },
+] as const;
 import type { Income as IncomeType, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
 import type { Transfer } from "@/types/transfer";
@@ -74,22 +83,36 @@ export const Entries = ({
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 mb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-            <div className="sm:col-span-2">
-              <label className="label-caps mb-1.5 block">Categoria</label>
-              <select value={newEntry.category} onChange={(e) => setNewEntry({ ...newEntry, category: e.target.value })}
-                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
-                <option value="Salário">Salário</option>
-                <option value="Outros">Outros</option>
-              </select>
+          <div className="mb-4">
+            <label className="label-caps mb-2 block">Categoria</label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map(cat => {
+                const Icon = cat.icon;
+                const active = newEntry.category === cat.value;
+                return (
+                  <button key={cat.value} type="button"
+                    onClick={() => setNewEntry({ ...newEntry, category: cat.value })}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                      active
+                        ? `${cat.bg} ${cat.color} border-transparent ring-2 ${cat.ring} ring-offset-1`
+                        : "bg-background text-text-muted border-border-subtle hover:bg-surface-hover"
+                    }`}>
+                    <Icon className="h-3.5 w-3.5" />
+                    {cat.value}
+                  </button>
+                );
+              })}
             </div>
-            <div className="sm:col-span-2">
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div className="sm:col-span-4">
               <label className="label-caps mb-1.5 block">Descrição</label>
               <input value={newEntry.description} onChange={(e) => setNewEntry({ ...newEntry, description: e.target.value })}
-                placeholder="Ex: Freelance"
+                placeholder="Ex: Salário Janeiro, Projeto X..."
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <label className="label-caps mb-1.5 block">Conta</label>
               <select value={newEntry.account} onChange={(e) => setNewEntry({ ...newEntry, account: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
@@ -103,26 +126,27 @@ export const Entries = ({
                 placeholder="0,00"
                 className="w-full text-sm font-mono bg-background border border-border-subtle rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <label className="label-caps mb-1.5 block">Data</label>
               <input type="date" value={newEntry.date} onChange={(e) => setNewEntry({ ...newEntry, date: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <div className="sm:col-span-2 flex gap-2">
-              <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
-              <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
-            </div>
+          </div>
+
+          <div className="flex gap-2 mt-4 justify-end">
+            <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">Cancelar</button>
+            <button onClick={handleAdd} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar entrada</button>
           </div>
         </motion.div>
       )}
 
       {/* Desktop header */}
       <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 mb-1">
-        <span className="col-span-2 label-caps">Categoria</span>
+        <span className="col-span-3 label-caps">Categoria</span>
         <span className="col-span-3 label-caps">Descrição</span>
         <span className="col-span-2 label-caps">Conta</span>
         <span className="col-span-2 label-caps text-right">Valor</span>
-        <span className="col-span-2 label-caps">Data</span>
+        <span className="col-span-1 label-caps">Data</span>
         <span className="col-span-1"></span>
       </div>
 
@@ -131,16 +155,23 @@ export const Entries = ({
           <div className="px-4 py-8 text-center text-sm text-text-muted">
             Nenhuma entrada neste mês. Clique em "Nova Entrada" para adicionar.
           </div>
-        ) : monthIncomes.map(row => (
+        ) : monthIncomes.map(row => {
+          const cat = CATEGORIES.find(c => row.description?.startsWith(c.value))
+            ?? (row.type === "salary" ? CATEGORIES[0] : CATEGORIES[5]);
+          const Icon = cat.icon;
+          return (
           <div key={row.id} className="px-4 py-3 hover:bg-surface-hover transition-colors">
             <div className="hidden sm:grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-2 text-sm font-semibold text-foreground">
-                {row.type === "salary" ? "Salário" : "Outros"}
+              <div className="col-span-3 flex items-center gap-2">
+                <span className={`flex items-center justify-center h-7 w-7 rounded-full ${cat.bg} ${cat.color} shrink-0`}>
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-sm font-semibold text-foreground truncate">{cat.value}</span>
               </div>
               <div className="col-span-3 text-sm text-text-muted truncate">{row.description || "—"}</div>
-              <div className="col-span-2 text-sm text-text-muted">{row.account || "—"}</div>
+              <div className="col-span-2 text-sm text-text-muted truncate">{row.account || "—"}</div>
               <div className="col-span-2 text-right font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</div>
-              <div className="col-span-2 text-sm text-text-muted">
+              <div className="col-span-1 text-sm text-text-muted">
                 {row.date ? new Date(row.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }) : "—"}
               </div>
               <div className="col-span-1 text-right">
@@ -152,22 +183,30 @@ export const Entries = ({
 
             {/* Mobile */}
             <div className="sm:hidden">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0">
-                  <span className="text-sm font-semibold text-foreground">{row.type === "salary" ? "Salário" : "Outros"}</span>
-                  {row.description && <p className="text-xs text-text-muted truncate">{row.description}</p>}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`flex items-center justify-center h-8 w-8 rounded-full ${cat.bg} ${cat.color} shrink-0`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="text-sm font-semibold text-foreground block truncate">{cat.value}</span>
+                    {row.description && row.description !== cat.value && (
+                      <p className="text-xs text-text-muted truncate">{row.description}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className="font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</span>
                   <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
-              {row.date && <p className="text-xs text-text-muted mt-0.5">{new Date(row.date).toLocaleDateString("pt-PT")}</p>}
+              {row.date && <p className="text-xs text-text-muted mt-1 ml-10">{new Date(row.date).toLocaleDateString("pt-PT")}</p>}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <TransfersBetweenAccounts
