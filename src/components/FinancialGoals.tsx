@@ -12,6 +12,10 @@ const saveTxns = (t: GoalTxn[]) => localStorage.setItem(TXN_KEY, JSON.stringify(
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import type { FinancialGoal, GoalTerm, AccountType } from "@/types/goal";
 import { TERM_LABELS, TERM_COLORS, ACCOUNT_LABELS } from "@/types/goal";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface FinancialGoalsProps {
   goals: FinancialGoal[];
