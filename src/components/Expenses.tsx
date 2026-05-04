@@ -21,6 +21,7 @@ interface ExpensesProps {
   onAddVariable: (expense: Omit<VariableExpense, "id">) => void;
   onUpdateVariable: (id: string, updates: Partial<VariableExpense>) => void;
   onDeleteVariable: (id: string) => void;
+  onAddCategoryItem?: (category: Omit<Category, "id">) => void | Promise<unknown>;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
@@ -50,10 +51,12 @@ const filterOptions: { key: "all" | CategoryType; label: string }[] = [
 export const Expenses = ({
   fixedExpenses, variableExpenses, categories, accounts, people, selectedMonth,
   onAddFixed, onUpdateFixed, onUpdateFixedMonthly, onDeleteFixed,
-  onAddVariable, onUpdateVariable, onDeleteVariable,
+  onAddVariable, onUpdateVariable, onDeleteVariable, onAddCategoryItem,
 }: ExpensesProps) => {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<"all" | CategoryType>("all");
+  const [addingTypeCategory, setAddingTypeCategory] = useState<CategoryType | null>(null);
+  const [newTypeCategoryName, setNewTypeCategoryName] = useState("");
   const [newExpense, setNewExpense] = useState({
     category: "", customCategory: "", account: "", date: "", value: "", dueDay: "1", description: "",
     responsible: null as string | null, recurring: false,
@@ -175,8 +178,18 @@ export const Expenses = ({
             <div className="space-y-2.5">
               {(["fixo", "inevitavel", "nao_essencial"] as CategoryType[]).map(type => {
                 const cats = categories.filter(c => c.type === type);
-                if (cats.length === 0) return null;
                 const colors = CATEGORY_TYPE_COLORS[type];
+                const isAdding = addingTypeCategory === type;
+                const commitNew = async () => {
+                  const name = newTypeCategoryName.trim();
+                  if (!name) { setAddingTypeCategory(null); return; }
+                  if (!categories.some(c => c.name.toLowerCase() === name.toLowerCase()) && onAddCategoryItem) {
+                    await onAddCategoryItem({ name, type });
+                  }
+                  setNewExpense({ ...newExpense, category: name, customCategory: "" });
+                  setNewTypeCategoryName("");
+                  setAddingTypeCategory(null);
+                };
                 return (
                   <div key={type} className="flex items-start gap-2 flex-wrap">
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${colors.bg} ${colors.text} shrink-0`}>
@@ -198,6 +211,20 @@ export const Expenses = ({
                           </button>
                         );
                       })}
+                      {isAdding ? (
+                        <input autoFocus value={newTypeCategoryName}
+                          onChange={(e) => setNewTypeCategoryName(e.target.value)}
+                          onBlur={commitNew}
+                          onKeyDown={(e) => { if (e.key === "Enter") commitNew(); if (e.key === "Escape") { setAddingTypeCategory(null); setNewTypeCategoryName(""); } }}
+                          placeholder="Nome…"
+                          className={`text-xs px-2.5 py-1.5 rounded-lg border ${colors.border} ${colors.bg} ${colors.text} placeholder:opacity-60 focus:outline-none focus:ring-1 focus:ring-primary w-32`} />
+                      ) : (
+                        <button type="button" title={`Adicionar categoria ${CATEGORY_TYPE_LABELS[type]}`}
+                          onClick={() => { setAddingTypeCategory(type); setNewTypeCategoryName(""); }}
+                          className={`inline-flex items-center justify-center text-xs px-2 py-1.5 rounded-lg border border-dashed ${colors.border} ${colors.text} hover:${colors.bg} transition-colors`}>
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

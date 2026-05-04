@@ -495,6 +495,7 @@ const Index = () => {
             onUpdateFixedMonthly={yearUpdateFixedMonthly} onDeleteFixed={data.deleteFixed}
             onAddVariable={data.addVariable} onUpdateVariable={data.updateVariable}
             onDeleteVariable={data.deleteVariable}
+            onAddCategoryItem={data.addCategoryItem}
           />
         )}
         {activeTab === "investments" && (
