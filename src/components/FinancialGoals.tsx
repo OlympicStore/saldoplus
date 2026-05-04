@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Target, TrendingUp, Lightbulb, ChevronDown, ChevronUp, Pencil, Check, X, PiggyBank, Wallet } from "lucide-react";
+import { Plus, Trash2, Target, TrendingUp, Lightbulb, ChevronDown, ChevronUp, Pencil, Check, X, PiggyBank, Wallet, ArrowDownCircle, ArrowUpCircle, History } from "lucide-react";
+
+type GoalTxn = { id: string; goalId: string; type: "in" | "out"; amount: number; date: string };
+const TXN_KEY = "goal_transactions_v1";
+const loadTxns = (): GoalTxn[] => {
+  try { return JSON.parse(localStorage.getItem(TXN_KEY) || "[]"); } catch { return []; }
+};
+const saveTxns = (t: GoalTxn[]) => localStorage.setItem(TXN_KEY, JSON.stringify(t));
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import type { FinancialGoal, GoalTerm, AccountType } from "@/types/goal";
 import { TERM_LABELS, TERM_COLORS, ACCOUNT_LABELS } from "@/types/goal";
