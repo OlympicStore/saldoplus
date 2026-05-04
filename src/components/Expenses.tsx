@@ -123,6 +123,8 @@ export const Expenses = ({
   };
 
   const handleDelete = (row: ExpenseRow) => {
+    const label = row.description && row.description !== row.category ? row.description : row.category;
+    if (!window.confirm(`Remover a despesa "${label}"?`)) return;
     if (row.kind === "fixed") onDeleteFixed(row.id);
     else onDeleteVariable(row.id);
   };
@@ -343,8 +345,8 @@ export const Expenses = ({
                   {row.recurring && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Rec</span>
                   )}
-                  <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" />
+                  <button onClick={() => handleDelete(row)} title="Remover despesa" aria-label="Remover despesa" className="p-1.5 rounded-md text-text-muted hover:text-status-negative hover:bg-status-negative/10 transition-colors">
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -358,8 +360,8 @@ export const Expenses = ({
                       {CATEGORY_TYPE_SHORT[row.type]}
                     </span>
                   </div>
-                  <button onClick={() => handleDelete(row)} className="text-text-muted hover:text-status-negative transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" />
+                  <button onClick={() => handleDelete(row)} title="Remover despesa" aria-label="Remover despesa" className="p-1.5 rounded-md text-text-muted hover:text-status-negative hover:bg-status-negative/10 transition-colors shrink-0">
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
                 {row.description !== row.category && (
