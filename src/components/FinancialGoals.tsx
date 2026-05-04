@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Target, TrendingUp, Lightbulb, ChevronDown, ChevronUp, Pencil, Check, X, PiggyBank, Wallet, ArrowDownCircle, ArrowUpCircle, History } from "lucide-react";
 
@@ -107,14 +108,21 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
 
   const addSavings = (id: string) => {
     const amount = parseFloat(savingsAmount);
-    if (isNaN(amount) || amount <= 0) return;
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Insira um valor válido maior que zero.");
+      return;
+    }
     const goal = goals.find((g) => g.id === id);
     if (!goal) return;
+    if (savingsType === "out" && amount > goal.currentValue) {
+      toast.error(`Não é possível retirar ${fmt(amount)} — saldo atual da meta é ${fmt(goal.currentValue)}.`);
+      return;
+    }
     const delta = savingsType === "in" ? amount : -amount;
-    const newValue = Math.max(goal.currentValue + delta, 0);
-    onUpdate(id, { currentValue: newValue });
+    onUpdate(id, { currentValue: goal.currentValue + delta });
     setTransactions(prev => [...prev, { id: crypto.randomUUID(), goalId: id, type: savingsType, amount, date: new Date().toISOString() }]);
     setSavingsAmount("");
+    toast.success(savingsType === "in" ? `Entrada de ${fmt(amount)} registada.` : `Retirada de ${fmt(amount)} registada.`);
   };
 
   const removeTxn = (txnId: string, goalId: string) => {
