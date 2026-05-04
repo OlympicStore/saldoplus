@@ -64,6 +64,7 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
   const [showSavings, setShowSavings] = useState<string | null>(null);
   const [savingsAmount, setSavingsAmount] = useState("");
   const [savingsType, setSavingsType] = useState<"in" | "out">("in");
+  const [savingsAlert, setSavingsAlert] = useState<{ goalId: string; kind: "error" | "success"; msg: string } | null>(null);
   const [transactions, setTransactions] = useState<GoalTxn[]>(() => loadTxns());
 
   useEffect(() => { saveTxns(transactions); }, [transactions]);
