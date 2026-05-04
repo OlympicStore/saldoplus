@@ -83,22 +83,36 @@ export const Entries = ({
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
           className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 mb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-            <div className="sm:col-span-2">
-              <label className="label-caps mb-1.5 block">Categoria</label>
-              <select value={newEntry.category} onChange={(e) => setNewEntry({ ...newEntry, category: e.target.value })}
-                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
-                <option value="Salário">Salário</option>
-                <option value="Outros">Outros</option>
-              </select>
+          <div className="mb-4">
+            <label className="label-caps mb-2 block">Categoria</label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map(cat => {
+                const Icon = cat.icon;
+                const active = newEntry.category === cat.value;
+                return (
+                  <button key={cat.value} type="button"
+                    onClick={() => setNewEntry({ ...newEntry, category: cat.value })}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                      active
+                        ? `${cat.bg} ${cat.color} border-transparent ring-2 ${cat.ring} ring-offset-1`
+                        : "bg-background text-text-muted border-border-subtle hover:bg-surface-hover"
+                    }`}>
+                    <Icon className="h-3.5 w-3.5" />
+                    {cat.value}
+                  </button>
+                );
+              })}
             </div>
-            <div className="sm:col-span-2">
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div className="sm:col-span-4">
               <label className="label-caps mb-1.5 block">Descrição</label>
               <input value={newEntry.description} onChange={(e) => setNewEntry({ ...newEntry, description: e.target.value })}
-                placeholder="Ex: Freelance"
+                placeholder="Ex: Salário Janeiro, Projeto X..."
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <label className="label-caps mb-1.5 block">Conta</label>
               <select value={newEntry.account} onChange={(e) => setNewEntry({ ...newEntry, account: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
@@ -112,15 +126,16 @@ export const Entries = ({
                 placeholder="0,00"
                 className="w-full text-sm font-mono bg-background border border-border-subtle rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <label className="label-caps mb-1.5 block">Data</label>
               <input type="date" value={newEntry.date} onChange={(e) => setNewEntry({ ...newEntry, date: e.target.value })}
                 className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            <div className="sm:col-span-2 flex gap-2">
-              <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
-              <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
-            </div>
+          </div>
+
+          <div className="flex gap-2 mt-4 justify-end">
+            <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">Cancelar</button>
+            <button onClick={handleAdd} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar entrada</button>
           </div>
         </motion.div>
       )}
