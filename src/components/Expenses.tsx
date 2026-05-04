@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Tag, Sparkles } from "lucide-react";
 import { PersonSelector } from "./PersonSelector";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Category, CategoryType } from "@/types/category";
@@ -168,23 +168,60 @@ export const Expenses = ({
 
       {showForm && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 mb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-            <div className="sm:col-span-2">
-              <label className="label-caps mb-1.5 block">Categoria</label>
-              <select value={newExpense.category} onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value, customCategory: e.target.value === "__custom" ? newExpense.customCategory : "" })}
-                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
-                <option value="">Selecionar</option>
-                {categoryNames.map(c => <option key={c} value={c}>{c}</option>)}
-                <option value="__custom">+ Adicionar nova categoria</option>
-              </select>
+          className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 mb-4 space-y-4">
+          {/* Category picker (pills grouped by type) */}
+          <div>
+            <label className="label-caps mb-2 block">Categoria</label>
+            <div className="space-y-2.5">
+              {(["fixo", "inevitavel", "nao_essencial"] as CategoryType[]).map(type => {
+                const cats = categories.filter(c => c.type === type);
+                if (cats.length === 0) return null;
+                const colors = CATEGORY_TYPE_COLORS[type];
+                return (
+                  <div key={type} className="flex items-start gap-2 flex-wrap">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${colors.bg} ${colors.text} shrink-0`}>
+                      {CATEGORY_TYPE_LABELS[type]}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 flex-1">
+                      {cats.map(cat => {
+                        const active = newExpense.category === cat.name;
+                        return (
+                          <button key={cat.id} type="button"
+                            onClick={() => setNewExpense({ ...newExpense, category: cat.name, customCategory: "" })}
+                            className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
+                              active
+                                ? `${colors.bg} ${colors.text} ${colors.border} ring-2 ring-primary/30 font-semibold`
+                                : "bg-background border-border-subtle text-text-secondary hover:border-primary/40 hover:bg-surface-hover"
+                            }`}>
+                            <Tag className="h-3 w-3" />
+                            {cat.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+              <button type="button"
+                onClick={() => setNewExpense({ ...newExpense, category: "__custom" })}
+                className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-dashed transition-colors ${
+                  newExpense.category === "__custom"
+                    ? "border-primary text-primary bg-primary/5"
+                    : "border-border-subtle text-text-muted hover:border-primary hover:text-primary"
+                }`}>
+                <Sparkles className="h-3 w-3" />
+                Nova categoria
+              </button>
               {newExpense.category === "__custom" && (
-                <input value={newExpense.customCategory} onChange={(e) => setNewExpense({ ...newExpense, customCategory: e.target.value })}
-                  placeholder="Ex: Netflix, Gasolina..."
-                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+                <input autoFocus value={newExpense.customCategory} onChange={(e) => setNewExpense({ ...newExpense, customCategory: e.target.value })}
+                  placeholder="Nome da categoria (ex: Netflix, Gasolina)"
+                  className="w-full sm:max-w-xs text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-1 focus:ring-primary" />
               )}
             </div>
-            <div className="sm:col-span-2">
+          </div>
+
+          <div className="border-t border-border-subtle/60 pt-4 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div className="sm:col-span-3">
               <label className="label-caps mb-1.5 block">Título</label>
               <input value={newExpense.description} onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
                 placeholder="Ex: Jantar McDonald's"
@@ -198,7 +235,7 @@ export const Expenses = ({
                 {accounts.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
               </select>
             </div>
-            <div className="sm:col-span-1">
+            <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Valor (€)</label>
               <input value={newExpense.value} onChange={(e) => setNewExpense({ ...newExpense, value: e.target.value })}
                 placeholder="0,00"
@@ -206,23 +243,23 @@ export const Expenses = ({
             </div>
             {selectedCatType === "fixo" ? (
               <div className="sm:col-span-1">
-                <label className="label-caps mb-1.5 block">Dia Venc.</label>
+                <label className="label-caps mb-1.5 block">Dia</label>
                 <input type="number" min={1} max={31} value={newExpense.dueDay} onChange={(e) => setNewExpense({ ...newExpense, dueDay: e.target.value })}
                   className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-1 focus:ring-primary" />
               </div>
             ) : (
-              <div className="sm:col-span-1">
+              <div className="sm:col-span-2">
                 <label className="label-caps mb-1.5 block">Data</label>
                 <input type="date" value={newExpense.date} onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
                   className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
               </div>
             )}
-            <div className="sm:col-span-1">
+            <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Quem</label>
               <PersonSelector value={newExpense.responsible} onChange={(p) => setNewExpense({ ...newExpense, responsible: p })} people={people} />
             </div>
             {selectedCatType && selectedCatType !== "fixo" && (
-              <div className="sm:col-span-1 flex items-end pb-1">
+              <div className="sm:col-span-2 flex items-end pb-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={newExpense.recurring}
                     onChange={(e) => setNewExpense({ ...newExpense, recurring: e.target.checked })}
@@ -231,9 +268,9 @@ export const Expenses = ({
                 </label>
               </div>
             )}
-            <div className="sm:col-span-2 flex gap-2">
-              <button onClick={handleAdd} className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar</button>
-              <button onClick={() => setShowForm(false)} className="px-3 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">✕</button>
+            <div className="sm:col-span-12 flex gap-2 justify-end pt-1">
+              <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg border border-border-subtle text-sm text-text-muted hover:bg-surface-hover transition-colors">Cancelar</button>
+              <button onClick={handleAdd} className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">Adicionar despesa</button>
             </div>
           </div>
         </motion.div>
