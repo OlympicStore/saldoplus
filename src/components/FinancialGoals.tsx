@@ -110,22 +110,21 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
   const addSavings = (id: string) => {
     const amount = parseFloat(savingsAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error("Insira um valor válido maior que zero.");
+      setSavingsAlert({ goalId: id, kind: "error", msg: "Insira um valor válido maior que zero." });
       return;
     }
     const goal = goals.find((g) => g.id === id);
     if (!goal) return;
     if (savingsType === "out" && amount > goal.currentValue) {
-      toast.error(`Não é possível retirar ${fmt(amount)} — saldo atual da meta é ${fmt(goal.currentValue)}.`);
+      setSavingsAlert({ goalId: id, kind: "error", msg: `Não pode retirar ${fmt(amount)} — saldo atual é ${fmt(goal.currentValue)}.` });
       return;
     }
     const delta = savingsType === "in" ? amount : -amount;
     onUpdate(id, { currentValue: goal.currentValue + delta });
     setTransactions(prev => [...prev, { id: crypto.randomUUID(), goalId: id, type: savingsType, amount, date: new Date().toISOString() }]);
     setSavingsAmount("");
-    toast.success(savingsType === "in" ? `Entrada de ${fmt(amount)} registada.` : `Retirada de ${fmt(amount)} registada.`);
+    setSavingsAlert({ goalId: id, kind: "success", msg: savingsType === "in" ? `Entrada de ${fmt(amount)} registada.` : `Retirada de ${fmt(amount)} registada.` });
   };
-
   const removeTxn = (txnId: string, goalId: string) => {
     const txn = transactions.find(t => t.id === txnId);
     if (!txn) return;
