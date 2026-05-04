@@ -123,6 +123,8 @@ export const Expenses = ({
   };
 
   const handleDelete = (row: ExpenseRow) => {
+    const label = row.description && row.description !== row.category ? row.description : row.category;
+    if (!window.confirm(`Remover a despesa "${label}"?`)) return;
     if (row.kind === "fixed") onDeleteFixed(row.id);
     else onDeleteVariable(row.id);
   };
