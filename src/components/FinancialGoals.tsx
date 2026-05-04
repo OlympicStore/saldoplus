@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Target, TrendingUp, Lightbulb, ChevronDown, ChevronUp, Pencil, Check, X, PiggyBank, Wallet, ArrowDownCircle, ArrowUpCircle, History } from "lucide-react";
 
