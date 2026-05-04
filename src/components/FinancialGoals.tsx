@@ -64,6 +64,7 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
   const [showSavings, setShowSavings] = useState<string | null>(null);
   const [savingsAmount, setSavingsAmount] = useState("");
   const [savingsType, setSavingsType] = useState<"in" | "out">("in");
+  const [savingsAlert, setSavingsAlert] = useState<{ goalId: string; kind: "error" | "success"; msg: string } | null>(null);
   const [transactions, setTransactions] = useState<GoalTxn[]>(() => loadTxns());
 
   useEffect(() => { saveTxns(transactions); }, [transactions]);
@@ -109,22 +110,21 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
   const addSavings = (id: string) => {
     const amount = parseFloat(savingsAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error("Insira um valor válido maior que zero.");
+      setSavingsAlert({ goalId: id, kind: "error", msg: "Insira um valor válido maior que zero." });
       return;
     }
     const goal = goals.find((g) => g.id === id);
     if (!goal) return;
     if (savingsType === "out" && amount > goal.currentValue) {
-      toast.error(`Não é possível retirar ${fmt(amount)} — saldo atual da meta é ${fmt(goal.currentValue)}.`);
+      setSavingsAlert({ goalId: id, kind: "error", msg: `Não pode retirar ${fmt(amount)} — saldo atual é ${fmt(goal.currentValue)}.` });
       return;
     }
     const delta = savingsType === "in" ? amount : -amount;
     onUpdate(id, { currentValue: goal.currentValue + delta });
     setTransactions(prev => [...prev, { id: crypto.randomUUID(), goalId: id, type: savingsType, amount, date: new Date().toISOString() }]);
     setSavingsAmount("");
-    toast.success(savingsType === "in" ? `Entrada de ${fmt(amount)} registada.` : `Retirada de ${fmt(amount)} registada.`);
+    setSavingsAlert({ goalId: id, kind: "success", msg: savingsType === "in" ? `Entrada de ${fmt(amount)} registada.` : `Retirada de ${fmt(amount)} registada.` });
   };
-
   const removeTxn = (txnId: string, goalId: string) => {
     const txn = transactions.find(t => t.id === txnId);
     if (!txn) return;
@@ -329,7 +329,7 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0 ml-2">
-                                  <button onClick={() => setShowSavings(showSavings === goal.id ? null : goal.id)}
+                                  <button onClick={() => { setShowSavings(showSavings === goal.id ? null : goal.id); setSavingsAlert(null); }}
                                     className="p-1.5 text-text-muted hover:text-primary transition-colors" title="Separar dinheiro">
                                     <PiggyBank className="h-3.5 w-3.5" />
                                   </button>
@@ -359,13 +359,30 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
                                         </button>
                                       </div>
                                       <span className="text-xs text-text-muted">€</span>
-                                      <input type="number" value={savingsAmount} onChange={(e) => setSavingsAmount(e.target.value)}
+                                      <input type="number" value={savingsAmount}
+                                        onChange={(e) => { setSavingsAmount(e.target.value); if (savingsAlert?.goalId === goal.id) setSavingsAlert(null); }}
                                         placeholder="0,00" className="flex-1 min-w-[80px] text-sm bg-transparent focus:outline-none font-mono" />
                                       <button onClick={() => addSavings(goal.id)}
                                         className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90">
                                         Registar
                                       </button>
                                     </div>
+                                    {savingsAlert?.goalId === goal.id && (
+                                      <div role="alert"
+                                        className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs border ${
+                                          savingsAlert.kind === "error"
+                                            ? "bg-status-negative/10 border-status-negative/30 text-status-negative"
+                                            : "bg-primary/10 border-primary/30 text-primary"
+                                        }`}>
+                                        {savingsAlert.kind === "error"
+                                          ? <X className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                                          : <Check className="h-3.5 w-3.5 mt-0.5 shrink-0" />}
+                                        <span className="flex-1 font-medium">{savingsAlert.msg}</span>
+                                        <button onClick={() => setSavingsAlert(null)} className="opacity-70 hover:opacity-100" aria-label="Fechar">
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    )}
                                     {txnsForGoal(goal.id).length > 0 && (
                                       <div className="bg-background rounded-lg border border-border-subtle">
                                         <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b border-border-subtle">
