@@ -336,7 +336,7 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
                                   <button onClick={() => startEdit(goal)} className="p-1.5 text-text-muted hover:text-foreground transition-colors">
                                     <Pencil className="h-3.5 w-3.5" />
                                   </button>
-                                  <button onClick={() => onDelete(goal.id)} className="p-1.5 text-text-muted hover:text-destructive transition-colors">
+                                  <button onClick={() => setDeleteGoalId(goal.id)} className="p-1.5 text-text-muted hover:text-destructive transition-colors">
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
