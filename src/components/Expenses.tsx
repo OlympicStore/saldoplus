@@ -21,6 +21,7 @@ interface ExpensesProps {
   onAddVariable: (expense: Omit<VariableExpense, "id">) => void;
   onUpdateVariable: (id: string, updates: Partial<VariableExpense>) => void;
   onDeleteVariable: (id: string) => void;
+  onAddCategoryItem?: (category: Omit<Category, "id">) => void | Promise<unknown>;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
