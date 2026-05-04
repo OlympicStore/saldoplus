@@ -329,7 +329,7 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0 ml-2">
-                                  <button onClick={() => setShowSavings(showSavings === goal.id ? null : goal.id)}
+                                  <button onClick={() => { setShowSavings(showSavings === goal.id ? null : goal.id); setSavingsAlert(null); }}
                                     className="p-1.5 text-text-muted hover:text-primary transition-colors" title="Separar dinheiro">
                                     <PiggyBank className="h-3.5 w-3.5" />
                                   </button>
