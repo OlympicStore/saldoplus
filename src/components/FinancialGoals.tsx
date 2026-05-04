@@ -59,12 +59,6 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
   const [editValues, setEditValues] = useState<Partial<FinancialGoal>>({});
   const [addingTerm, setAddingTerm] = useState<GoalTerm | null>(null);
   const [newGoal, setNewGoal] = useState({ name: "", totalValue: 0, deadlineMonths: 12, currentValue: 0, account: "poupanca" as AccountType });
-  const [showSavings, setShowSavings] = useState<string | null>(null);
-  const [savingsAmount, setSavingsAmount] = useState("");
-
-  const terms: GoalTerm[] = ["short", "medium", "long"];
-
-  const goalsByTerm = (term: GoalTerm) => goals.filter((g) => g.term === term);
 
   const [showSavings, setShowSavings] = useState<string | null>(null);
   const [savingsAmount, setSavingsAmount] = useState("");
