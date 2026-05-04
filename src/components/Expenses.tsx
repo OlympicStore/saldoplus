@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Tag, Sparkles } from "lucide-react";
 import { PersonSelector } from "./PersonSelector";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Category, CategoryType } from "@/types/category";
