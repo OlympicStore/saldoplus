@@ -596,6 +596,32 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
           );
         })}
       </div>
+
+      <AlertDialog open={deleteGoalId !== null} onOpenChange={(open) => !open && setDeleteGoalId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem a certeza que quer eliminar esta meta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A meta e os seus registos serão removidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteGoalId) {
+                  onDelete(deleteGoalId);
+                  setTransactions(prev => prev.filter(t => t.goalId !== deleteGoalId));
+                }
+                setDeleteGoalId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sim, eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };
