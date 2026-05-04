@@ -359,13 +359,30 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
                                         </button>
                                       </div>
                                       <span className="text-xs text-text-muted">€</span>
-                                      <input type="number" value={savingsAmount} onChange={(e) => setSavingsAmount(e.target.value)}
+                                      <input type="number" value={savingsAmount}
+                                        onChange={(e) => { setSavingsAmount(e.target.value); if (savingsAlert?.goalId === goal.id) setSavingsAlert(null); }}
                                         placeholder="0,00" className="flex-1 min-w-[80px] text-sm bg-transparent focus:outline-none font-mono" />
                                       <button onClick={() => addSavings(goal.id)}
                                         className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90">
                                         Registar
                                       </button>
                                     </div>
+                                    {savingsAlert?.goalId === goal.id && (
+                                      <div role="alert"
+                                        className={`flex items-start gap-2 rounded-lg px-3 py-2 text-xs border ${
+                                          savingsAlert.kind === "error"
+                                            ? "bg-status-negative/10 border-status-negative/30 text-status-negative"
+                                            : "bg-primary/10 border-primary/30 text-primary"
+                                        }`}>
+                                        {savingsAlert.kind === "error"
+                                          ? <X className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                                          : <Check className="h-3.5 w-3.5 mt-0.5 shrink-0" />}
+                                        <span className="flex-1 font-medium">{savingsAlert.msg}</span>
+                                        <button onClick={() => setSavingsAlert(null)} className="opacity-70 hover:opacity-100" aria-label="Fechar">
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    )}
                                     {txnsForGoal(goal.id).length > 0 && (
                                       <div className="bg-background rounded-lg border border-border-subtle">
                                         <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b border-border-subtle">
