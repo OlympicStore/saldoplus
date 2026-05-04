@@ -66,6 +66,18 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
 
   const goalsByTerm = (term: GoalTerm) => goals.filter((g) => g.term === term);
 
+  const [showSavings, setShowSavings] = useState<string | null>(null);
+  const [savingsAmount, setSavingsAmount] = useState("");
+  const [savingsType, setSavingsType] = useState<"in" | "out">("in");
+  const [transactions, setTransactions] = useState<GoalTxn[]>(() => loadTxns());
+
+  useEffect(() => { saveTxns(transactions); }, [transactions]);
+
+  const terms: GoalTerm[] = ["short", "medium", "long"];
+
+  const goalsByTerm = (term: GoalTerm) => goals.filter((g) => g.term === term);
+  const txnsForGoal = (goalId: string) => transactions.filter(t => t.goalId === goalId).sort((a, b) => b.date.localeCompare(a.date));
+
   const totalCurrent = goals.reduce((s, g) => s + g.currentValue, 0);
   const totalTarget = goals.reduce((s, g) => s + g.totalValue, 0);
   const totalProgress = totalTarget > 0 ? (totalCurrent / totalTarget) * 100 : 0;
@@ -104,9 +116,23 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
     if (isNaN(amount) || amount <= 0) return;
     const goal = goals.find((g) => g.id === id);
     if (!goal) return;
-    onUpdate(id, { currentValue: goal.currentValue + amount });
+    const delta = savingsType === "in" ? amount : -amount;
+    const newValue = Math.max(goal.currentValue + delta, 0);
+    onUpdate(id, { currentValue: newValue });
+    setTransactions(prev => [...prev, { id: crypto.randomUUID(), goalId: id, type: savingsType, amount, date: new Date().toISOString() }]);
     setSavingsAmount("");
-    setShowSavings(null);
+  };
+
+  const removeTxn = (txnId: string, goalId: string) => {
+    const txn = transactions.find(t => t.id === txnId);
+    if (!txn) return;
+    if (!window.confirm(`Remover este registo de ${fmt(txn.amount)}?`)) return;
+    const goal = goals.find(g => g.id === goalId);
+    if (goal) {
+      const revert = txn.type === "in" ? -txn.amount : txn.amount;
+      onUpdate(goalId, { currentValue: Math.max(goal.currentValue + revert, 0) });
+    }
+    setTransactions(prev => prev.filter(t => t.id !== txnId));
   };
 
   // Chart data
