@@ -142,11 +142,11 @@ export const Entries = ({
 
       {/* Desktop header */}
       <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 mb-1">
-        <span className="col-span-2 label-caps">Categoria</span>
+        <span className="col-span-3 label-caps">Categoria</span>
         <span className="col-span-3 label-caps">Descrição</span>
         <span className="col-span-2 label-caps">Conta</span>
         <span className="col-span-2 label-caps text-right">Valor</span>
-        <span className="col-span-2 label-caps">Data</span>
+        <span className="col-span-1 label-caps">Data</span>
         <span className="col-span-1"></span>
       </div>
 
