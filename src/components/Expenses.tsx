@@ -51,10 +51,12 @@ const filterOptions: { key: "all" | CategoryType; label: string }[] = [
 export const Expenses = ({
   fixedExpenses, variableExpenses, categories, accounts, people, selectedMonth,
   onAddFixed, onUpdateFixed, onUpdateFixedMonthly, onDeleteFixed,
-  onAddVariable, onUpdateVariable, onDeleteVariable,
+  onAddVariable, onUpdateVariable, onDeleteVariable, onAddCategoryItem,
 }: ExpensesProps) => {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<"all" | CategoryType>("all");
+  const [addingTypeCategory, setAddingTypeCategory] = useState<CategoryType | null>(null);
+  const [newTypeCategoryName, setNewTypeCategoryName] = useState("");
   const [newExpense, setNewExpense] = useState({
     category: "", customCategory: "", account: "", date: "", value: "", dueDay: "1", description: "",
     responsible: null as string | null, recurring: false,
