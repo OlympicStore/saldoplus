@@ -1,6 +1,15 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Briefcase, Laptop, Award, RotateCcw, TrendingUp, MoreHorizontal } from "lucide-react";
+
+const CATEGORIES = [
+  { value: "Salário", icon: Briefcase, color: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-500" },
+  { value: "Freelance", icon: Laptop, color: "text-blue-600", bg: "bg-blue-50", ring: "ring-blue-500" },
+  { value: "Prémio", icon: Award, color: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-500" },
+  { value: "Reembolso", icon: RotateCcw, color: "text-purple-600", bg: "bg-purple-50", ring: "ring-purple-500" },
+  { value: "Investimento", icon: TrendingUp, color: "text-teal-600", bg: "bg-teal-50", ring: "ring-teal-500" },
+  { value: "Outros", icon: MoreHorizontal, color: "text-slate-600", bg: "bg-slate-100", ring: "ring-slate-400" },
+] as const;
 import type { Income as IncomeType, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
 import type { Transfer } from "@/types/transfer";
