@@ -155,16 +155,23 @@ export const Entries = ({
           <div className="px-4 py-8 text-center text-sm text-text-muted">
             Nenhuma entrada neste mês. Clique em "Nova Entrada" para adicionar.
           </div>
-        ) : monthIncomes.map(row => (
+        ) : monthIncomes.map(row => {
+          const cat = CATEGORIES.find(c => row.description?.startsWith(c.value))
+            ?? (row.type === "salary" ? CATEGORIES[0] : CATEGORIES[5]);
+          const Icon = cat.icon;
+          return (
           <div key={row.id} className="px-4 py-3 hover:bg-surface-hover transition-colors">
             <div className="hidden sm:grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-2 text-sm font-semibold text-foreground">
-                {row.type === "salary" ? "Salário" : "Outros"}
+              <div className="col-span-3 flex items-center gap-2">
+                <span className={`flex items-center justify-center h-7 w-7 rounded-full ${cat.bg} ${cat.color} shrink-0`}>
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-sm font-semibold text-foreground truncate">{cat.value}</span>
               </div>
               <div className="col-span-3 text-sm text-text-muted truncate">{row.description || "—"}</div>
-              <div className="col-span-2 text-sm text-text-muted">{row.account || "—"}</div>
+              <div className="col-span-2 text-sm text-text-muted truncate">{row.account || "—"}</div>
               <div className="col-span-2 text-right font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</div>
-              <div className="col-span-2 text-sm text-text-muted">
+              <div className="col-span-1 text-sm text-text-muted">
                 {row.date ? new Date(row.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }) : "—"}
               </div>
               <div className="col-span-1 text-right">
@@ -176,22 +183,30 @@ export const Entries = ({
 
             {/* Mobile */}
             <div className="sm:hidden">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0">
-                  <span className="text-sm font-semibold text-foreground">{row.type === "salary" ? "Salário" : "Outros"}</span>
-                  {row.description && <p className="text-xs text-text-muted truncate">{row.description}</p>}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`flex items-center justify-center h-8 w-8 rounded-full ${cat.bg} ${cat.color} shrink-0`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="text-sm font-semibold text-foreground block truncate">{cat.value}</span>
+                    {row.description && row.description !== cat.value && (
+                      <p className="text-xs text-text-muted truncate">{row.description}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className="font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</span>
                   <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
-              {row.date && <p className="text-xs text-text-muted mt-0.5">{new Date(row.date).toLocaleDateString("pt-PT")}</p>}
+              {row.date && <p className="text-xs text-text-muted mt-1 ml-10">{new Date(row.date).toLocaleDateString("pt-PT")}</p>}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <TransfersBetweenAccounts
