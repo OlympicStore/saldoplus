@@ -118,7 +118,21 @@ export function usePersistedData(subAccountId?: string | null) {
           account: r.account as any,
         })));
       } else {
-        setFinancialGoals(defaultGoals);
+        // Check if user has ever had goals (marker in user_settings) to avoid re-seeding after deleting all
+        const { data: settings } = await supabase.from("user_settings").select("goals_seeded").eq("user_id", userId).maybeSingle();
+        if (settings?.goals_seeded) {
+          setFinancialGoals([]);
+        } else {
+          setFinancialGoals(defaultGoals);
+          // Seed defaults into DB so future loads reflect actual state
+          const rows = defaultGoals.map(g => ({
+            ...subField, id: g.id, user_id: userId, name: g.name, term: g.term,
+            total_value: g.totalValue, deadline_months: g.deadlineMonths,
+            current_value: g.currentValue, monthly_savings: g.monthlySavings, account: g.account,
+          }));
+          await supabase.from("financial_goals").upsert(rows, { onConflict: "id" });
+          await supabase.from("user_settings").upsert({ ...subField, user_id: userId, goals_seeded: true } as any, { onConflict: "user_id" });
+        }
       }
 
       if (br.data?.length) {

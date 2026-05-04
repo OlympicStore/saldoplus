@@ -12,6 +12,10 @@ const saveTxns = (t: GoalTxn[]) => localStorage.setItem(TXN_KEY, JSON.stringify(
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import type { FinancialGoal, GoalTerm, AccountType } from "@/types/goal";
 import { TERM_LABELS, TERM_COLORS, ACCOUNT_LABELS } from "@/types/goal";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface FinancialGoalsProps {
   goals: FinancialGoal[];
@@ -66,6 +70,7 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
   const [savingsType, setSavingsType] = useState<"in" | "out">("in");
   const [savingsAlert, setSavingsAlert] = useState<{ goalId: string; kind: "error" | "success"; msg: string } | null>(null);
   const [transactions, setTransactions] = useState<GoalTxn[]>(() => loadTxns());
+  const [deleteGoalId, setDeleteGoalId] = useState<string | null>(null);
 
   useEffect(() => { saveTxns(transactions); }, [transactions]);
 
@@ -336,7 +341,7 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
                                   <button onClick={() => startEdit(goal)} className="p-1.5 text-text-muted hover:text-foreground transition-colors">
                                     <Pencil className="h-3.5 w-3.5" />
                                   </button>
-                                  <button onClick={() => onDelete(goal.id)} className="p-1.5 text-text-muted hover:text-destructive transition-colors">
+                                  <button onClick={() => setDeleteGoalId(goal.id)} className="p-1.5 text-text-muted hover:text-destructive transition-colors">
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
@@ -595,6 +600,32 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
           );
         })}
       </div>
+
+      <AlertDialog open={deleteGoalId !== null} onOpenChange={(open) => !open && setDeleteGoalId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem a certeza que quer eliminar esta meta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A meta e os seus registos serão removidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Não</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteGoalId) {
+                  onDelete(deleteGoalId);
+                  setTransactions(prev => prev.filter(t => t.goalId !== deleteGoalId));
+                }
+                setDeleteGoalId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sim, eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };

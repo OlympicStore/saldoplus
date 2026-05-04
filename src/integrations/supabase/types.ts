@@ -1070,6 +1070,7 @@ export type Database = {
         Row: {
           created_at: string
           current_balance: number
+          goals_seeded: boolean
           id: string
           people: string[]
           sub_account_id: string | null
@@ -1080,6 +1081,7 @@ export type Database = {
         Insert: {
           created_at?: string
           current_balance?: number
+          goals_seeded?: boolean
           id?: string
           people?: string[]
           sub_account_id?: string | null
@@ -1090,6 +1092,7 @@ export type Database = {
         Update: {
           created_at?: string
           current_balance?: number
+          goals_seeded?: boolean
           id?: string
           people?: string[]
           sub_account_id?: string | null
