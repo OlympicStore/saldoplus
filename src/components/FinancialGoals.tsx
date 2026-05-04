@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Target, TrendingUp, Lightbulb, ChevronDown, ChevronUp, Pencil, Check, X, PiggyBank, Wallet } from "lucide-react";
+import { Plus, Trash2, Target, TrendingUp, Lightbulb, ChevronDown, ChevronUp, Pencil, Check, X, PiggyBank, Wallet, ArrowDownCircle, ArrowUpCircle, History } from "lucide-react";
+
+type GoalTxn = { id: string; goalId: string; type: "in" | "out"; amount: number; date: string };
+const TXN_KEY = "goal_transactions_v1";
+const loadTxns = (): GoalTxn[] => {
+  try { return JSON.parse(localStorage.getItem(TXN_KEY) || "[]"); } catch { return []; }
+};
+const saveTxns = (t: GoalTxn[]) => localStorage.setItem(TXN_KEY, JSON.stringify(t));
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import type { FinancialGoal, GoalTerm, AccountType } from "@/types/goal";
 import { TERM_LABELS, TERM_COLORS, ACCOUNT_LABELS } from "@/types/goal";
@@ -52,12 +59,18 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
   const [editValues, setEditValues] = useState<Partial<FinancialGoal>>({});
   const [addingTerm, setAddingTerm] = useState<GoalTerm | null>(null);
   const [newGoal, setNewGoal] = useState({ name: "", totalValue: 0, deadlineMonths: 12, currentValue: 0, account: "poupanca" as AccountType });
+
   const [showSavings, setShowSavings] = useState<string | null>(null);
   const [savingsAmount, setSavingsAmount] = useState("");
+  const [savingsType, setSavingsType] = useState<"in" | "out">("in");
+  const [transactions, setTransactions] = useState<GoalTxn[]>(() => loadTxns());
+
+  useEffect(() => { saveTxns(transactions); }, [transactions]);
 
   const terms: GoalTerm[] = ["short", "medium", "long"];
 
   const goalsByTerm = (term: GoalTerm) => goals.filter((g) => g.term === term);
+  const txnsForGoal = (goalId: string) => transactions.filter(t => t.goalId === goalId).sort((a, b) => b.date.localeCompare(a.date));
 
   const totalCurrent = goals.reduce((s, g) => s + g.currentValue, 0);
   const totalTarget = goals.reduce((s, g) => s + g.totalValue, 0);
@@ -97,9 +110,23 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
     if (isNaN(amount) || amount <= 0) return;
     const goal = goals.find((g) => g.id === id);
     if (!goal) return;
-    onUpdate(id, { currentValue: goal.currentValue + amount });
+    const delta = savingsType === "in" ? amount : -amount;
+    const newValue = Math.max(goal.currentValue + delta, 0);
+    onUpdate(id, { currentValue: newValue });
+    setTransactions(prev => [...prev, { id: crypto.randomUUID(), goalId: id, type: savingsType, amount, date: new Date().toISOString() }]);
     setSavingsAmount("");
-    setShowSavings(null);
+  };
+
+  const removeTxn = (txnId: string, goalId: string) => {
+    const txn = transactions.find(t => t.id === txnId);
+    if (!txn) return;
+    if (!window.confirm(`Remover este registo de ${fmt(txn.amount)}?`)) return;
+    const goal = goals.find(g => g.id === goalId);
+    if (goal) {
+      const revert = txn.type === "in" ? -txn.amount : txn.amount;
+      onUpdate(goalId, { currentValue: Math.max(goal.currentValue + revert, 0) });
+    }
+    setTransactions(prev => prev.filter(t => t.id !== txnId));
   };
 
   // Chart data
@@ -307,20 +334,59 @@ export const FinancialGoals = ({ goals, onAdd, onUpdate, onDelete }: FinancialGo
                                 </div>
                               </div>
 
-                              {/* Savings input */}
+                              {/* Savings input + transactions */}
                               <AnimatePresence>
                                 {showSavings === goal.id && (
                                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-3">
-                                    <div className="flex gap-2 items-center bg-background rounded-lg p-2 border border-border-subtle">
+                                    exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-3 space-y-2">
+                                    <div className="flex gap-2 items-center bg-background rounded-lg p-2 border border-border-subtle flex-wrap">
+                                      <div className="inline-flex rounded-md overflow-hidden border border-border-subtle">
+                                        <button type="button" onClick={() => setSavingsType("in")}
+                                          className={`px-2 py-1 text-[11px] font-medium inline-flex items-center gap-1 ${savingsType === "in" ? "bg-primary text-primary-foreground" : "text-text-secondary hover:bg-surface-hover"}`}>
+                                          <ArrowDownCircle className="h-3 w-3" />Entrada
+                                        </button>
+                                        <button type="button" onClick={() => setSavingsType("out")}
+                                          className={`px-2 py-1 text-[11px] font-medium inline-flex items-center gap-1 ${savingsType === "out" ? "bg-status-negative text-white" : "text-text-secondary hover:bg-surface-hover"}`}>
+                                          <ArrowUpCircle className="h-3 w-3" />Retirada
+                                        </button>
+                                      </div>
                                       <span className="text-xs text-text-muted">€</span>
                                       <input type="number" value={savingsAmount} onChange={(e) => setSavingsAmount(e.target.value)}
-                                        placeholder="0,00" className="flex-1 text-sm bg-transparent focus:outline-none font-mono" />
+                                        placeholder="0,00" className="flex-1 min-w-[80px] text-sm bg-transparent focus:outline-none font-mono" />
                                       <button onClick={() => addSavings(goal.id)}
                                         className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90">
-                                        Guardar
+                                        Registar
                                       </button>
                                     </div>
+                                    {txnsForGoal(goal.id).length > 0 && (
+                                      <div className="bg-background rounded-lg border border-border-subtle">
+                                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b border-border-subtle">
+                                          <History className="h-3 w-3 text-text-muted" />
+                                          <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Histórico</span>
+                                        </div>
+                                        <ul className="divide-y divide-border-subtle/60 max-h-48 overflow-y-auto">
+                                          {txnsForGoal(goal.id).map(t => (
+                                            <li key={t.id} className="flex items-center justify-between px-2.5 py-1.5 text-xs">
+                                              <span className="flex items-center gap-1.5">
+                                                {t.type === "in"
+                                                  ? <ArrowDownCircle className="h-3 w-3 text-primary" />
+                                                  : <ArrowUpCircle className="h-3 w-3 text-status-negative" />}
+                                                <span className="text-text-secondary">{new Date(t.date).toLocaleDateString("pt-PT")}</span>
+                                              </span>
+                                              <span className="flex items-center gap-2">
+                                                <span className={`font-mono tabular-nums ${t.type === "in" ? "text-primary" : "text-status-negative"}`}>
+                                                  {t.type === "in" ? "+" : "−"}{fmt(t.amount)}
+                                                </span>
+                                                <button onClick={() => removeTxn(t.id, goal.id)}
+                                                  className="p-1 text-text-muted hover:text-destructive transition-colors" title="Eliminar registo">
+                                                  <Trash2 className="h-3 w-3" />
+                                                </button>
+                                              </span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
                                   </motion.div>
                                 )}
                               </AnimatePresence>
