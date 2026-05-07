@@ -270,19 +270,16 @@ export const Expenses = ({
                 placeholder="0,00"
                 className="w-full text-sm font-mono bg-background border border-border-subtle rounded-lg px-3 py-2 text-right focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
-            {selectedCatType === "fixo" ? (
-              <div className="sm:col-span-1">
-                <label className="label-caps mb-1.5 block">Dia</label>
-                <input type="number" min={1} max={31} value={newExpense.dueDay} onChange={(e) => setNewExpense({ ...newExpense, dueDay: e.target.value })}
-                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 text-center focus:outline-none focus:ring-1 focus:ring-primary" />
-              </div>
-            ) : (
-              <div className="sm:col-span-2">
-                <label className="label-caps mb-1.5 block">Data</label>
-                <input type="date" value={newExpense.date} onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                  className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
-              </div>
-            )}
+            <div className="sm:col-span-2">
+              <label className="label-caps mb-1.5 block">Data</label>
+              <input type="date" value={newExpense.date}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const d = v ? String(new Date(v).getDate()) : newExpense.dueDay;
+                  setNewExpense({ ...newExpense, date: v, dueDay: d });
+                }}
+                className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
             <div className="sm:col-span-2">
               <label className="label-caps mb-1.5 block">Quem</label>
               <PersonSelector value={newExpense.responsible} onChange={(p) => setNewExpense({ ...newExpense, responsible: p })} people={people} />
