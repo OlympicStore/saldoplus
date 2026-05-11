@@ -573,6 +573,16 @@ const AdminDashboard = () => {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1 justify-end">
+                        {showRenew && (
+                          <button
+                            disabled={updatingUser === u.id}
+                            onClick={() => renewPlan(u)}
+                            className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors disabled:opacity-30"
+                            title="Renovar plano por 1 ano"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           disabled={updatingUser === u.id || PLAN_ORDER.indexOf(u.plan) === PLAN_ORDER.length - 1}
                           onClick={() => changePlan(u.id, PLAN_ORDER[PLAN_ORDER.indexOf(u.plan) + 1])}
