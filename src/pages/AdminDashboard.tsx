@@ -7,7 +7,7 @@ import AdminPartners from "@/components/AdminPartners";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search, Check,
   ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
-  MessageSquarePlus, ShoppingCart, Briefcase,
+  MessageSquarePlus, ShoppingCart, Briefcase, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -22,6 +22,8 @@ interface UserProfile {
   created_at: string;
   plan_started_at: string | null;
   plan_expires_at: string | null;
+  account_status?: string | null;
+  trial_ends_at?: string | null;
 }
 
 interface Suggestion {
@@ -137,6 +139,48 @@ const AdminDashboard = () => {
     } else {
       toast.success(`Plano atualizado para ${newPlan} (válido até ${newPlan !== "essencial" ? expiresAt.toLocaleDateString("pt-PT") : "—"})`);
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, plan: newPlan, plan_started_at: newPlan !== "essencial" ? now.toISOString() : null, plan_expires_at: newPlan !== "essencial" ? expiresAt.toISOString() : null } : u)));
+      const { data } = await supabase.rpc("get_admin_stats");
+      if (data) setStats(data as unknown as Stats);
+    }
+    setUpdatingUser(null);
+  };
+
+  const renewPlan = async (user: UserProfile) => {
+    const targetPlan: Plan = user.plan === "essencial" ? "casa" : (user.plan as Plan);
+    if (!confirm(`Renovar o plano de ${user.email} para ${targetPlan} por mais 1 ano?`)) return;
+    setUpdatingUser(user.id);
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    expiresAt.setDate(expiresAt.getDate() - 1);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        plan: targetPlan,
+        plan_source: "direct",
+        plan_started_at: now.toISOString(),
+        plan_expires_at: expiresAt.toISOString(),
+        account_status: "active",
+        trial_started_at: null,
+        trial_ends_at: null,
+        grace_period_ends_at: null,
+        data_deleted_at: null,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      toast.error("Erro ao renovar plano: " + error.message);
+    } else {
+      toast.success(`Plano ${targetPlan} renovado até ${expiresAt.toLocaleDateString("pt-PT")}`);
+      setUsers((prev) => prev.map((u) => u.id === user.id ? {
+        ...u,
+        plan: targetPlan,
+        plan_started_at: now.toISOString(),
+        plan_expires_at: expiresAt.toISOString(),
+        account_status: "active",
+        trial_ends_at: null,
+      } : u));
       const { data } = await supabase.rpc("get_admin_stats");
       if (data) setStats(data as unknown as Stats);
     }
@@ -492,6 +536,8 @@ const AdminDashboard = () => {
               <tbody>
                 {filteredUsers.map((u) => {
                   const isExpired = u.plan_expires_at && new Date(u.plan_expires_at) < new Date();
+                  const isTrialExpired = u.account_status === "trial_expired" || u.account_status === "data_deleted";
+                  const showRenew = isExpired || isTrialExpired;
                   return (
                   <tr key={u.id} className="border-b border-border-subtle/20 hover:bg-surface-hover transition-colors">
                     <td className="px-5 py-3">
@@ -508,6 +554,7 @@ const AdminDashboard = () => {
                         {u.plan}
                       </span>
                       {isExpired && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[hsl(var(--status-negative)/0.15)] text-status-negative">Expirado</span>}
+                      {isTrialExpired && !isExpired && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[hsl(var(--status-negative)/0.15)] text-status-negative">Teste expirado</span>}
                     </td>
                     <td className="px-5 py-3">
                       {u.plan_expires_at ? (
@@ -526,6 +573,16 @@ const AdminDashboard = () => {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1 justify-end">
+                        {showRenew && (
+                          <button
+                            disabled={updatingUser === u.id}
+                            onClick={() => renewPlan(u)}
+                            className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors disabled:opacity-30"
+                            title="Renovar plano por 1 ano"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           disabled={updatingUser === u.id || PLAN_ORDER.indexOf(u.plan) === PLAN_ORDER.length - 1}
                           onClick={() => changePlan(u.id, PLAN_ORDER[PLAN_ORDER.indexOf(u.plan) + 1])}
@@ -593,6 +650,16 @@ const AdminDashboard = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-1">
+                    {((u.plan_expires_at && new Date(u.plan_expires_at) < new Date()) || u.account_status === "trial_expired" || u.account_status === "data_deleted") && (
+                      <button
+                        disabled={updatingUser === u.id}
+                        onClick={() => renewPlan(u)}
+                        className="p-1.5 rounded-lg text-primary transition-colors disabled:opacity-30"
+                        title="Renovar plano"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       disabled={updatingUser === u.id || PLAN_ORDER.indexOf(u.plan) === PLAN_ORDER.length - 1}
                       onClick={() => changePlan(u.id, PLAN_ORDER[PLAN_ORDER.indexOf(u.plan) + 1])}
