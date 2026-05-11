@@ -28,6 +28,7 @@ import { usePersistedData } from "@/hooks/usePersistedData";
 import PullToRefresh from "@/components/PullToRefresh";
 import type { BillAttachment, FixedExpense } from "@/types/expense";
 import { ym } from "@/lib/yearMonth";
+import { isDateInYear } from "@/lib/dateOnly";
 
 const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const MIN_YEAR = 2026;
@@ -145,10 +146,10 @@ const Index = () => {
   });
 
   // Date-based data: filter by year
-  const yearVariableExpenses = data.variableExpenses.filter(e => new Date(e.date).getFullYear() === selectedYear);
-  const yearIncomes = data.incomes.filter(i => new Date(i.date).getFullYear() === selectedYear);
-  const yearInvestments = data.investments.filter(i => new Date(i.date).getFullYear() === selectedYear);
-  const yearTransfers = data.transfers.filter(t => new Date(t.date).getFullYear() === selectedYear);
+  const yearVariableExpenses = data.variableExpenses.filter(e => isDateInYear(e.date, selectedYear));
+  const yearIncomes = data.incomes.filter(i => isDateInYear(i.date, selectedYear));
+  const yearInvestments = data.investments.filter(i => isDateInYear(i.date, selectedYear));
+  const yearTransfers = data.transfers.filter(t => isDateInYear(t.date, selectedYear));
 
   const yearSalaryConfigs = data.salaryConfigs.map(config => {
     const monthlyValues: Record<number, number> = {};
