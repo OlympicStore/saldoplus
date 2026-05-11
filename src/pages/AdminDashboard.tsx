@@ -554,6 +554,7 @@ const AdminDashboard = () => {
                         {u.plan}
                       </span>
                       {isExpired && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[hsl(var(--status-negative)/0.15)] text-status-negative">Expirado</span>}
+                      {isTrialExpired && !isExpired && <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[hsl(var(--status-negative)/0.15)] text-status-negative">Teste expirado</span>}
                     </td>
                     <td className="px-5 py-3">
                       {u.plan_expires_at ? (
