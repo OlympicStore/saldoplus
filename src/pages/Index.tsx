@@ -25,6 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
+import PullToRefresh from "@/components/PullToRefresh";
 import type { BillAttachment, FixedExpense } from "@/types/expense";
 import { ym } from "@/lib/yearMonth";
 
