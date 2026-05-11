@@ -43,9 +43,9 @@ export function usePersistedData(subAccountId?: string | null) {
   // Helper to add sub_account_id to insert payloads
   const subField = subAccountId ? { sub_account_id: subAccountId } : {};
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!userId) return;
-    const load = async () => {
+    {
       const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr] = await Promise.all([
         withSub(supabase.from("fixed_expenses").select("*").eq("user_id", userId)),
         withSub(supabase.from("variable_expenses").select("*").eq("user_id", userId)),
@@ -197,9 +197,37 @@ export function usePersistedData(subAccountId?: string | null) {
       }
 
       setLoaded(true);
-    };
-    load();
+    }
   }, [userId, subAccountId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Realtime: refetch when any relevant table changes for this user
+  useEffect(() => {
+    if (!userId) return;
+    const tables = [
+      "fixed_expenses", "variable_expenses", "incomes", "salary_configs",
+      "financial_goals", "bill_records", "user_settings", "accounts",
+      "investments", "categories", "transfers",
+    ];
+    const channel = supabase.channel(`user-data-${userId}`);
+    let debounced: ReturnType<typeof setTimeout> | null = null;
+    const trigger = () => {
+      if (debounced) clearTimeout(debounced);
+      debounced = setTimeout(() => { load(); }, 300);
+    };
+    for (const t of tables) {
+      channel.on(
+        "postgres_changes" as any,
+        { event: "*", schema: "public", table: t, filter: `user_id=eq.${userId}` },
+        trigger
+      );
+    }
+    channel.subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, load]);
 
   // --- Sync helpers ---
   const syncFixedExpense = useCallback(async (expense: FixedExpense) => {
@@ -592,5 +620,6 @@ export function usePersistedData(subAccountId?: string | null) {
     addCategoryItem, updateCategoryItem, deleteCategoryItem,
     addTransfer, deleteTransfer,
     refetchFixedExpenses,
+    reload: load,
   };
 }

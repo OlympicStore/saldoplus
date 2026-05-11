@@ -25,6 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
+import PullToRefresh from "@/components/PullToRefresh";
 import type { BillAttachment, FixedExpense } from "@/types/expense";
 import { ym } from "@/lib/yearMonth";
 
@@ -231,6 +232,7 @@ const Index = () => {
   }
 
   return (
+    <PullToRefresh onRefresh={() => data.reload()}>
     <div className="min-h-screen bg-background">
       <PartnerOnboarding />
       <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange} plan={userPlan} />
@@ -532,6 +534,7 @@ const Index = () => {
         {activeTab === "account" && <AccountPanel onShowTour={handleShowTour} />}
       </main>
     </div>
+    </PullToRefresh>
   );
 };
 
