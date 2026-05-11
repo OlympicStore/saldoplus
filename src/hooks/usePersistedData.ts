@@ -620,5 +620,6 @@ export function usePersistedData(subAccountId?: string | null) {
     addCategoryItem, updateCategoryItem, deleteCategoryItem,
     addTransfer, deleteTransfer,
     refetchFixedExpenses,
+    reload: load,
   };
 }
