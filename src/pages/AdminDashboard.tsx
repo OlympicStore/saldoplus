@@ -650,6 +650,16 @@ const AdminDashboard = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-1">
+                    {((u.plan_expires_at && new Date(u.plan_expires_at) < new Date()) || u.account_status === "trial_expired" || u.account_status === "data_deleted") && (
+                      <button
+                        disabled={updatingUser === u.id}
+                        onClick={() => renewPlan(u)}
+                        className="p-1.5 rounded-lg text-primary transition-colors disabled:opacity-30"
+                        title="Renovar plano"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       disabled={updatingUser === u.id || PLAN_ORDER.indexOf(u.plan) === PLAN_ORDER.length - 1}
                       onClick={() => changePlan(u.id, PLAN_ORDER[PLAN_ORDER.indexOf(u.plan) + 1])}
