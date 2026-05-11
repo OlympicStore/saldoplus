@@ -14,6 +14,7 @@ import type { Income as IncomeType, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
 import type { Transfer } from "@/types/transfer";
 import { TransfersBetweenAccounts } from "./TransfersBetweenAccounts";
+import { formatDateOnly, isDateInMonth } from "@/lib/dateOnly";
 
 interface EntriesProps {
   incomes: IncomeType[];
@@ -39,7 +40,7 @@ export const Entries = ({
   const [showForm, setShowForm] = useState(false);
   const [newEntry, setNewEntry] = useState({ category: "Salário", account: "", value: "", date: "", description: "" });
 
-  const monthIncomes = incomes.filter(i => new Date(i.date).getMonth() === selectedMonth);
+  const monthIncomes = incomes.filter(i => isDateInMonth(i.date, selectedMonth));
   const totalEntries = monthIncomes.reduce((s, i) => s + i.value, 0);
 
   const handleAdd = () => {
@@ -172,7 +173,7 @@ export const Entries = ({
               <div className="col-span-2 text-sm text-text-muted truncate">{row.account || "—"}</div>
               <div className="col-span-2 text-right font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</div>
               <div className="col-span-1 text-sm text-text-muted">
-                {row.date ? new Date(row.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }) : "—"}
+                {row.date ? formatDateOnly(row.date, { day: "2-digit", month: "2-digit" }) : "—"}
               </div>
               <div className="col-span-1 text-right">
                 <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
@@ -202,7 +203,7 @@ export const Entries = ({
                   </button>
                 </div>
               </div>
-              {row.date && <p className="text-xs text-text-muted mt-1 ml-10">{new Date(row.date).toLocaleDateString("pt-PT")}</p>}
+              {row.date && <p className="text-xs text-text-muted mt-1 ml-10">{formatDateOnly(row.date)}</p>}
             </div>
           </div>
           );
