@@ -186,6 +186,8 @@ const AdminDashboard = () => {
     }
     setUpdatingUser(null);
   };
+
+  const createUser = async () => {
     if (!newUser.email || !newUser.password) {
       toast.error("Email e password são obrigatórios");
       return;
