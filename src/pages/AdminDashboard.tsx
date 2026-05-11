@@ -145,7 +145,47 @@ const AdminDashboard = () => {
     setUpdatingUser(null);
   };
 
-  const createUser = async () => {
+  const renewPlan = async (user: UserProfile) => {
+    const targetPlan: Plan = user.plan === "essencial" ? "casa" : (user.plan as Plan);
+    if (!confirm(`Renovar o plano de ${user.email} para ${targetPlan} por mais 1 ano?`)) return;
+    setUpdatingUser(user.id);
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    expiresAt.setDate(expiresAt.getDate() - 1);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        plan: targetPlan,
+        plan_source: "direct",
+        plan_started_at: now.toISOString(),
+        plan_expires_at: expiresAt.toISOString(),
+        account_status: "active",
+        trial_started_at: null,
+        trial_ends_at: null,
+        grace_period_ends_at: null,
+        data_deleted_at: null,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      toast.error("Erro ao renovar plano: " + error.message);
+    } else {
+      toast.success(`Plano ${targetPlan} renovado até ${expiresAt.toLocaleDateString("pt-PT")}`);
+      setUsers((prev) => prev.map((u) => u.id === user.id ? {
+        ...u,
+        plan: targetPlan,
+        plan_started_at: now.toISOString(),
+        plan_expires_at: expiresAt.toISOString(),
+        account_status: "active",
+        trial_ends_at: null,
+      } : u));
+      const { data } = await supabase.rpc("get_admin_stats");
+      if (data) setStats(data as unknown as Stats);
+    }
+    setUpdatingUser(null);
+  };
     if (!newUser.email || !newUser.password) {
       toast.error("Email e password são obrigatórios");
       return;
