@@ -536,6 +536,8 @@ const AdminDashboard = () => {
               <tbody>
                 {filteredUsers.map((u) => {
                   const isExpired = u.plan_expires_at && new Date(u.plan_expires_at) < new Date();
+                  const isTrialExpired = u.account_status === "trial_expired" || u.account_status === "data_deleted";
+                  const showRenew = isExpired || isTrialExpired;
                   return (
                   <tr key={u.id} className="border-b border-border-subtle/20 hover:bg-surface-hover transition-colors">
                     <td className="px-5 py-3">
