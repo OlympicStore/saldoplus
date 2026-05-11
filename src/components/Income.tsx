@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import type { Income as IncomeType, SalaryConfig } from "@/types/income";
+import { formatDateOnly, isDateInMonth } from "@/lib/dateOnly";
 
 interface IncomeProps {
   incomes: IncomeType[];
@@ -25,7 +26,7 @@ export const Income = ({
   const [editSalaryVal, setEditSalaryVal] = useState("");
   const [newIncome, setNewIncome] = useState({ description: "", value: "", person: null as string | null, date: "" });
 
-  const monthIncomes = incomes.filter((i) => new Date(i.date).getMonth() === selectedMonth);
+  const monthIncomes = incomes.filter((i) => isDateInMonth(i.date, selectedMonth));
   const activeSalaries = salaryConfigs.filter((s) => s.active);
   const totalSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[selectedMonth] ?? 0), 0);
   const totalOther = monthIncomes.filter((i) => i.type === "other").reduce((s, i) => s + i.value, 0);
@@ -178,7 +179,7 @@ export const Income = ({
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-foreground">{income.description}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-text-muted">{new Date(income.date).toLocaleDateString("pt-PT")}</span>
+                    <span className="text-xs text-text-muted">{formatDateOnly(income.date)}</span>
                     {income.person && <span className="text-xs text-text-muted">· {income.person}</span>}
                   </div>
                 </div>
