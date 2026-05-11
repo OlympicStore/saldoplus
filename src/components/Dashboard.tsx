@@ -7,6 +7,7 @@ import type { Income, SalaryConfig } from "@/types/income";
 import type { FinancialGoal } from "@/types/goal";
 import { TERM_LABELS, TERM_COLORS } from "@/types/goal";
 import type { Account } from "@/types/account";
+import { isDateInMonth } from "@/lib/dateOnly";
 
 const personColors = [
   { bar: "bg-person-claudia", bg: "bg-person-claudia-bg", text: "text-person-claudia" },
@@ -43,7 +44,7 @@ export const Dashboard = ({
 
   // === CALCULATIONS ===
   const getMonthData = (month: number) => {
-    const monthVars = variableExpenses.filter((e) => new Date(e.date).getMonth() === month);
+    const monthVars = variableExpenses.filter((e) => isDateInMonth(e.date, month));
     // Only count PAID fixed expenses in the auto balance
     const totalFixedPaid = fixedExpenses
       .filter(e => e.monthlyPaid[month])
@@ -54,7 +55,7 @@ export const Dashboard = ({
     const totalExpensesPaid = totalFixedPaid + totalVariable;
     const activeSalaries = salaryConfigs.filter((s) => s.active);
     const configuredSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[month] ?? 0), 0);
-    const monthIncomesInMonth = incomes.filter((i) => new Date(i.date).getMonth() === month);
+    const monthIncomesInMonth = incomes.filter((i) => isDateInMonth(i.date, month));
     const salaryEntries = monthIncomesInMonth.filter((i) => i.type === "salary").reduce((s, i) => s + i.value, 0);
     const monthOtherIncome = monthIncomesInMonth.filter((i) => i.type === "other").reduce((s, i) => s + i.value, 0);
     const totalSalary = configuredSalary + salaryEntries;
