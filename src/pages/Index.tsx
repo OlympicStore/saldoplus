@@ -232,7 +232,7 @@ const Index = () => {
   }
 
   return (
-    <PullToRefresh onRefresh={() => data.reload()}>
+    <PullToRefresh onRefresh={async () => { await data.reload(); window.location.reload(); }}>
     <div className="min-h-screen bg-background">
       <PartnerOnboarding />
       <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange} plan={userPlan} />
