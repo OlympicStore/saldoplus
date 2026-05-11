@@ -534,6 +534,7 @@ const Index = () => {
         {activeTab === "account" && <AccountPanel onShowTour={handleShowTour} />}
       </main>
     </div>
+    </PullToRefresh>
   );
 };
 
