@@ -22,6 +22,8 @@ interface UserProfile {
   created_at: string;
   plan_started_at: string | null;
   plan_expires_at: string | null;
+  account_status?: string | null;
+  trial_ends_at?: string | null;
 }
 
 interface Suggestion {
