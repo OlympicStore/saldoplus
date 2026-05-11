@@ -43,9 +43,9 @@ export function usePersistedData(subAccountId?: string | null) {
   // Helper to add sub_account_id to insert payloads
   const subField = subAccountId ? { sub_account_id: subAccountId } : {};
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!userId) return;
-    const load = async () => {
+    {
       const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr] = await Promise.all([
         withSub(supabase.from("fixed_expenses").select("*").eq("user_id", userId)),
         withSub(supabase.from("variable_expenses").select("*").eq("user_id", userId)),
