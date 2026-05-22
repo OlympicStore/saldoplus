@@ -237,6 +237,7 @@ const Pricing = () => {
         </div>
       </header>
 
+      <main>
       {/* Hero */}
       <section className="relative overflow-hidden">
         {/* Subtle background gradient */}
@@ -731,6 +732,7 @@ const Pricing = () => {
           </motion.div>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="border-t border-border-subtle/60 bg-surface py-10">
