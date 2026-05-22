@@ -1,0 +1,15 @@
+# Saldo+
+
+> Aplicação portuguesa de gestão financeira pessoal e familiar. Organize as finanças da sua casa em 5 minutos por semana com pagamento único e acesso por 1 ano.
+
+O Saldo+ ajuda famílias e indivíduos em Portugal a controlar despesas fixas e variáveis, rendimentos, investimentos, metas de poupança e divisão de contas por pessoa. Três planos disponíveis (Essencial, Casa, Pro) com pagamento único.
+
+## Pages
+
+- [Página inicial e preços](/): Visão geral do produto, funcionalidades, planos (Essencial, Casa, Pro) e perguntas frequentes.
+- [Termos de Serviço](/termos): Condições de utilização da aplicação.
+- [Política de Privacidade](/privacidade): Como tratamos os dados pessoais e financeiros (RGPD).
+
+## Optional
+
+- [Entrar / Criar conta](/auth): Acesso à aplicação para utilizadores registados.

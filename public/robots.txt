@@ -12,3 +12,13 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /parceiro
+Disallow: /consultor
+Disallow: /app
+Disallow: /payment-success
+Disallow: /trial-expired
+Disallow: /reset-password
+Disallow: /forgot-password
+
+Sitemap: https://saldoplus.lovable.app/sitemap.xml
