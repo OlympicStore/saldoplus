@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { motion, useInView } from "framer-motion";
 import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -184,6 +185,23 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Saldo+ — Controle as Finanças da Sua Casa</title>
+        <meta name="description" content="Pare de perder dinheiro sem perceber. O Saldo+ organiza as finanças da sua casa em 5 minutos por semana. Pagamento único, acesso por 1 ano." />
+        <link rel="canonical" href="https://saldoplus.lovable.app/" />
+        <meta property="og:title" content="Saldo+ — Controle as Finanças da Sua Casa" />
+        <meta property="og:description" content="Organize as finanças da sua casa em 5 minutos por semana." />
+        <meta property="og:url" content="https://saldoplus.lovable.app/" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        })}</script>
+      </Helmet>
       {/* Header */}
       <header className="border-b border-border-subtle/60 bg-surface/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
