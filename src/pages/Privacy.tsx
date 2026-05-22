@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft } from "lucide-react";
 
 const Privacy = () => {
@@ -6,6 +7,14 @@ const Privacy = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Política de Privacidade — Saldo+</title>
+        <meta name="description" content="Política de Privacidade do Saldo+: como recolhemos, usamos e protegemos os seus dados pessoais e financeiros (RGPD)." />
+        <link rel="canonical" href="https://saldoplus.lovable.app/privacidade" />
+        <meta property="og:title" content="Política de Privacidade — Saldo+" />
+        <meta property="og:description" content="Como tratamos os seus dados pessoais e financeiros (RGPD)." />
+        <meta property="og:url" content="https://saldoplus.lovable.app/privacidade" />
+      </Helmet>
       <header className="border-b border-border-subtle/60 bg-surface/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-text-muted hover:text-foreground transition-colors">
