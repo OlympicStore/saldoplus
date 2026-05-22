@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Mail, Lock, User, Eye, EyeOff, Sparkles } from "lucide-react";
@@ -72,7 +73,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <main className="min-h-screen bg-background flex items-center justify-center px-4">
+      <Helmet>
+        <title>Entrar — Saldo+</title>
+        <meta name="description" content="Aceda à sua conta Saldo+ ou crie uma nova para começar a controlar as finanças da sua casa." />
+        <link rel="canonical" href="https://saldoplus.lovable.app/auth" />
+        <meta property="og:title" content="Entrar — Saldo+" />
+        <meta property="og:url" content="https://saldoplus.lovable.app/auth" />
+      </Helmet>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
