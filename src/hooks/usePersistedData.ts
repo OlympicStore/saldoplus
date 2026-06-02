@@ -95,6 +95,7 @@ export function usePersistedData(subAccountId?: string | null) {
           id: r.id, date: r.date, description: r.description,
           category: r.category, value: Number(r.value), responsible: r.responsible,
           account: r.account || "", recurring: r.recurring ?? false,
+          paid: r.paid ?? false,
         })));
       }
 
