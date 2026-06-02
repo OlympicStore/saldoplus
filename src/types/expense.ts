@@ -24,6 +24,7 @@ export interface VariableExpense {
   responsible: string | null;
   account: string;
   recurring: boolean;
+  paid?: boolean;
 }
 
 export interface MonthlyBillRecord {
@@ -36,6 +37,8 @@ export interface MonthlyBillRecord {
 export interface BillAttachment {
   bill: string;
   month: number;
+  year: number;
   fileName: string;
   fileUrl: string;
+  filePath: string;
 }
