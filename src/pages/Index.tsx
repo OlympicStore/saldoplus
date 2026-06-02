@@ -496,8 +496,8 @@ const Index = () => {
           />
         )}
         {activeTab === "annual" && (
-          <AnnualOverview records={data.billRecords} attachments={billAttachments} billNames={allBillNames}
-            onUpdate={data.updateBillRecord} onAttach={addAttachment} onRemoveAttachment={removeAttachment}
+          <AnnualOverview records={data.billRecords} attachments={data.billAttachments} billNames={allBillNames}
+            onUpdate={data.updateBillRecord} onAttach={data.addBillAttachment} onRemoveAttachment={data.removeBillAttachment}
             fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses} goals={data.financialGoals} people={data.people}
             onAddBill={yearAddFixed} onRemoveBill={data.deleteFixed} selectedMonth={selectedMonth} selectedYear={selectedYear} />
         )}
