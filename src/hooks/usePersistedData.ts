@@ -264,6 +264,7 @@ export function usePersistedData(subAccountId?: string | null) {
       description: expense.description, category: expense.category,
       value: expense.value, responsible: expense.responsible,
       account: expense.account || "", recurring: expense.recurring ?? false,
+      paid: expense.paid ?? false,
     }, { onConflict: "id" });
   }, [userId, subAccountId]);
 
