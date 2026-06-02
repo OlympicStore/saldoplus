@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus } from "@/types/expense";
+import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus, BillAttachment } from "@/types/expense";
 import type { FinancialGoal } from "@/types/goal";
 import type { Income, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
