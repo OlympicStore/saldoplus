@@ -227,7 +227,7 @@ export function usePersistedData(subAccountId?: string | null) {
     const tables = [
       "fixed_expenses", "variable_expenses", "incomes", "salary_configs",
       "financial_goals", "bill_records", "user_settings", "accounts",
-      "investments", "categories", "transfers",
+      "investments", "categories", "transfers", "bill_attachments",
     ];
     const channel = supabase.channel(`user-data-${userId}`);
     let debounced: ReturnType<typeof setTimeout> | null = null;
