@@ -171,6 +171,20 @@ export function usePersistedData(subAccountId?: string | null) {
         })));
       }
 
+      if (ba.data?.length) {
+        const items = await Promise.all(ba.data.map(async (r: any) => {
+          const { data: signed } = await supabase.storage.from("bill-attachments")
+            .createSignedUrl(r.file_path, 60 * 60 * 24);
+          return {
+            bill: r.bill, month: r.month, year: r.year ?? 2026,
+            fileName: r.file_name, fileUrl: signed?.signedUrl ?? "", filePath: r.file_path,
+          } as BillAttachment;
+        }));
+        setBillAttachments(items);
+      } else {
+        setBillAttachments([]);
+      }
+
       if (cat.data?.length) {
         setCategories(cat.data.map((r: any) => ({
           id: r.id, name: r.name, type: r.type as Category["type"],
