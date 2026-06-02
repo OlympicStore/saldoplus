@@ -33,8 +33,8 @@ interface AnnualOverviewProps {
   attachments: BillAttachment[];
   billNames: string[];
   onUpdate: (bill: string, month: number, status: BillStatus, year: number) => void;
-  onAttach: (bill: string, month: number, file: File) => void;
-  onRemoveAttachment: (bill: string, month: number) => void;
+  onAttach: (bill: string, month: number, year: number, file: File) => void;
+  onRemoveAttachment: (bill: string, month: number, year: number) => void;
   fixedExpenses: FixedExpense[];
   variableExpenses: VariableExpense[];
   goals: FinancialGoal[];
