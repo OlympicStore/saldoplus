@@ -355,7 +355,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
                               className="text-status-paid hover:scale-110 transition-transform">
                               <FileCheck className="h-3.5 w-3.5" />
                             </a>
-                            <button onClick={() => onRemoveAttachment(bill, monthIdx)}
+                            <button onClick={() => onRemoveAttachment(bill, monthIdx, selectedYear)}
                               className="text-text-muted hover:text-status-negative transition-colors" title="Remover comprovativo">
                               <X className="h-3 w-3" />
                             </button>
