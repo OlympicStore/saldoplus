@@ -26,7 +26,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
 import PullToRefresh from "@/components/PullToRefresh";
-import type { BillAttachment, FixedExpense } from "@/types/expense";
+import type { FixedExpense } from "@/types/expense";
 import { ym } from "@/lib/yearMonth";
 import { isDateInYear } from "@/lib/dateOnly";
 
@@ -112,21 +112,7 @@ const Index = () => {
     setActiveTab(nextTab);
   }, [requestedTab, userPlan]);
 
-  const [billAttachments, setBillAttachments] = useState<BillAttachment[]>([]);
-  const addAttachment = (bill: string, month: number, file: File) => {
-    const fileUrl = URL.createObjectURL(file);
-    setBillAttachments((prev) => {
-      const filtered = prev.filter((a) => !(a.bill === bill && a.month === month));
-      return [...filtered, { bill, month, fileName: file.name, fileUrl }];
-    });
-  };
-  const removeAttachment = (bill: string, month: number) => {
-    setBillAttachments((prev) => {
-      const att = prev.find((a) => a.bill === bill && a.month === month);
-      if (att) URL.revokeObjectURL(att.fileUrl);
-      return prev.filter((a) => !(a.bill === bill && a.month === month));
-    });
-  };
+  // Attachments now persist via Supabase Storage + bill_attachments table (see usePersistedData).
 
   const data = usePersistedData(currentSubAccountId);
 
@@ -510,8 +496,8 @@ const Index = () => {
           />
         )}
         {activeTab === "annual" && (
-          <AnnualOverview records={data.billRecords} attachments={billAttachments} billNames={allBillNames}
-            onUpdate={data.updateBillRecord} onAttach={addAttachment} onRemoveAttachment={removeAttachment}
+          <AnnualOverview records={data.billRecords} attachments={data.billAttachments} billNames={allBillNames}
+            onUpdate={data.updateBillRecord} onAttach={data.addBillAttachment} onRemoveAttachment={data.removeBillAttachment}
             fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses} goals={data.financialGoals} people={data.people}
             onAddBill={yearAddFixed} onRemoveBill={data.deleteFixed} selectedMonth={selectedMonth} selectedYear={selectedYear} />
         )}

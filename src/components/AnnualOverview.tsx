@@ -33,8 +33,8 @@ interface AnnualOverviewProps {
   attachments: BillAttachment[];
   billNames: string[];
   onUpdate: (bill: string, month: number, status: BillStatus, year: number) => void;
-  onAttach: (bill: string, month: number, file: File) => void;
-  onRemoveAttachment: (bill: string, month: number) => void;
+  onAttach: (bill: string, month: number, year: number, file: File) => void;
+  onRemoveAttachment: (bill: string, month: number, year: number) => void;
   fixedExpenses: FixedExpense[];
   variableExpenses: VariableExpense[];
   goals: FinancialGoal[];
@@ -60,7 +60,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   };
 
   const getAttachment = (bill: string, month: number) => {
-    return attachments.find((a) => a.bill === bill && a.month === month);
+    return attachments.find((a) => a.bill === bill && a.month === month && a.year === selectedYear);
   };
 
   const cycleStatus = (bill: string, month: number) => {
@@ -77,7 +77,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && pendingTarget.current) {
-      onAttach(pendingTarget.current.bill, pendingTarget.current.month, file);
+      onAttach(pendingTarget.current.bill, pendingTarget.current.month, selectedYear, file);
     }
     pendingTarget.current = null;
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -355,7 +355,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
                               className="text-status-paid hover:scale-110 transition-transform">
                               <FileCheck className="h-3.5 w-3.5" />
                             </a>
-                            <button onClick={() => onRemoveAttachment(bill, monthIdx)}
+                            <button onClick={() => onRemoveAttachment(bill, monthIdx, selectedYear)}
                               className="text-text-muted hover:text-status-negative transition-colors" title="Remover comprovativo">
                               <X className="h-3 w-3" />
                             </button>
@@ -402,7 +402,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
                         <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="text-status-paid">
                           <FileCheck className="h-3 w-3" />
                         </a>
-                        <button onClick={() => onRemoveAttachment(bill, monthIdx)} className="text-text-muted">
+                        <button onClick={() => onRemoveAttachment(bill, monthIdx, selectedYear)} className="text-text-muted">
                           <X className="h-2.5 w-2.5" />
                         </button>
                       </div>

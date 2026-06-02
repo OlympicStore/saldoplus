@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus } from "@/types/expense";
+import type { FixedExpense, VariableExpense, MonthlyBillRecord, BillStatus, BillAttachment } from "@/types/expense";
 import type { FinancialGoal } from "@/types/goal";
 import type { Income, SalaryConfig } from "@/types/income";
 import type { Account } from "@/types/account";
@@ -25,6 +25,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const [salaryConfigs, setSalaryConfigs] = useState<SalaryConfig[]>([]);
   const [financialGoals, setFinancialGoals] = useState<FinancialGoal[]>([]);
   const [billRecords, setBillRecords] = useState<MonthlyBillRecord[]>([]);
+  const [billAttachments, setBillAttachments] = useState<BillAttachment[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
@@ -46,7 +47,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const load = useCallback(async () => {
     if (!userId) return;
     {
-      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr] = await Promise.all([
+      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr, ba] = await Promise.all([
         withSub(supabase.from("fixed_expenses").select("*").eq("user_id", userId)),
         withSub(supabase.from("variable_expenses").select("*").eq("user_id", userId)),
         withSub(supabase.from("incomes").select("*").eq("user_id", userId)),
@@ -58,6 +59,7 @@ export function usePersistedData(subAccountId?: string | null) {
         withSub(supabase.from("investments").select("*").eq("user_id", userId)),
         withSub(supabase.from("categories").select("*").eq("user_id", userId)),
         withSub(supabase.from("transfers").select("*").eq("user_id", userId)),
+        withSub(supabase.from("bill_attachments").select("*").eq("user_id", userId)),
       ]);
 
       if (fe.data?.length) {
@@ -93,6 +95,7 @@ export function usePersistedData(subAccountId?: string | null) {
           id: r.id, date: r.date, description: r.description,
           category: r.category, value: Number(r.value), responsible: r.responsible,
           account: r.account || "", recurring: r.recurring ?? false,
+          paid: r.paid ?? false,
         })));
       }
 
@@ -168,6 +171,20 @@ export function usePersistedData(subAccountId?: string | null) {
         })));
       }
 
+      if (ba.data?.length) {
+        const items = await Promise.all(ba.data.map(async (r: any) => {
+          const { data: signed } = await supabase.storage.from("bill-attachments")
+            .createSignedUrl(r.file_path, 60 * 60 * 24);
+          return {
+            bill: r.bill, month: r.month, year: r.year ?? 2026,
+            fileName: r.file_name, fileUrl: signed?.signedUrl ?? "", filePath: r.file_path,
+          } as BillAttachment;
+        }));
+        setBillAttachments(items);
+      } else {
+        setBillAttachments([]);
+      }
+
       if (cat.data?.length) {
         setCategories(cat.data.map((r: any) => ({
           id: r.id, name: r.name, type: r.type as Category["type"],
@@ -210,7 +227,7 @@ export function usePersistedData(subAccountId?: string | null) {
     const tables = [
       "fixed_expenses", "variable_expenses", "incomes", "salary_configs",
       "financial_goals", "bill_records", "user_settings", "accounts",
-      "investments", "categories", "transfers",
+      "investments", "categories", "transfers", "bill_attachments",
     ];
     const channel = supabase.channel(`user-data-${userId}`);
     let debounced: ReturnType<typeof setTimeout> | null = null;
@@ -247,6 +264,7 @@ export function usePersistedData(subAccountId?: string | null) {
       description: expense.description, category: expense.category,
       value: expense.value, responsible: expense.responsible,
       account: expense.account || "", recurring: expense.recurring ?? false,
+      paid: expense.paid ?? false,
     }, { onConflict: "id" });
   }, [userId, subAccountId]);
 
@@ -433,6 +451,49 @@ export function usePersistedData(subAccountId?: string | null) {
     syncBillRecord(bill, month, year, status);
   }, [syncBillRecord]);
 
+  // Bill attachments (storage + table)
+  const addBillAttachment = useCallback(async (bill: string, month: number, year: number, file: File) => {
+    if (!userId) return;
+    const safeBill = bill.replace(/[^a-zA-Z0-9-_]/g, "_");
+    const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
+    const path = `${userId}/${year}/${safeBill}-${month}-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("bill-attachments")
+      .upload(path, file, { upsert: true, contentType: file.type || undefined });
+    if (upErr) { console.error("upload failed", upErr); return; }
+
+    // Remove previous attachment for same (bill,month,year)
+    const previous = billAttachments.find(a => a.bill === bill && a.month === month && a.year === year);
+    if (previous?.filePath) {
+      await supabase.storage.from("bill-attachments").remove([previous.filePath]);
+    }
+
+    await supabase.from("bill_attachments").upsert({ ...subField,
+      user_id: userId, bill, month, year, file_name: file.name, file_path: path,
+    } as any, { onConflict: subAccountId ? "user_id,bill,month,year,sub_account_id" : "user_id,bill,month,year" });
+
+    const { data: signed } = await supabase.storage.from("bill-attachments")
+      .createSignedUrl(path, 60 * 60 * 24);
+
+    setBillAttachments(prev => {
+      const filtered = prev.filter(a => !(a.bill === bill && a.month === month && a.year === year));
+      return [...filtered, { bill, month, year, fileName: file.name, fileUrl: signed?.signedUrl ?? "", filePath: path }];
+    });
+  }, [userId, subAccountId, billAttachments]);
+
+  const removeBillAttachment = useCallback(async (bill: string, month: number, year: number) => {
+    if (!userId) return;
+    const previous = billAttachments.find(a => a.bill === bill && a.month === month && a.year === year);
+    if (previous?.filePath) {
+      await supabase.storage.from("bill-attachments").remove([previous.filePath]);
+    }
+    const delQuery = supabase.from("bill_attachments").delete()
+      .eq("user_id", userId).eq("bill", bill).eq("month", month).eq("year", year);
+    if (subAccountId) await delQuery.eq("sub_account_id", subAccountId);
+    else await delQuery.is("sub_account_id", null);
+    setBillAttachments(prev => prev.filter(a => !(a.bill === bill && a.month === month && a.year === year)));
+  }, [userId, subAccountId, billAttachments]);
+
+
   const addGoal = useCallback((goal: FinancialGoal) => {
     setFinancialGoals(prev => [...prev, goal]);
     syncGoal(goal);
@@ -607,12 +668,12 @@ export function usePersistedData(subAccountId?: string | null) {
   return {
     loaded,
     fixedExpenses, variableExpenses, incomes, salaryConfigs,
-    financialGoals, billRecords, people, variableCategories, currentBalance,
+    financialGoals, billRecords, billAttachments, people, variableCategories, currentBalance,
     accounts, investments, categories, transfers,
     addFixed, deleteFixed, updateFixed, updateFixedMonthly,
     addVariable, updateVariable, deleteVariable,
     addIncome, updateIncome, deleteIncome, updateSalary,
-    updateBillRecord,
+    updateBillRecord, addBillAttachment, removeBillAttachment,
     addGoal, updateGoal, deleteGoal,
     updatePeople, addCategory, deleteCategory, updateBalance,
     addAccount, updateAccount, deleteAccount,
