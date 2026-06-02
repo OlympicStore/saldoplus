@@ -60,7 +60,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   };
 
   const getAttachment = (bill: string, month: number) => {
-    return attachments.find((a) => a.bill === bill && a.month === month);
+    return attachments.find((a) => a.bill === bill && a.month === month && a.year === selectedYear);
   };
 
   const cycleStatus = (bill: string, month: number) => {
@@ -77,7 +77,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && pendingTarget.current) {
-      onAttach(pendingTarget.current.bill, pendingTarget.current.month, file);
+      onAttach(pendingTarget.current.bill, pendingTarget.current.month, selectedYear, file);
     }
     pendingTarget.current = null;
     if (fileInputRef.current) fileInputRef.current.value = "";
