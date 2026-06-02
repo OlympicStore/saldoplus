@@ -58,6 +58,53 @@ export type Database = {
           },
         ]
       }
+      bill_attachments: {
+        Row: {
+          bill: string
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          month: number
+          sub_account_id: string | null
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          bill: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          month: number
+          sub_account_id?: string | null
+          updated_at?: string
+          user_id: string
+          year?: number
+        }
+        Update: {
+          bill?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          month?: number
+          sub_account_id?: string | null
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_attachments_sub_account_id_fkey"
+            columns: ["sub_account_id"]
+            isOneToOne: false
+            referencedRelation: "sub_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bill_records: {
         Row: {
           bill: string
@@ -1118,6 +1165,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          paid: boolean
           recurring: boolean
           responsible: string | null
           sub_account_id: string | null
@@ -1132,6 +1180,7 @@ export type Database = {
           date: string
           description?: string
           id?: string
+          paid?: boolean
           recurring?: boolean
           responsible?: string | null
           sub_account_id?: string | null
@@ -1146,6 +1195,7 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          paid?: boolean
           recurring?: boolean
           responsible?: string | null
           sub_account_id?: string | null
