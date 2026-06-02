@@ -138,6 +138,8 @@ export const Expenses = ({
   const toggleStatus = (row: ExpenseRow) => {
     if (row.kind === "fixed") {
       onUpdateFixedMonthly(row.id, selectedMonth, "paid", row.status !== "pago");
+    } else {
+      onUpdateVariable(row.id, { paid: row.status !== "pago" });
     }
   };
 
