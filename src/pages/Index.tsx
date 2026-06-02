@@ -112,21 +112,7 @@ const Index = () => {
     setActiveTab(nextTab);
   }, [requestedTab, userPlan]);
 
-  const [billAttachments, setBillAttachments] = useState<BillAttachment[]>([]);
-  const addAttachment = (bill: string, month: number, file: File) => {
-    const fileUrl = URL.createObjectURL(file);
-    setBillAttachments((prev) => {
-      const filtered = prev.filter((a) => !(a.bill === bill && a.month === month));
-      return [...filtered, { bill, month, fileName: file.name, fileUrl }];
-    });
-  };
-  const removeAttachment = (bill: string, month: number) => {
-    setBillAttachments((prev) => {
-      const att = prev.find((a) => a.bill === bill && a.month === month);
-      if (att) URL.revokeObjectURL(att.fileUrl);
-      return prev.filter((a) => !(a.bill === bill && a.month === month));
-    });
-  };
+  // Attachments now persist via Supabase Storage + bill_attachments table (see usePersistedData).
 
   const data = usePersistedData(currentSubAccountId);
 
