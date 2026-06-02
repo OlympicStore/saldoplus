@@ -47,7 +47,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const load = useCallback(async () => {
     if (!userId) return;
     {
-      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr] = await Promise.all([
+      const [fe, ve, inc, sc, fg, br, us, ac, inv, cat, tr, ba] = await Promise.all([
         withSub(supabase.from("fixed_expenses").select("*").eq("user_id", userId)),
         withSub(supabase.from("variable_expenses").select("*").eq("user_id", userId)),
         withSub(supabase.from("incomes").select("*").eq("user_id", userId)),
@@ -59,6 +59,7 @@ export function usePersistedData(subAccountId?: string | null) {
         withSub(supabase.from("investments").select("*").eq("user_id", userId)),
         withSub(supabase.from("categories").select("*").eq("user_id", userId)),
         withSub(supabase.from("transfers").select("*").eq("user_id", userId)),
+        withSub(supabase.from("bill_attachments").select("*").eq("user_id", userId)),
       ]);
 
       if (fe.data?.length) {
