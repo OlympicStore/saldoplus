@@ -451,6 +451,49 @@ export function usePersistedData(subAccountId?: string | null) {
     syncBillRecord(bill, month, year, status);
   }, [syncBillRecord]);
 
+  // Bill attachments (storage + table)
+  const addBillAttachment = useCallback(async (bill: string, month: number, year: number, file: File) => {
+    if (!userId) return;
+    const safeBill = bill.replace(/[^a-zA-Z0-9-_]/g, "_");
+    const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
+    const path = `${userId}/${year}/${safeBill}-${month}-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("bill-attachments")
+      .upload(path, file, { upsert: true, contentType: file.type || undefined });
+    if (upErr) { console.error("upload failed", upErr); return; }
+
+    // Remove previous attachment for same (bill,month,year)
+    const previous = billAttachments.find(a => a.bill === bill && a.month === month && a.year === year);
+    if (previous?.filePath) {
+      await supabase.storage.from("bill-attachments").remove([previous.filePath]);
+    }
+
+    await supabase.from("bill_attachments").upsert({ ...subField,
+      user_id: userId, bill, month, year, file_name: file.name, file_path: path,
+    } as any, { onConflict: subAccountId ? "user_id,bill,month,year,sub_account_id" : "user_id,bill,month,year" });
+
+    const { data: signed } = await supabase.storage.from("bill-attachments")
+      .createSignedUrl(path, 60 * 60 * 24);
+
+    setBillAttachments(prev => {
+      const filtered = prev.filter(a => !(a.bill === bill && a.month === month && a.year === year));
+      return [...filtered, { bill, month, year, fileName: file.name, fileUrl: signed?.signedUrl ?? "", filePath: path }];
+    });
+  }, [userId, subAccountId, billAttachments]);
+
+  const removeBillAttachment = useCallback(async (bill: string, month: number, year: number) => {
+    if (!userId) return;
+    const previous = billAttachments.find(a => a.bill === bill && a.month === month && a.year === year);
+    if (previous?.filePath) {
+      await supabase.storage.from("bill-attachments").remove([previous.filePath]);
+    }
+    const delQuery = supabase.from("bill_attachments").delete()
+      .eq("user_id", userId).eq("bill", bill).eq("month", month).eq("year", year);
+    if (subAccountId) await delQuery.eq("sub_account_id", subAccountId);
+    else await delQuery.is("sub_account_id", null);
+    setBillAttachments(prev => prev.filter(a => !(a.bill === bill && a.month === month && a.year === year)));
+  }, [userId, subAccountId, billAttachments]);
+
+
   const addGoal = useCallback((goal: FinancialGoal) => {
     setFinancialGoals(prev => [...prev, goal]);
     syncGoal(goal);
