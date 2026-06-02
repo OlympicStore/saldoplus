@@ -25,6 +25,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const [salaryConfigs, setSalaryConfigs] = useState<SalaryConfig[]>([]);
   const [financialGoals, setFinancialGoals] = useState<FinancialGoal[]>([]);
   const [billRecords, setBillRecords] = useState<MonthlyBillRecord[]>([]);
+  const [billAttachments, setBillAttachments] = useState<BillAttachment[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
