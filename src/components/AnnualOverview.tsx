@@ -402,7 +402,7 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
                         <a href={attachment.fileUrl} target="_blank" rel="noopener noreferrer" className="text-status-paid">
                           <FileCheck className="h-3 w-3" />
                         </a>
-                        <button onClick={() => onRemoveAttachment(bill, monthIdx)} className="text-text-muted">
+                        <button onClick={() => onRemoveAttachment(bill, monthIdx, selectedYear)} className="text-text-muted">
                           <X className="h-2.5 w-2.5" />
                         </button>
                       </div>
