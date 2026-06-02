@@ -82,7 +82,7 @@ export const Expenses = ({
       .map((e): ExpenseRow => ({
         id: e.id, kind: "variable", category: e.category,
         account: "", date: e.date, value: e.value,
-        status: "pago", dueDay: 0, type: getCategoryType(e.category),
+        status: e.paid ? "pago" : "pendente", dueDay: 0, type: getCategoryType(e.category),
         description: e.description, responsible: e.responsible,
         recurring: e.recurring ?? false,
       })),
@@ -93,11 +93,17 @@ export const Expenses = ({
   const totalExpenses = filtered.reduce((s, r) => s + r.value, 0);
   const categoryNames = categories.map(c => c.name);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     const val = parseFloat(newExpense.value.replace(",", "."));
     const finalCategory = newExpense.category === "__custom" ? newExpense.customCategory.trim() : newExpense.category;
     if (!finalCategory || isNaN(val)) return;
-    const catType = getCategoryType(finalCategory);
+
+    // If creating a brand-new custom category, persist it first so it appears in lists.
+    if (newExpense.category === "__custom" && !categories.some(c => c.name.toLowerCase() === finalCategory.toLowerCase()) && onAddCategoryItem) {
+      await onAddCategoryItem({ name: finalCategory, type: "inevitavel" });
+    }
+
+    const catType = newExpense.category === "__custom" ? "inevitavel" : getCategoryType(finalCategory);
 
     if (catType === "fixo") {
       onAddFixed({
@@ -115,7 +121,7 @@ export const Expenses = ({
       onAddVariable({
         date, description: newExpense.description || finalCategory,
         category: finalCategory as any, value: val, responsible: newExpense.responsible,
-        account: newExpense.account || "", recurring: newExpense.recurring,
+        account: newExpense.account || "", recurring: newExpense.recurring, paid: false,
       });
     }
     setNewExpense({ category: "", customCategory: "", account: "", date: "", value: "", dueDay: "1", description: "", responsible: null, recurring: false });
