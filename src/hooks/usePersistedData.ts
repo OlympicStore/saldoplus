@@ -138,11 +138,9 @@ export function usePersistedData(subAccountId?: string | null) {
         }
       }
 
-      if (br.data?.length) {
-        setBillRecords(br.data.map((r: any) => ({
-          bill: r.bill, month: r.month, year: r.year ?? 2026, status: r.status as BillStatus,
-        })));
-      }
+      setBillRecords((br.data ?? []).map((r: any) => ({
+        bill: r.bill, month: r.month, year: r.year ?? 2026, status: r.status as BillStatus,
+      })));
 
       if (ac.data?.length) {
         setAccounts(ac.data.map((r: any) => ({
@@ -298,9 +296,31 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncBillRecord = useCallback(async (bill: string, month: number, year: number, status: BillStatus) => {
     if (!userId) return;
-    await supabase.from("bill_records").upsert({ ...subField,
-      user_id: userId, bill, month, year, status,
-    } as any, { onConflict: "user_id,bill,month,year" });
+
+    const updateQuery = supabase.from("bill_records")
+      .update({ status })
+      .eq("user_id", userId)
+      .ilike("bill", bill)
+      .eq("month", month)
+      .eq("year", year)
+      .select("id");
+
+    const scopedUpdateQuery = subAccountId
+      ? updateQuery.eq("sub_account_id", subAccountId)
+      : updateQuery.is("sub_account_id", null);
+
+    const { data: updatedRows, error: updateError } = await scopedUpdateQuery;
+    if (updateError) {
+      console.error("bill record update failed", updateError);
+      return;
+    }
+
+    if (updatedRows?.length) return;
+
+    const payload = { ...subField, user_id: userId, bill, month, year, status };
+    const { error } = await supabase.from("bill_records").insert(payload);
+
+    if (error) console.error("bill record sync failed", error);
   }, [userId, subAccountId]);
 
   const syncAccount = useCallback(async (account: Account) => {

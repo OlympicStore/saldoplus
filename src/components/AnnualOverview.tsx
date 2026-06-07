@@ -47,6 +47,9 @@ interface AnnualOverviewProps {
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
 
+const normalizeBillName = (name: string) =>
+  name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+
 export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAttach, onRemoveAttachment, fixedExpenses, variableExpenses, goals, people, onAddBill, onRemoveBill, selectedMonth, selectedYear }: AnnualOverviewProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingTarget = useRef<{ bill: string; month: number } | null>(null);
@@ -56,11 +59,19 @@ export const AnnualOverview = ({ records, attachments, billNames, onUpdate, onAt
   const yearRecords = records.filter(r => r.year === selectedYear);
 
   const getStatus = (bill: string, month: number): BillStatus => {
-    return yearRecords.find((r) => r.bill === bill && r.month === month)?.status ?? "pendente";
+    const exact = yearRecords.find((r) => r.bill === bill && r.month === month);
+    if (exact) return exact.status;
+
+    const normalizedBill = normalizeBillName(bill);
+    return yearRecords.find((r) => normalizeBillName(r.bill) === normalizedBill && r.month === month)?.status ?? "pendente";
   };
 
   const getAttachment = (bill: string, month: number) => {
-    return attachments.find((a) => a.bill === bill && a.month === month && a.year === selectedYear);
+    const exact = attachments.find((a) => a.bill === bill && a.month === month && a.year === selectedYear);
+    if (exact) return exact;
+
+    const normalizedBill = normalizeBillName(bill);
+    return attachments.find((a) => normalizeBillName(a.bill) === normalizedBill && a.month === month && a.year === selectedYear);
   };
 
   const cycleStatus = (bill: string, month: number) => {
