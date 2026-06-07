@@ -303,14 +303,13 @@ export function usePersistedData(subAccountId?: string | null) {
       .eq("bill", bill)
       .eq("month", month)
       .eq("year", year)
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
 
     existingQuery = subAccountId
       ? existingQuery.eq("sub_account_id", subAccountId)
       : existingQuery.is("sub_account_id", null);
 
-    const { data: existing, error: lookupError } = await existingQuery;
+    const { data: existing, error: lookupError } = await existingQuery.maybeSingle();
     if (lookupError) {
       console.error("bill record lookup failed", lookupError);
       return;
