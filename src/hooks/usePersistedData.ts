@@ -138,11 +138,9 @@ export function usePersistedData(subAccountId?: string | null) {
         }
       }
 
-      if (br.data?.length) {
-        setBillRecords(br.data.map((r: any) => ({
-          bill: r.bill, month: r.month, year: r.year ?? 2026, status: r.status as BillStatus,
-        })));
-      }
+      setBillRecords((br.data ?? []).map((r: any) => ({
+        bill: r.bill, month: r.month, year: r.year ?? 2026, status: r.status as BillStatus,
+      })));
 
       if (ac.data?.length) {
         setAccounts(ac.data.map((r: any) => ({
@@ -298,9 +296,32 @@ export function usePersistedData(subAccountId?: string | null) {
 
   const syncBillRecord = useCallback(async (bill: string, month: number, year: number, status: BillStatus) => {
     if (!userId) return;
-    await supabase.from("bill_records").upsert({ ...subField,
-      user_id: userId, bill, month, year, status,
-    } as any, { onConflict: "user_id,bill,month,year" });
+
+    let existingQuery: any = supabase.from("bill_records")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("bill", bill)
+      .eq("month", month)
+      .eq("year", year)
+      .limit(1)
+      .maybeSingle();
+
+    existingQuery = subAccountId
+      ? existingQuery.eq("sub_account_id", subAccountId)
+      : existingQuery.is("sub_account_id", null);
+
+    const { data: existing, error: lookupError } = await existingQuery;
+    if (lookupError) {
+      console.error("bill record lookup failed", lookupError);
+      return;
+    }
+
+    const payload = { ...subField, user_id: userId, bill, month, year, status } as any;
+    const { error } = existing?.id
+      ? await supabase.from("bill_records").update({ status }).eq("id", existing.id).eq("user_id", userId)
+      : await supabase.from("bill_records").insert(payload);
+
+    if (error) console.error("bill record sync failed", error);
   }, [userId, subAccountId]);
 
   const syncAccount = useCallback(async (account: Account) => {
