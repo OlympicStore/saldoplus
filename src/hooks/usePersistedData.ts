@@ -297,51 +297,28 @@ export function usePersistedData(subAccountId?: string | null) {
   const syncBillRecord = useCallback(async (bill: string, month: number, year: number, status: BillStatus) => {
     if (!userId) return;
 
-    const existingQuery = supabase.from("bill_records")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("bill", bill)
-      .eq("month", month)
-      .eq("year", year)
-      .limit(1);
-
-    const scopedExistingQuery = subAccountId
-      ? existingQuery.eq("sub_account_id", subAccountId)
-      : existingQuery.is("sub_account_id", null);
-
-    const { data: exactExisting, error: lookupError } = await scopedExistingQuery.maybeSingle();
-    if (lookupError) {
-      console.error("bill record lookup failed", lookupError);
-      return;
-    }
-
-    const legacyQuery = supabase.from("bill_records")
-      .select("id")
+    const updateQuery = supabase.from("bill_records")
+      .update({ status })
       .eq("user_id", userId)
       .ilike("bill", bill)
       .eq("month", month)
       .eq("year", year)
-      .limit(1);
+      .select("id");
 
-    const scopedLegacyQuery = subAccountId
-      ? legacyQuery.eq("sub_account_id", subAccountId)
-      : legacyQuery.is("sub_account_id", null);
+    const scopedUpdateQuery = subAccountId
+      ? updateQuery.eq("sub_account_id", subAccountId)
+      : updateQuery.is("sub_account_id", null);
 
-    const { data: legacyExisting, error: legacyLookupError } = exactExisting
-      ? { data: null, error: null }
-      : await scopedLegacyQuery.maybeSingle();
-
-    if (legacyLookupError) {
-      console.error("bill record legacy lookup failed", legacyLookupError);
+    const { data: updatedRows, error: updateError } = await scopedUpdateQuery;
+    if (updateError) {
+      console.error("bill record update failed", updateError);
       return;
     }
 
-    const existing = exactExisting ?? legacyExisting;
+    if (updatedRows?.length) return;
 
     const payload = { ...subField, user_id: userId, bill, month, year, status };
-    const { error } = existing?.id
-      ? await supabase.from("bill_records").update({ status }).eq("id", existing.id).eq("user_id", userId)
-      : await supabase.from("bill_records").insert(payload);
+    const { error } = await supabase.from("bill_records").insert(payload);
 
     if (error) console.error("bill record sync failed", error);
   }, [userId, subAccountId]);
