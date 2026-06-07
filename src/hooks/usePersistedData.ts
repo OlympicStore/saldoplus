@@ -297,7 +297,7 @@ export function usePersistedData(subAccountId?: string | null) {
   const syncBillRecord = useCallback(async (bill: string, month: number, year: number, status: BillStatus) => {
     if (!userId) return;
 
-    let existingQuery: any = supabase.from("bill_records")
+    const existingQuery = supabase.from("bill_records")
       .select("id")
       .eq("user_id", userId)
       .eq("bill", bill)
@@ -305,17 +305,17 @@ export function usePersistedData(subAccountId?: string | null) {
       .eq("year", year)
       .limit(1);
 
-    existingQuery = subAccountId
+    const scopedExistingQuery = subAccountId
       ? existingQuery.eq("sub_account_id", subAccountId)
       : existingQuery.is("sub_account_id", null);
 
-    const { data: existing, error: lookupError } = await existingQuery.maybeSingle();
+    const { data: existing, error: lookupError } = await scopedExistingQuery.maybeSingle();
     if (lookupError) {
       console.error("bill record lookup failed", lookupError);
       return;
     }
 
-    const payload = { ...subField, user_id: userId, bill, month, year, status } as any;
+    const payload = { ...subField, user_id: userId, bill, month, year, status };
     const { error } = existing?.id
       ? await supabase.from("bill_records").update({ status }).eq("id", existing.id).eq("user_id", userId)
       : await supabase.from("bill_records").insert(payload);
