@@ -309,11 +309,34 @@ export function usePersistedData(subAccountId?: string | null) {
       ? existingQuery.eq("sub_account_id", subAccountId)
       : existingQuery.is("sub_account_id", null);
 
-    const { data: existing, error: lookupError } = await scopedExistingQuery.maybeSingle();
+    const { data: exactExisting, error: lookupError } = await scopedExistingQuery.maybeSingle();
     if (lookupError) {
       console.error("bill record lookup failed", lookupError);
       return;
     }
+
+    const legacyQuery = supabase.from("bill_records")
+      .select("id")
+      .eq("user_id", userId)
+      .ilike("bill", bill)
+      .eq("month", month)
+      .eq("year", year)
+      .limit(1);
+
+    const scopedLegacyQuery = subAccountId
+      ? legacyQuery.eq("sub_account_id", subAccountId)
+      : legacyQuery.is("sub_account_id", null);
+
+    const { data: legacyExisting, error: legacyLookupError } = exactExisting
+      ? { data: null, error: null }
+      : await scopedLegacyQuery.maybeSingle();
+
+    if (legacyLookupError) {
+      console.error("bill record legacy lookup failed", legacyLookupError);
+      return;
+    }
+
+    const existing = exactExisting ?? legacyExisting;
 
     const payload = { ...subField, user_id: userId, bill, month, year, status };
     const { error } = existing?.id
