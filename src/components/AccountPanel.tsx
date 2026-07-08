@@ -459,6 +459,24 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
           </button>
         )}
 
+        {profile.plan_source !== "partner" && (
+          <button
+            onClick={async () => {
+              try {
+                const { data, error } = await supabase.functions.invoke("customer-portal");
+                if (error) throw error;
+                if (data?.url) window.location.href = data.url;
+              } catch (err: any) {
+                toast.error(err.message || "Não foi possível abrir o portal.");
+              }
+            }}
+            className="px-4 py-2.5 rounded-lg border border-primary/40 text-primary text-sm font-medium hover:bg-primary/5 transition-colors inline-flex items-center gap-2"
+          >
+            <KeyRound className="h-4 w-4" />
+            Gerir subscrição / Cancelar
+          </button>
+        )}
+
         {!isActive && (
           <button
             onClick={() => navigate("/")}
