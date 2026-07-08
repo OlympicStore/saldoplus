@@ -40,7 +40,7 @@ const Auth = () => {
         navigate("/app");
       } else {
         const trialPlan = validPlan || "essencial";
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email, password,
           options: {
             data: { full_name: fullName, trial_plan: trialPlan },
@@ -49,7 +49,27 @@ const Auth = () => {
         });
         if (error) throw error;
         fbTrackLead();
-        toast.success(`🎉 Conta criada! O seu teste gratuito de 3 dias do plano ${PLAN_LABELS[trialPlan]} começou.`);
+
+        // Ensure we have a session to authorize the checkout call
+        let session = signUpData.session;
+        if (!session) {
+          const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInErr) throw signInErr;
+          session = signInData.session;
+        }
+        if (!session) throw new Error("Sessão indisponível. Verifique o seu email.");
+
+        toast.success("Conta criada! A abrir o pagamento seguro…");
+
+        const { data: checkoutData, error: checkoutErr } = await supabase.functions.invoke("create-checkout", {
+          body: { plan: trialPlan },
+        });
+        if (checkoutErr) throw checkoutErr;
+        if (checkoutData?.url) {
+          window.location.href = checkoutData.url;
+        } else {
+          throw new Error("Não foi possível iniciar o pagamento.");
+        }
       }
     } catch (err: any) {
       toast.error(err.message || "Erro na autenticação");
@@ -98,7 +118,7 @@ const Auth = () => {
             <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
             <div className="text-sm">
               <p className="font-semibold text-foreground">Plano {PLAN_LABELS[validPlan]} — 3 dias grátis</p>
-              <p className="text-xs text-text-muted mt-0.5">Vai testar o plano {PLAN_LABELS[validPlan]} sem custos. Pode mudar de plano a qualquer momento.</p>
+              <p className="text-xs text-text-muted mt-0.5">Insira o cartão para começar. Não é cobrado nada nos primeiros 3 dias. Pode cancelar a qualquer momento no seu painel.</p>
             </div>
           </div>
         )}
@@ -175,8 +195,13 @@ const Auth = () => {
 
             <button type="submit" disabled={loading}
               className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
-              {loading ? "A processar..." : isLogin ? "Entrar" : validPlan ? `Começar teste grátis — ${PLAN_LABELS[validPlan]}` : "Criar conta"}
+              {loading ? "A processar..." : isLogin ? "Entrar" : validPlan ? `Continuar para pagamento — ${PLAN_LABELS[validPlan]}` : "Criar conta"}
             </button>
+            {!isLogin && (
+              <p className="text-[11px] text-text-muted text-center leading-relaxed">
+                Cartão obrigatório. Grátis 3 dias — só é cobrado ao 4.º dia se não cancelar.
+              </p>
+            )}
           </form>
 
           <p className="text-center text-xs text-text-muted mt-4">

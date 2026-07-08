@@ -7,6 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const PRICE_TO_PLAN: Record<string, string> = {
+  "price_1TqyGmImKoY4gMb7OYJNNjS9": "essencial",
+  "price_1TqyH9ImKoY4gMb7hiztT0YH": "casa",
+  "price_1TqyJPImKoY4gMb7hm1CEpKU": "pro",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -32,152 +38,135 @@ serve(async (req) => {
       const body = await req.text();
       event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
     } else {
-      // Fallback: accept raw JSON (for testing)
       const body = await req.json();
       event = body as Stripe.Event;
     }
 
-    console.log(`[STRIPE-WEBHOOK] Event type: ${event.type}`);
+    console.log(`[STRIPE-WEBHOOK] Event: ${event.type}`);
 
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session;
-      
-      if (session.payment_status !== "paid") {
-        console.log("[STRIPE-WEBHOOK] Payment not completed, skipping");
-        return new Response(JSON.stringify({ received: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    // Helper: fetch email + plan for a subscription
+    async function resolveSubscription(sub: Stripe.Subscription) {
+      const priceId = sub.items.data[0]?.price?.id;
+      const plan = priceId ? PRICE_TO_PLAN[priceId] : undefined;
+      let email: string | null = null;
+      if (typeof sub.customer === "string") {
+        const cust = await stripe.customers.retrieve(sub.customer);
+        if (cust && !cust.deleted) email = (cust as Stripe.Customer).email;
+      } else if (sub.customer && !("deleted" in sub.customer)) {
+        email = (sub.customer as Stripe.Customer).email;
       }
+      return { plan, email, customerId: typeof sub.customer === "string" ? sub.customer : sub.customer.id };
+    }
 
-      const customerEmail = session.customer_details?.email || session.customer_email;
-      console.log(`[STRIPE-WEBHOOK] Payment completed for: ${customerEmail}`);
-
-      if (!customerEmail) {
-        throw new Error("No customer email found in session");
+    async function upsertProfileFromSub(sub: Stripe.Subscription) {
+      const { plan, email, customerId } = await resolveSubscription(sub);
+      if (!email) {
+        console.log("[STRIPE-WEBHOOK] No email on customer, skipping");
+        return;
       }
-
-      // Find user by email in profiles
-      const { data: profile, error: profileError } = await supabaseAdmin
+      const { data: profile } = await supabaseAdmin
         .from("profiles")
-        .select("id, plan")
-        .eq("email", customerEmail)
+        .select("id")
+        .eq("email", email)
         .maybeSingle();
-
-      if (profileError || !profile) {
-        console.log(`[STRIPE-WEBHOOK] No profile found for email: ${customerEmail}`);
-        return new Response(JSON.stringify({ received: true, warning: "No user found" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (!profile) {
+        console.log(`[STRIPE-WEBHOOK] No profile for ${email}`);
+        return;
       }
 
-      // Determine plan from metadata or line items
-      let plan = session.metadata?.plan;
-      
-      if (!plan) {
-        // Try to determine plan from payment link settings
-        const { data: settings } = await supabaseAdmin
-          .from("site_settings")
-          .select("key, value")
-          .like("key", "payment_link_%");
+      const periodEnd = (sub as any).current_period_end
+        ? new Date((sub as any).current_period_end * 1000).toISOString()
+        : null;
 
-        if (settings && session.payment_link) {
-          const paymentLinkId = typeof session.payment_link === "string" 
-            ? session.payment_link 
-            : session.payment_link.id;
-          
-          for (const setting of settings) {
-            // Match by payment link URL containing the payment link ID
-            if (setting.value && setting.value.includes(paymentLinkId)) {
-              plan = setting.key.replace("payment_link_", "");
-              break;
-            }
-          }
-        }
+      // Map Stripe subscription status to app account status
+      const isActiveLike =
+        sub.status === "trialing" || sub.status === "active";
+      const accountStatus = isActiveLike
+        ? sub.status === "trialing"
+          ? "trial_active"
+          : "active"
+        : "trial_expired";
+
+      const update: any = {
+        stripe_customer_id: customerId,
+        stripe_subscription_id: sub.id,
+        stripe_subscription_status: sub.status,
+        account_status: accountStatus,
+      };
+      if (plan) update.plan = plan;
+      if (sub.status === "trialing" && (sub as any).trial_end) {
+        update.trial_ends_at = new Date((sub as any).trial_end * 1000).toISOString();
+        update.grace_period_ends_at = null;
+      }
+      if (sub.status === "active") {
+        update.plan_started_at = new Date().toISOString();
+        update.plan_expires_at = periodEnd;
       }
 
-      if (!plan) {
-        // Default to checking the amount
-        const amount = session.amount_total || 0;
-        if (amount <= 1500) plan = "essencial";
-        else if (amount <= 2500) plan = "casa";
-        else plan = "pro";
-        console.log(`[STRIPE-WEBHOOK] Plan determined by amount (${amount}): ${plan}`);
-      }
-
-      // Calculate expiration
-      const now = new Date();
-      const expiresAt = new Date(now);
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-      expiresAt.setDate(expiresAt.getDate() - 1);
-
-      const { error: updateError } = await supabaseAdmin
+      const { error } = await supabaseAdmin
         .from("profiles")
-        .update({
-          plan,
-          plan_started_at: now.toISOString(),
-          plan_expires_at: expiresAt.toISOString(),
-          account_status: "active",
-          data_deleted_at: null,
-          grace_period_ends_at: null,
-        })
+        .update(update)
         .eq("id", profile.id);
+      if (error) console.error("[STRIPE-WEBHOOK] profile update error:", error);
+      else console.log(`[STRIPE-WEBHOOK] profile updated for ${email} → ${sub.status} / ${plan}`);
+    }
 
-      if (updateError) {
-        console.error(`[STRIPE-WEBHOOK] Failed to update profile: ${updateError.message}`);
-        throw updateError;
-      }
-      console.log(`[STRIPE-WEBHOOK] account_status set to 'active' for user ${profile.id}`);
-
-      console.log(`[STRIPE-WEBHOOK] Plan ${plan} activated for user ${profile.id} until ${expiresAt.toISOString()}`);
-
-      // Send Telegram notification with sales totals
-      const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
-      const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID");
-      if (telegramToken && telegramChatId) {
-        const amount = session.amount_total ? (session.amount_total / 100).toFixed(2) : "?";
-
-        // Query plan totals
-        const PLAN_PRICES: Record<string, number> = { essencial: 15.99, casa: 28.99, pro: 47.99 };
-        const { data: paidProfiles } = await supabaseAdmin
-          .from("profiles")
-          .select("plan")
-          .not("plan_started_at", "is", null);
-
-        const counts: Record<string, number> = { essencial: 0, casa: 0, pro: 0 };
-        (paidProfiles || []).forEach((p: any) => { if (counts[p.plan] !== undefined) counts[p.plan]++; });
-        const totalEssencial = (counts.essencial * PLAN_PRICES.essencial).toFixed(2);
-        const totalCasa = (counts.casa * PLAN_PRICES.casa).toFixed(2);
-        const totalPro = (counts.pro * PLAN_PRICES.pro).toFixed(2);
-        const totalVendas = (counts.essencial * PLAN_PRICES.essencial + counts.casa * PLAN_PRICES.casa + counts.pro * PLAN_PRICES.pro).toFixed(2);
-
-        const esc = (s: string) => s.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&');
-        const message = `💰 *Nova venda no Saldo\\+\\!*\n\n` +
-          `📧 Email: ${esc(customerEmail || "?")}\n` +
-          `📋 Plano: *${esc(plan || "?")}*\n` +
-          `💶 Valor: ${esc(amount)}€\n` +
-          `📅 Data: ${esc(new Date().toLocaleDateString("pt-PT"))}\n\n` +
-          `📊 *Resumo de vendas:*\n` +
-          `Essencial: ${esc(totalEssencial)}€ \\(${counts.essencial} vendas\\)\n` +
-          `Casa: ${esc(totalCasa)}€ \\(${counts.casa} vendas\\)\n` +
-          `Pro: ${esc(totalPro)}€ \\(${counts.pro} vendas\\)\n` +
-          `*Total: ${esc(totalVendas)}€*`;
-        try {
-          await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chat_id: telegramChatId, text: message, parse_mode: "MarkdownV2" }),
-          });
-          console.log("[STRIPE-WEBHOOK] Telegram notification sent");
-        } catch (tgErr) {
-          console.error("[STRIPE-WEBHOOK] Telegram notification failed:", tgErr);
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.mode === "subscription" && session.subscription) {
+          const subId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+          const sub = await stripe.subscriptions.retrieve(subId);
+          await upsertProfileFromSub(sub);
         }
+        break;
+      }
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.trial_will_end":
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        if (event.type === "customer.subscription.deleted") {
+          // Mark canceled
+          const { customerId } = await resolveSubscription(sub);
+          await supabaseAdmin
+            .from("profiles")
+            .update({
+              stripe_subscription_status: "canceled",
+              account_status: "trial_expired",
+            })
+            .eq("stripe_customer_id", customerId);
+        } else {
+          await upsertProfileFromSub(sub);
+        }
+        break;
+      }
+      case "invoice.paid": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = (invoice as any).subscription;
+        if (subId) {
+          const sub = await stripe.subscriptions.retrieve(typeof subId === "string" ? subId : subId.id);
+          await upsertProfileFromSub(sub);
+        }
+        break;
+      }
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+        if (customerId) {
+          await supabaseAdmin
+            .from("profiles")
+            .update({ stripe_subscription_status: "past_due" })
+            .eq("stripe_customer_id", customerId);
+        }
+        break;
       }
     }
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(`[STRIPE-WEBHOOK] Error: ${error.message}`);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -851,6 +851,9 @@ export type Database = {
           plan_expires_at: string | null
           plan_source: string
           plan_started_at: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          stripe_subscription_status: string | null
           trial_ends_at: string | null
           trial_started_at: string | null
           updated_at: string
@@ -868,6 +871,9 @@ export type Database = {
           plan_expires_at?: string | null
           plan_source?: string
           plan_started_at?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          stripe_subscription_status?: string | null
           trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
@@ -885,6 +891,9 @@ export type Database = {
           plan_expires_at?: string | null
           plan_source?: string
           plan_started_at?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          stripe_subscription_status?: string | null
           trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string

@@ -1,11 +1,13 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Sparkles, Clock, ArrowRight, X, TrendingUp } from "lucide-react";
+import { Sparkles, Clock, X } from "lucide-react";
 import { useState, useMemo } from "react";
-import { openCheckout, nextUpgradePlan, PLAN_LABELS } from "@/lib/paymentLinks";
+import { PLAN_LABELS } from "@/lib/paymentLinks";
+import { useNavigate } from "react-router-dom";
 
 const TrialBanner = () => {
-  const { profile, user } = useAuth();
+  const { profile } = useAuth();
   const [dismissed, setDismissed] = useState(false);
+  const navigate = useNavigate();
 
   const info = useMemo(() => {
     if (!profile || profile.account_status !== "trial_active" || !profile.trial_ends_at) return null;
@@ -19,15 +21,6 @@ const TrialBanner = () => {
   if (!info || dismissed || !profile) return null;
 
   const currentPlan = profile.plan;
-  const upgradePlan = nextUpgradePlan(currentPlan);
-
-  const handleSubscribe = () => {
-    openCheckout(currentPlan, user?.email);
-  };
-
-  const handleUpgrade = () => {
-    if (upgradePlan) openCheckout(upgradePlan, user?.email);
-  };
 
   return (
     <div className={`border-b ${info.urgent ? "bg-status-negative/5 border-status-negative/20" : "bg-primary/5 border-primary/20"}`}>
@@ -40,26 +33,16 @@ const TrialBanner = () => {
           )}
           <p className="text-sm text-foreground font-medium truncate">
             {info.urgent
-              ? `⚠️ Último dia do teste — Plano ${PLAN_LABELS[currentPlan] || currentPlan}`
+              ? `⚠️ Último dia grátis — Plano ${PLAN_LABELS[currentPlan] || currentPlan}. Será cobrado amanhã se não cancelar.`
               : `🎉 Teste do plano ${PLAN_LABELS[currentPlan] || currentPlan} — ${info.days} ${info.days === 1 ? "dia restante" : "dias restantes"}`}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {upgradePlan && (
-            <button
-              onClick={handleUpgrade}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/30 text-primary text-xs font-medium hover:bg-primary/10 transition-colors"
-            >
-              <TrendingUp className="h-3.5 w-3.5" />
-              Upgrade para {PLAN_LABELS[upgradePlan]}
-            </button>
-          )}
           <button
-            onClick={handleSubscribe}
+            onClick={() => navigate("/app?tab=account")}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity"
           >
-            Subscrever {PLAN_LABELS[currentPlan] || ""}
-            <ArrowRight className="h-3.5 w-3.5" />
+            Gerir / Cancelar
           </button>
           <button
             onClick={() => setDismissed(true)}

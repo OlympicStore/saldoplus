@@ -7,15 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Recurring prices with 3-day trial. Card required at signup.
 const PLAN_PRICES: Record<string, string> = {
-  essencial: "price_1TIIpGImKoY4gMb7U75mePXx",
-  casa: "price_1TIIppImKoY4gMb7ZCEU6iFU",
-  pro: "price_1TIIq2ImKoY4gMb7vZjAOsdL",
-};
-
-const BUMP_PRICES: Record<string, string> = {
-  lifetime: "price_1TIJZTImKoY4gMb70G2tP7Gc",
-  ebook: "price_1TIJZpImKoY4gMb7rW65hJo7",
+  essencial: "price_1TqyGmImKoY4gMb7OYJNNjS9", // 15,99€/mês
+  casa: "price_1TqyH9ImKoY4gMb7hiztT0YH",       // 28,99€/mês
+  pro: "price_1TqyJPImKoY4gMb7hm1CEpKU",         // 79,99€/ano
 };
 
 serve(async (req) => {
@@ -29,7 +25,7 @@ serve(async (req) => {
   );
 
   try {
-    const { plan, bumps } = await req.json();
+    const { plan } = await req.json();
     if (!plan || !PLAN_PRICES[plan]) {
       throw new Error("Invalid plan: " + plan);
     }
@@ -50,32 +46,29 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Build line items: plan + optional bumps
-    const lineItems: Array<{ price: string; quantity: number }> = [
-      { price: PLAN_PRICES[plan], quantity: 1 },
-    ];
-
-    const selectedBumps: string[] = [];
-    if (Array.isArray(bumps)) {
-      for (const bump of bumps) {
-        if (BUMP_PRICES[bump]) {
-          lineItems.push({ price: BUMP_PRICES[bump], quantity: 1 });
-          selectedBumps.push(bump);
-        }
-      }
-    }
+    const origin = req.headers.get("origin") || "https://saldoplus.lovable.app";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: lineItems,
-      mode: "payment",
-      success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
-      cancel_url: `${req.headers.get("origin")}/`,
+      line_items: [{ price: PLAN_PRICES[plan], quantity: 1 }],
+      mode: "subscription",
+      payment_method_collection: "always",
+      subscription_data: {
+        trial_period_days: 3,
+        trial_settings: {
+          end_behavior: { missing_payment_method: "cancel" },
+        },
+        metadata: {
+          user_id: user.id,
+          plan,
+        },
+      },
+      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
+      cancel_url: `${origin}/pricing`,
       metadata: {
         user_id: user.id,
         plan,
-        bumps: selectedBumps.join(","),
       },
     });
 
