@@ -1,7 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Sparkles, Clock, ArrowRight, X, TrendingUp } from "lucide-react";
+import { Sparkles, Clock, X } from "lucide-react";
 import { useState, useMemo } from "react";
-import { openCheckout, nextUpgradePlan, PLAN_LABELS } from "@/lib/paymentLinks";
+import { PLAN_LABELS } from "@/lib/paymentLinks";
+import { useNavigate } from "react-router-dom";
 
 const TrialBanner = () => {
   const { profile, user } = useAuth();
