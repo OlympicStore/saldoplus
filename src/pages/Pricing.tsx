@@ -44,7 +44,8 @@ const PLANS = [
     id: "essencial",
     name: "Essencial",
     price: "15,99",
-    monthlyEquiv: "1,33",
+    interval: "mês" as const,
+    subtitle: "Cobrança mensal — cancele quando quiser",
     tagline: "Ideal para quem está a começar a gerir as suas contas",
     icon: Zap,
     features: [
@@ -59,7 +60,8 @@ const PLANS = [
     id: "casa",
     name: "Casa",
     price: "28,99",
-    monthlyEquiv: "2,42",
+    interval: "mês" as const,
+    subtitle: "Cobrança mensal — cancele quando quiser",
     tagline: "Ideal para quem quer um controlo completo",
     icon: Home,
     popular: true,
@@ -75,8 +77,9 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: "47,99",
-    monthlyEquiv: "4,00",
+    price: "79,99",
+    interval: "ano" as const,
+    subtitle: "Apenas 6,67€/mês — cobrado anualmente",
     tagline: "Para quem quer controlo avançado + automação",
     icon: Crown,
     features: [
@@ -641,10 +644,10 @@ const Pricing = () => {
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold text-foreground">{plan.price}€</span>
-                    <span className="text-sm text-text-muted">/ano</span>
+                    <span className="text-sm text-text-muted">/{plan.interval}</span>
                   </div>
                   <p className="text-xs text-primary font-medium mt-1">
-                    Apenas {plan.monthlyEquiv}€/mês
+                    {plan.subtitle}
                   </p>
                 </div>
 

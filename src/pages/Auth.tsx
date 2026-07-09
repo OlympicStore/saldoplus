@@ -72,7 +72,18 @@ const Auth = () => {
         }
       }
     } catch (err: any) {
-      toast.error(err.message || "Erro na autenticação");
+      const raw = err?.message || "";
+      let msg = raw || "Erro na autenticação";
+      if (/known to be weak|pwned|compromised/i.test(raw)) {
+        msg = "Esta password é demasiado fraca ou já foi exposta em fugas de dados. Escolha uma password mais forte (mistura de letras, números e símbolos).";
+      } else if (/at least 6|Password should be/i.test(raw)) {
+        msg = "A password deve ter pelo menos 6 caracteres.";
+      } else if (/invalid login|Invalid login credentials/i.test(raw)) {
+        msg = "Email ou password incorretos.";
+      } else if (/already registered|already been registered/i.test(raw)) {
+        msg = "Já existe uma conta com este email. Faça login.";
+      }
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
