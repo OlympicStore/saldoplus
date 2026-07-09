@@ -17,15 +17,16 @@ interface AccountPanelProps {
   onShowTour?: () => void;
 }
 
-const PLAN_PRICES: Record<string, number> = {
-  essencial: 15.99,
-  casa: 28.99,
-  pro: 47.99,
-};
-
-const UPGRADE_DIFF: Record<string, Record<string, number>> = {
-  essencial: { casa: 13.00, pro: 32.00 },
-  casa: { pro: 19.00 },
+// Diferenças de preço para upgrade.
+// Casa é mensal, Pro é anual (79,99€/ano).
+const UPGRADE_INFO: Record<string, Record<string, { diff: number; interval: "mês" | "ano" }>> = {
+  essencial: {
+    casa: { diff: 13.00, interval: "mês" }, // 28,99 - 15,99
+    pro: { diff: 79.99, interval: "ano" },  // Pro anual completo
+  },
+  casa: {
+    pro: { diff: 79.99, interval: "ano" },  // Pro anual completo
+  },
 };
 
 const PLAN_ORDER = ["essencial", "casa", "pro"];
