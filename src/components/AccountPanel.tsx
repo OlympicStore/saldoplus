@@ -313,14 +313,14 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {availableUpgrades.map((plan) => {
-              const diff = UPGRADE_DIFF[profile.plan]?.[plan];
-              if (!diff) return null;
+              const info = UPGRADE_INFO[profile.plan]?.[plan];
+              if (!info) return null;
               return (
                 <div key={plan} className="rounded-xl border border-border-subtle/60 bg-background p-4 flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{PLAN_LABELS[plan]}</p>
                     <p className="text-xs text-text-muted">
-                      +{diff.toFixed(2).replace(".", ",")}€ (diferença)
+                      {plan === "pro" ? "" : "+"}{info.diff.toFixed(2).replace(".", ",")}€/{info.interval}{plan !== "pro" ? " (diferença)" : ""}
                     </p>
                   </div>
                   <button
