@@ -309,7 +309,7 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
         <div className="bg-surface rounded-xl shadow-card border border-primary/20 p-5">
           <h2 className="text-lg font-semibold text-foreground mb-1">Fazer upgrade</h2>
           <p className="text-sm text-text-muted mb-4">
-            Pague apenas a diferença para desbloquear mais funcionalidades.
+            Pague apenas a diferença (Casa) ou o plano anual completo (Pro) para desbloquear mais funcionalidades.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {availableUpgrades.map((plan) => {
