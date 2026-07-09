@@ -644,10 +644,10 @@ const Pricing = () => {
                 <div className="mb-6">
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold text-foreground">{plan.price}€</span>
-                    <span className="text-sm text-text-muted">/ano</span>
+                    <span className="text-sm text-text-muted">/{plan.interval}</span>
                   </div>
                   <p className="text-xs text-primary font-medium mt-1">
-                    Apenas {plan.monthlyEquiv}€/mês
+                    {plan.subtitle}
                   </p>
                 </div>
 
