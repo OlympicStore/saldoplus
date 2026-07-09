@@ -17,15 +17,16 @@ interface AccountPanelProps {
   onShowTour?: () => void;
 }
 
-const PLAN_PRICES: Record<string, number> = {
-  essencial: 15.99,
-  casa: 28.99,
-  pro: 47.99,
-};
-
-const UPGRADE_DIFF: Record<string, Record<string, number>> = {
-  essencial: { casa: 13.00, pro: 32.00 },
-  casa: { pro: 19.00 },
+// Diferenças de preço para upgrade.
+// Casa é mensal, Pro é anual (79,99€/ano).
+const UPGRADE_INFO: Record<string, Record<string, { diff: number; interval: "mês" | "ano" }>> = {
+  essencial: {
+    casa: { diff: 13.00, interval: "mês" }, // 28,99 - 15,99
+    pro: { diff: 79.99, interval: "ano" },  // Pro anual completo
+  },
+  casa: {
+    pro: { diff: 79.99, interval: "ano" },  // Pro anual completo
+  },
 };
 
 const PLAN_ORDER = ["essencial", "casa", "pro"];
@@ -308,18 +309,18 @@ const AccountPanel = ({ onShowTour }: AccountPanelProps) => {
         <div className="bg-surface rounded-xl shadow-card border border-primary/20 p-5">
           <h2 className="text-lg font-semibold text-foreground mb-1">Fazer upgrade</h2>
           <p className="text-sm text-text-muted mb-4">
-            Pague apenas a diferença para desbloquear mais funcionalidades.
+            Pague apenas a diferença (Casa) ou o plano anual completo (Pro) para desbloquear mais funcionalidades.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {availableUpgrades.map((plan) => {
-              const diff = UPGRADE_DIFF[profile.plan]?.[plan];
-              if (!diff) return null;
+              const info = UPGRADE_INFO[profile.plan]?.[plan];
+              if (!info) return null;
               return (
                 <div key={plan} className="rounded-xl border border-border-subtle/60 bg-background p-4 flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{PLAN_LABELS[plan]}</p>
                     <p className="text-xs text-text-muted">
-                      +{diff.toFixed(2).replace(".", ",")}€ (diferença)
+                      {plan === "pro" ? "" : "+"}{info.diff.toFixed(2).replace(".", ",")}€/{info.interval}{plan !== "pro" ? " (diferença)" : ""}
                     </p>
                   </div>
                   <button

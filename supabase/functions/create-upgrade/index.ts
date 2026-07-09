@@ -7,16 +7,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Upgrade price IDs (difference only)
-const UPGRADE_PRICES: Record<string, Record<string, string>> = {
+// Upgrade para Casa: preço one-off da diferença mensal (13€).
+// Upgrade para Pro: subscrição anual completa (79,99€/ano) com trial 3 dias.
+const UPGRADE_ONEOFF_PRICES: Record<string, Record<string, string>> = {
   essencial: {
-    casa: "price_1TL3GeImKoY4gMb7cmn0FP4Q",   // 13.00€
-    pro: "price_1TL3hnImKoY4gMb7SqQemiVk",     // 32.00€
-  },
-  casa: {
-    pro: "price_1TL3i5ImKoY4gMb7pIixfSqJ",     // 19.00€
+    casa: "price_1TL3GeImKoY4gMb7cmn0FP4Q", // 13,00€ one-off (diferença mensal)
   },
 };
+
+// Preço da subscrição Pro anual (mesmo usado em create-checkout)
+const PRO_ANNUAL_PRICE = "price_1TqyJPImKoY4gMb7hm1CEpKU";
 
 const PLAN_ORDER = ["essencial", "casa", "pro"];
 
@@ -65,10 +65,6 @@ serve(async (req) => {
       throw new Error("Só é possível fazer upgrade para um plano superior.");
     }
 
-    // Note: we allow upgrades even if plan_expires_at is null (free essencial users)
-    const priceId = UPGRADE_PRICES[currentPlan]?.[target_plan];
-    if (!priceId) throw new Error("Upgrade path not available");
-
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
@@ -79,20 +75,52 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode: "payment",
-      success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${target_plan}`,
-      cancel_url: `${req.headers.get("origin")}/app`,
-      metadata: {
-        user_id: user.id,
-        plan: target_plan,
-        upgrade_from: currentPlan,
-        bumps: "",
-      },
-    });
+    const origin = req.headers.get("origin") || "https://saldoplus.lovable.app";
+
+    let session;
+    if (target_plan === "pro") {
+      // Upgrade para Pro = subscrição anual completa (79,99€/ano)
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [{ price: PRO_ANNUAL_PRICE, quantity: 1 }],
+        mode: "subscription",
+        payment_method_collection: "always",
+        subscription_data: {
+          metadata: {
+            user_id: user.id,
+            plan: "pro",
+            upgrade_from: currentPlan,
+          },
+        },
+        success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=pro`,
+        cancel_url: `${origin}/app`,
+        metadata: {
+          user_id: user.id,
+          plan: "pro",
+          upgrade_from: currentPlan,
+        },
+      });
+    } else {
+      // Upgrade para Casa = pagamento one-off da diferença
+      const priceId = UPGRADE_ONEOFF_PRICES[currentPlan]?.[target_plan];
+      if (!priceId) throw new Error("Upgrade path not available");
+
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [{ price: priceId, quantity: 1 }],
+        mode: "payment",
+        success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${target_plan}`,
+        cancel_url: `${origin}/app`,
+        metadata: {
+          user_id: user.id,
+          plan: target_plan,
+          upgrade_from: currentPlan,
+          bumps: "",
+        },
+      });
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
