@@ -101,6 +101,11 @@ div[class*="lovable"] {
     letter-spacing: -0.04em;
   }
 
+  .font-display {
+    font-family: 'Sora', 'IBM Plex Sans', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
