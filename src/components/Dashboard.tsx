@@ -404,8 +404,8 @@ export const Dashboard = ({
 
       {/* Metas financeiras - resumo (read-only) - hidden for essencial */}
       {financialGoals.length > 0 && userPlan !== "essencial" && (
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
-          <span className="label-caps mb-3 block">Metas Financeiras</span>
+        <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+          <h3 className="font-display text-base font-bold text-foreground mb-4">Metas Financeiras</h3>
           <div className="space-y-3">
             {financialGoals.slice(0, 5).map((goal) => {
               const pct = goal.totalValue > 0 ? Math.min((goal.currentValue / goal.totalValue) * 100, 100) : 0;
