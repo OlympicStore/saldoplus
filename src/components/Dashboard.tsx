@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useMemo } from "react";
-import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, Target } from "lucide-react";
-import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from "recharts";
+import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, Target, ArrowUpRight, ArrowDownRight, Wallet } from "lucide-react";
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Area, AreaChart } from "recharts";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Income, SalaryConfig } from "@/types/income";
 import type { FinancialGoal } from "@/types/goal";
