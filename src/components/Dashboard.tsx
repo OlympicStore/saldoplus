@@ -349,9 +349,9 @@ export const Dashboard = ({
       </div>
 
 
-      {/* Comparação com mês anterior - formato compacto */}
-      <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
-        <span className="label-caps mb-3 block">Comparação com Mês Anterior</span>
+      {/* Comparação com mês anterior */}
+      <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+        <h3 className="font-display text-base font-bold text-foreground mb-4">Comparação com Mês Anterior</h3>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div>
             <span className="text-xs text-text-muted">Entradas</span>
