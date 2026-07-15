@@ -482,8 +482,8 @@ export const Dashboard = ({
       )}
 
       {/* Divisão por pessoa */}
-      <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
-        <span className="label-caps mb-4 block">Divisão por Pessoa</span>
+      <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+        <h3 className="font-display text-base font-bold text-foreground mb-1">Divisão por Pessoa</h3>
         <p className="text-xs text-text-muted mb-4">Quota justa: {fmt(fairShare)} por pessoa</p>
         <div className="space-y-5">
           {people.map((person, i) => {
