@@ -443,8 +443,8 @@ export const Dashboard = ({
 
       {/* Pro: Gráfico de gastos e rendimentos por categoria */}
       {userPlan === "pro" && (
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
-          <span className="label-caps mb-3 block">Gastos vs Rendimentos por Categoria</span>
+        <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+          <h3 className="font-display text-base font-bold text-foreground mb-4">Gastos vs Rendimentos por Categoria</h3>
           {(() => {
             const catData: { name: string; gastos: number; rendimentos: number }[] = [];
             // Fixed as category
