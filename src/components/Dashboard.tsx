@@ -173,110 +173,166 @@ export const Dashboard = ({
   };
 
   return (
-    <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
-      {/* Evolução do saldo */}
-      <div className="mb-6">
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-3 block">Evolução do Saldo</span>
-          <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={lineData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(215, 16%, 57%)" }} />
-              <YAxis tick={{ fontSize: 10, fill: "hsl(215, 16%, 57%)" }} tickFormatter={(v) => `€${v}`} width={55} />
-              <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid hsl(214, 32%, 91%)" }} />
-              <Line type="monotone" dataKey="saldo" stroke="hsl(160, 84%, 39%)" strokeWidth={2.5} dot={{ r: 3, fill: "hsl(160, 84%, 39%)" }} activeDot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>
+    <motion.div initial={{ opacity: 0, x: 4 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }} className="space-y-6">
+
+      {/* Hero row: Balanço + Entradas + Saídas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Balanço - Hero emerald card */}
+        <div className="relative overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-emerald-200/40"
+          style={{ background: "linear-gradient(135deg, hsl(160 84% 32%) 0%, hsl(160 84% 39%) 60%, hsl(158 74% 44%) 100%)" }}>
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 text-emerald-50/90">
+              <Wallet className="h-4 w-4" />
+              <p className="text-xs font-semibold uppercase tracking-wider">Balanço do Mês</p>
+            </div>
+            <p className={`font-display text-3xl sm:text-4xl font-bold tabular-nums mt-3 ${monthBalance >= 0 ? "text-white" : "text-white"}`}>
+              {monthBalance >= 0 ? "+" : "−"}{fmt(Math.abs(monthBalance)).replace("€ ", "€")}
+            </p>
+            <div className="mt-4 flex items-center gap-2 flex-wrap">
+              {prevBalance !== 0 && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                  {balDiff >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                  {balDiff >= 0 ? "+" : ""}{balDiff.toFixed(1)}%
+                </span>
+              )}
+              <span className="text-[11px] text-emerald-50/80">vs mês anterior</span>
+            </div>
+          </div>
+          <div className="absolute -right-6 -bottom-6 w-40 h-40 bg-white/10 rounded-full" />
+          <div className="absolute right-8 -top-8 w-24 h-24 bg-white/5 rounded-full" />
+        </div>
+
+        {/* Entradas */}
+        <div className="rounded-3xl p-6 bg-surface border border-border-subtle/60 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-2xl bg-[hsl(var(--status-paid)/0.12)] flex items-center justify-center text-status-paid">
+              <ArrowUpRight className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Entradas</p>
+              <p className="font-display text-2xl font-bold text-foreground tabular-nums leading-tight">{fmt(current.totalIncome)}</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-text-muted">Salários {fmt(current.totalSalary)}</span>
+            <ComparisonBadge current={current.totalIncome} previous={prev.totalIncome} inverted />
+          </div>
+        </div>
+
+        {/* Saídas */}
+        <div className="rounded-3xl p-6 bg-surface border border-border-subtle/60 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-2xl bg-[hsl(var(--status-negative)/0.12)] flex items-center justify-center text-status-negative">
+              <ArrowDownRight className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Saídas</p>
+              <p className="font-display text-2xl font-bold text-foreground tabular-nums leading-tight">{fmt(current.totalExpenses)}</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-text-muted">Fixos {fmt(current.totalFixed)}</span>
+            <ComparisonBadge current={current.totalExpenses} previous={prev.totalExpenses} />
+          </div>
         </div>
       </div>
 
-      {/* Resumo do mês */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <div className="flex items-center justify-between">
-            <span className="label-caps">Entradas do Mês</span>
-            <ComparisonBadge current={current.totalIncome} previous={prev.totalIncome} inverted />
-          </div>
-          <p className="text-xl sm:text-2xl font-semibold text-status-paid font-mono tabular-nums tracking-tight mt-1">
-            {fmt(current.totalIncome)}
-          </p>
-          <div className="flex flex-col gap-1 mt-2">
-            <div className="flex gap-3 flex-wrap text-xs text-text-muted">
-              <span>Salários: {fmt(current.totalSalary)}</span>
-              <span>Outros: {fmt(current.monthOtherIncome)}</span>
+      {/* Chart row: Evolução saldo (2/3) + Categorias donut (1/3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-display text-lg font-bold text-foreground">Evolução do Saldo</h3>
+              <p className="text-xs text-text-muted mt-0.5">Saldo acumulado ao longo do ano</p>
             </div>
-            <DiffValue current={current.totalIncome} previous={prev.totalIncome} />
+            <span className="text-[11px] font-semibold text-status-paid bg-[hsl(var(--status-paid)/0.1)] px-2.5 py-1 rounded-full">Anual</span>
           </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="saldoGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} tickFormatter={(v) => `€${v}`} width={55} axisLine={false} tickLine={false} />
+              <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} />
+              <Area type="monotone" dataKey="saldo" stroke="hsl(160, 84%, 39%)" strokeWidth={2.5} fill="url(#saldoGradient)" dot={{ r: 3, fill: "hsl(160, 84%, 39%)", strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }} />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <div className="flex items-center justify-between">
-            <span className="label-caps">Saídas do Mês</span>
-            <ComparisonBadge current={current.totalExpenses} previous={prev.totalExpenses} />
-          </div>
-          <p className="text-xl sm:text-2xl font-semibold text-status-negative font-mono tabular-nums tracking-tight mt-1">
-            {fmt(current.totalExpenses)}
-          </p>
-          <div className="flex flex-col gap-1 mt-2">
-            <div className="flex gap-3 flex-wrap text-xs text-text-muted">
-              <span>Fixos: {fmt(current.totalFixed)}</span>
-              <span>Variáveis: {fmt(current.totalVariable)}</span>
+
+        <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+          <h3 className="font-display text-lg font-bold text-foreground mb-4">Gastos por Categoria</h3>
+          {categoryData.length > 0 ? (
+            <div className="flex flex-col items-center">
+              <ResponsiveContainer width="100%" height={180}>
+                <PieChart>
+                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={72} innerRadius={48} paddingAngle={3}>
+                    {categoryData.map((_, idx) => (
+                      <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} stroke="none" />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)" }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="w-full mt-3 space-y-2">
+                {categoryData.slice(0, 4).map((d, i) => (
+                  <div key={d.name} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                      <span className="text-text-muted truncate">{d.name}</span>
+                    </div>
+                    <span className="font-mono font-semibold text-foreground tabular-nums">{fmt(d.value)}</span>
+                  </div>
+                ))}
+                {categoryData.length > 4 && (
+                  <p className="text-[10px] text-text-muted text-center pt-1">+{categoryData.length - 4} categorias</p>
+                )}
+              </div>
             </div>
-            <DiffValue current={current.totalExpenses} previous={prev.totalExpenses} />
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <div className="flex items-center justify-between">
-            <span className="label-caps">Balanço do Mês</span>
-            <ComparisonBadge current={monthBalance} previous={prevBalance} inverted />
-          </div>
-          <p className={`text-xl sm:text-2xl font-semibold font-mono tabular-nums tracking-tight mt-1 ${monthBalance >= 0 ? "text-status-paid" : "text-status-negative"}`}>
-            {monthBalance >= 0 ? "+" : ""}{fmt(monthBalance)}
-          </p>
-          <div className="flex flex-col gap-1 mt-2">
-            <p className="text-xs text-text-muted">{monthBalance >= 0 ? "Sobra" : "Falta"} este mês</p>
-            <DiffValue current={monthBalance} previous={prevBalance} />
-          </div>
+          ) : (
+            <p className="text-sm text-text-muted text-center py-12">Sem gastos neste mês</p>
+          )}
         </div>
       </div>
 
       {/* Média Anual + Contas Pendentes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-3 block">Média Anual</span>
-          <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+          <h3 className="font-display text-base font-bold text-foreground mb-4">Média Anual</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-xs text-text-muted mb-1">Gastos/mês</p>
-              <p className="text-lg font-semibold text-status-negative font-mono tabular-nums">{fmt(annualAvg.expenses)}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted mb-1">Gastos/mês</p>
+              <p className="font-display text-lg font-bold text-status-negative tabular-nums">{fmt(annualAvg.expenses)}</p>
             </div>
             <div>
-              <p className="text-xs text-text-muted mb-1">Rendimentos/mês</p>
-              <p className="text-lg font-semibold text-status-paid font-mono tabular-nums">{fmt(annualAvg.income)}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted mb-1">Entradas/mês</p>
+              <p className="font-display text-lg font-bold text-status-paid tabular-nums">{fmt(annualAvg.income)}</p>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-border-subtle/60">
-            <p className="text-xs text-text-muted">Poupança média/mês</p>
-            <p className={`text-lg font-semibold font-mono tabular-nums ${annualAvg.income - annualAvg.expenses >= 0 ? "text-status-paid" : "text-status-negative"}`}>
+          <div className="pt-4 border-t border-border-subtle/60">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted mb-1">Poupança média/mês</p>
+            <p className={`font-display text-xl font-bold tabular-nums ${annualAvg.income - annualAvg.expenses >= 0 ? "text-status-paid" : "text-status-negative"}`}>
               {fmt(annualAvg.income - annualAvg.expenses)}
             </p>
           </div>
         </div>
 
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-3 block">Contas Pendentes</span>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-text-muted mb-1">Valor Total Pendente</p>
-              <p className="text-lg sm:text-xl font-semibold text-status-pending font-mono tabular-nums truncate">{fmt(pendingFixed)}</p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-xs text-text-muted mb-1">Pendentes</p>
-              <p className="text-lg sm:text-xl font-semibold text-foreground">{pendingExpenses.length}<span className="text-sm text-text-muted">/{fixedExpenses.length}</span></p>
-            </div>
+        <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-display text-base font-bold text-foreground">Contas Pendentes</h3>
+            <span className="text-[11px] font-bold text-status-pending bg-[hsl(var(--status-pending)/0.12)] px-2.5 py-1 rounded-full">
+              {pendingExpenses.length}/{fixedExpenses.length}
+            </span>
           </div>
+          <p className="font-display text-2xl font-bold text-status-pending tabular-nums mb-4">{fmt(pendingFixed)}</p>
           {nextDue ? (
-            <div className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border-subtle/60">
-              <div className="h-8 w-8 rounded-full bg-[hsl(var(--status-pending)/0.15)] flex items-center justify-center shrink-0">
-                <Clock className="h-4 w-4 text-status-pending" />
+            <div className="flex items-center gap-3 p-3 bg-background rounded-2xl border border-border-subtle/60">
+              <div className="h-10 w-10 rounded-2xl bg-[hsl(var(--status-pending)/0.12)] flex items-center justify-center shrink-0">
+                <Clock className="h-5 w-5 text-status-pending" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">Próxima: {nextDue.item}</p>
@@ -284,7 +340,7 @@ export const Dashboard = ({
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 p-3 bg-[hsl(var(--status-paid)/0.08)] rounded-lg">
+            <div className="flex items-center gap-2 p-3 bg-[hsl(var(--status-paid)/0.08)] rounded-2xl">
               <AlertCircle className="h-4 w-4 text-status-paid" />
               <p className="text-sm text-status-paid font-medium">Todas as contas pagas!</p>
             </div>
@@ -292,38 +348,6 @@ export const Dashboard = ({
         </div>
       </div>
 
-      {/* Gráficos */}
-      <div className="mb-6">
-        {/* Pie Chart - Gastos por categoria */}
-        <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5">
-          <span className="label-caps mb-3 block">Gastos por Categoria</span>
-          {categoryData.length > 0 ? (
-            <div className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={40} paddingAngle={2}>
-                    {categoryData.map((_, idx) => (
-                      <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid hsl(214, 32%, 91%)" }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex flex-wrap gap-2 mt-2 justify-center">
-                {categoryData.map((d, i) => (
-                  <span key={d.name} className="inline-flex items-center gap-1.5 text-[11px] text-text-muted">
-                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                    {d.name}: {fmt(d.value)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-text-muted text-center py-8">Sem gastos neste mês</p>
-          )}
-        </div>
-
-      </div>
 
       {/* Comparação com mês anterior - formato compacto */}
       <div className="bg-surface rounded-xl shadow-card border border-border-subtle/60 p-5 mb-6">
