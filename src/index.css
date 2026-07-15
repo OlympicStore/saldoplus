@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -99,6 +99,11 @@ div[class*="lovable"] {
   .display-value {
     @apply text-4xl font-semibold;
     letter-spacing: -0.04em;
+  }
+
+  .font-display {
+    font-family: 'Sora', 'IBM Plex Sans', system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 
   .scrollbar-hide::-webkit-scrollbar {
