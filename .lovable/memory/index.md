@@ -25,3 +25,4 @@ Planos: Essencial, Casa, Pro com feature gating.
 - [Casa Segura+](mem://features/casa-segura-plus) — Plano imobiliária B2B, MinhaCasa, branding parceiro
 - [Consultants](mem://features/consultants) — Perfis de consultor com dashboard, criados pela imobiliária
 - [App restructure](mem://features/app-restructure) — Despesas F/I/N (Fixas, Inevitáveis, Não-essenciais)
+- [AI Assistant (Fase 1)](mem://features/ai-assistant) — Chat conversacional com IA financeira, thread history, gated a casa/pro/imobiliaria

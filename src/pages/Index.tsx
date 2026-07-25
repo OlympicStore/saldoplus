@@ -19,8 +19,9 @@ import MinhaCasa from "@/components/MinhaCasa";
 import ExpirationBanner from "@/components/ExpirationBanner";
 import TrialBanner from "@/components/TrialBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
+import { AIAssistant } from "@/components/AIAssistant";
 
-import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowDownCircle, ArrowUpCircle, LineChart, CalendarDays, Target, PieChart, Building2, User as UserIcon } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowDownCircle, ArrowUpCircle, LineChart, CalendarDays, Target, PieChart, Building2, User as UserIcon, Sparkles } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -35,10 +36,11 @@ const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julh
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
-type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
+type Tab = "dashboard" | "assistente" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
 
 const allTabs: { key: Tab; label: string; icon: typeof Home }[] = [
   { key: "dashboard", label: "Home", icon: Home },
+  { key: "assistente", label: "Assistente", icon: Sparkles },
   { key: "balance", label: "Saldo", icon: Wallet },
   { key: "entries", label: "Entradas", icon: ArrowDownCircle },
   { key: "expenses", label: "Despesas", icon: ArrowUpCircle },
@@ -52,9 +54,9 @@ const allTabs: { key: Tab; label: string; icon: typeof Home }[] = [
 
 const planTabs: Record<string, Tab[]> = {
   essencial: ["dashboard", "balance", "entries", "expenses", "account"],
-  casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
-  pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
-  imobiliaria: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
+  casa: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
+  pro: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
+  imobiliaria: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
 };
 
 const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
@@ -515,7 +517,8 @@ const Index = () => {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main className={activeTab === "assistente" ? "max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-6" : "max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8"}>
+        {activeTab === "assistente" && <AIAssistant />}
         {activeTab === "dashboard" && (
           <>
             {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && (
