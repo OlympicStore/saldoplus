@@ -13,6 +13,7 @@ interface Props {
   salaryConfigs: SalaryConfig[];
   people: string[];
   selectedMonth: number;
+  onUpdatePeople?: (people: string[]) => void;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
