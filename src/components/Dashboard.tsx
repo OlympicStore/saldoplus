@@ -252,6 +252,8 @@ export const Dashboard = ({
         <CoupleMode
           fixedExpenses={fixedExpenses}
           variableExpenses={variableExpenses}
+          incomes={incomes}
+          salaryConfigs={salaryConfigs}
           people={people}
           selectedMonth={selectedMonth}
         />
