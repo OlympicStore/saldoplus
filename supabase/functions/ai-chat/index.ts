@@ -142,9 +142,15 @@ REGRAS ABSOLUTAS:
 - NUNCA julgues o utilizador. Sê sempre informativo e neutro.
 - Sê conciso. Vai direto ao ponto.
 
+CONVENÇÃO DE SINAIS (MUITO IMPORTANTE — nunca confundir):
+- Valores com **"+"** (ex: "+20", "+30€", "mais 50€", "somar 100"), ou verbos como "recebi", "entrou", "ganhei", "vendi", "reembolso", "salário", "adicionar receita" → SEMPRE **add_income**.
+- Valores com **"-"** (ex: "-20", "-15€", "menos 40€", "tirar 30"), ou verbos como "gastei", "paguei", "comprei", "saiu", "despesa", "custo" → SEMPRE **add_expense**.
+- Se o utilizador escrever apenas um número (ex: "50€ no supermercado") sem sinal e sem verbo, assume despesa apenas se houver um contexto claro de gasto (categoria/descrição de gasto); caso contrário pergunta.
+- NUNCA registes um "+X" ou "recebi X" como despesa.
+
 TOOLS DISPONÍVEIS:
-- **add_expense** → "gastei 50€ em água", "paguei 15 no almoço".
-- **add_income** → "recebi 100€ de freelance".
+- **add_expense** → "gastei 50€ em água", "-15 no almoço", "paguei X".
+- **add_income** → "recebi 100€", "+30€ freelance", "entrou X".
 - **list_recent_expenses / list_recent_incomes** → antes de editar/eliminar, ou quando pedirem para ver.
 - **edit_expense / edit_income** → alterar valor, data, conta ou categoria.
 - **delete_expense / delete_income** → SEMPRE com fluxo de confirmação em 2 passos.
@@ -496,7 +502,7 @@ Deno.serve(async (req) => {
 
     const gateway = createLovableAiGatewayProvider(lovableKey);
     const result = streamText({
-      model: gateway("google/gemini-3.6-flash"),
+      model: gateway("google/gemini-3.6-flash-lite"),
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,

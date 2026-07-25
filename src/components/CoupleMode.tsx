@@ -13,6 +13,7 @@ interface Props {
   salaryConfigs: SalaryConfig[];
   people: string[];
   selectedMonth: number;
+  onUpdatePeople?: (people: string[]) => void;
 }
 
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
@@ -20,7 +21,7 @@ const STORAGE_KEY = "couple_mode_config";
 
 type SplitMode = "equal" | "proportional";
 
-export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryConfigs, people, selectedMonth }: Props) => {
+export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryConfigs, people, selectedMonth, onUpdatePeople }: Props) => {
   const [config, setConfig] = useState<{
     enabled: boolean;
     personA: string | null;
@@ -30,6 +31,21 @@ export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryCon
     enabled: false, personA: null, personB: null, splitMode: "equal",
   });
   const [editing, setEditing] = useState(false);
+  const [newPersonName, setNewPersonName] = useState("");
+
+  const addPerson = () => {
+    const name = newPersonName.trim();
+    if (!name || people.includes(name) || !onUpdatePeople) return;
+    const next = [...people, name];
+    onUpdatePeople(next);
+    setNewPersonName("");
+    // auto-fill missing slot
+    setConfig(c => ({
+      ...c,
+      personA: c.personA ?? next[0] ?? null,
+      personB: c.personB ?? (next.find(p => p !== (c.personA ?? next[0])) ?? null),
+    }));
+  };
 
   useEffect(() => {
     try {
@@ -113,9 +129,8 @@ export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryCon
         <button
           onClick={() => setEditing(true)}
           className="text-sm font-semibold text-primary hover:underline"
-          disabled={people.length < 2}
         >
-          {people.length < 2 ? "Adicione pelo menos 2 pessoas" : "Ativar Modo Casal →"}
+          {people.length < 2 ? "Configurar (adicionar pessoas) →" : "Ativar Modo Casal →"}
         </button>
       </motion.div>
     );
@@ -140,6 +155,34 @@ export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryCon
             </div>
           ))}
         </div>
+
+        {onUpdatePeople && (
+          <div className="mb-4">
+            <label className="text-xs font-semibold text-text-muted uppercase block mb-2">Adicionar pessoa</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newPersonName}
+                onChange={(e) => setNewPersonName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPerson(); } }}
+                placeholder="Nome"
+                className="flex-1 text-sm bg-background border border-border-subtle rounded-lg px-3 py-2"
+              />
+              <button
+                type="button"
+                onClick={addPerson}
+                disabled={!newPersonName.trim() || people.includes(newPersonName.trim())}
+                className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+              >
+                Adicionar
+              </button>
+            </div>
+            {people.length > 0 && (
+              <p className="text-[11px] text-text-muted mt-1.5">Atuais: {people.join(", ")}</p>
+            )}
+          </div>
+        )}
+
 
         <div className="mb-4">
           <label className="text-xs font-semibold text-text-muted uppercase block mb-2">Modo de divisão</label>
