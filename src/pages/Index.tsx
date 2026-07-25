@@ -224,6 +224,7 @@ const Index = () => {
   }
 
   return (
+    <>
     <PullToRefresh onRefresh={async () => { await data.reload(); window.location.reload(); }}>
     <div className="min-h-screen bg-background">
       <PartnerOnboarding />
