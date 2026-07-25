@@ -21,7 +21,7 @@ const STORAGE_KEY = "couple_mode_config";
 
 type SplitMode = "equal" | "proportional";
 
-export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryConfigs, people, selectedMonth }: Props) => {
+export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryConfigs, people, selectedMonth, onUpdatePeople }: Props) => {
   const [config, setConfig] = useState<{
     enabled: boolean;
     personA: string | null;
