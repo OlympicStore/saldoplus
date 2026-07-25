@@ -214,22 +214,176 @@ export const AIAssistant = () => {
               const toolName = p.type.slice(5);
               const state = p.state as string | undefined;
               const done = state === "output-available" || state === "result";
-              const failed = state === "output-error";
               const output = p.output as any;
-              const success = output?.ok !== false;
-              const label = done
-                ? (failed || !success ? `⚠️ ${toolName}` : `✓ ${toolName.replace(/_/g, " ")}`)
-                : `⚙️ ${toolName.replace(/_/g, " ")}…`;
+              const input = p.input as any;
+              const failed = state === "output-error" || (done && output?.ok === false);
+
+              // In-flight → subtle pill with spinner
+              if (!done) {
+                return (
+                  <div key={idx} className="inline-flex items-center gap-2 text-[11px] px-3 py-1.5 rounded-full border border-border-subtle bg-surface-hover text-text-muted">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span className="font-medium">{(TOOL_LABEL[toolName] || toolName).toLowerCase()}…</span>
+                  </div>
+                );
+              }
+
+              // Error state
+              if (failed) {
+                return (
+                  <div key={idx} className="flex items-start gap-2.5 rounded-2xl bg-status-negative/10 border border-status-negative/25 px-3.5 py-2.5 text-xs text-status-negative max-w-md">
+                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-semibold mb-0.5">Não consegui executar.</p>
+                      <p className="text-status-negative/80">{String(output?.error || "Erro desconhecido")}</p>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Rich card: add_expense / add_income
+              if (toolName === "add_expense" || toolName === "add_income") {
+                const isExp = toolName === "add_expense";
+                const Icon = isExp ? categoryIcon(input?.category) : TrendingUp;
+                const value = input?.value ?? 0;
+                const title = input?.description || (isExp ? "Despesa" : "Receita");
+                const line2Label = isExp ? "Categoria" : "Tipo";
+                const line2Value = isExp ? (input?.category || "—") : (input?.type || "—");
+                const line3Label = "Conta";
+                const line3Value = input?.account || "Principal";
+                return (
+                  <div key={idx} className="space-y-2 max-w-md">
+                    <div className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary">
+                      <Check className="h-3.5 w-3.5" />
+                      {isExp ? "Despesa registada!" : "Receita registada!"}
+                    </div>
+                    <div className="bg-surface border border-border-subtle rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
+                          isExp ? "bg-status-negative/10 text-status-negative" : "bg-primary/10 text-primary"
+                        }`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-display text-base font-semibold text-foreground truncate">{title}</p>
+                        </div>
+                        <p className={`font-display text-lg font-semibold tabular-nums ${isExp ? "text-foreground" : "text-primary"}`}>
+                          {isExp ? "−" : "+"}{eur(value)}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-border-subtle/60">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-text-muted font-medium">{line2Label}</p>
+                          <p className="text-sm text-foreground mt-0.5 truncate">{line2Value}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-text-muted font-medium">{line3Label}</p>
+                          <p className="text-sm text-foreground mt-0.5 truncate">{line3Value}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // edit_* → compact card
+              if (toolName === "edit_expense" || toolName === "edit_income") {
+                const updated = output?.updated || {};
+                return (
+                  <div key={idx} className="max-w-md bg-surface border border-border-subtle rounded-2xl p-3.5 shadow-sm">
+                    <div className="flex items-center gap-2 text-primary text-xs font-semibold mb-2">
+                      <Pencil className="h-3.5 w-3.5" />
+                      {TOOL_LABEL[toolName]}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.entries(updated).map(([k, v]) => (
+                        <span key={k} className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-primary/8 text-foreground border border-primary/15">
+                          <span className="text-text-muted">{k}:</span>
+                          <span className="font-medium">{k === "value" ? eur(v as number) : String(v)}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
+              // delete_* with preview (confirm=false)
+              if ((toolName === "delete_expense" || toolName === "delete_income") && output?.requiresConfirmation) {
+                const prev = output.preview || {};
+                return (
+                  <div key={idx} className="max-w-md bg-status-pending/8 border border-status-pending/25 rounded-2xl p-4">
+                    <div className="flex items-center gap-2 text-status-pending text-xs font-semibold mb-2">
+                      <AlertCircle className="h-4 w-4" />
+                      Confirmar eliminação
+                    </div>
+                    <p className="text-sm text-foreground">
+                      <span className="font-semibold">{prev.description}</span>
+                      {prev.value !== undefined && <> · {eur(prev.value)}</>}
+                      {prev.category && <> · {prev.category}</>}
+                      {prev.type && <> · {prev.type}</>}
+                    </p>
+                    <p className="text-[11px] text-text-muted mt-1">{prev.date} · {prev.account}</p>
+                  </div>
+                );
+              }
+
+              // delete_* executed
+              if (toolName === "delete_expense" || toolName === "delete_income") {
+                return (
+                  <div key={idx} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-status-negative/10 text-status-negative border border-status-negative/25">
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {TOOL_LABEL[toolName]}
+                  </div>
+                );
+              }
+
+              // undo
+              if (toolName === "undo_last_action") {
+                return (
+                  <div key={idx} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/25">
+                    <Undo2 className="h-3.5 w-3.5" />
+                    {output?.message || "Ação anterior desfeita"}
+                  </div>
+                );
+              }
+
+              // list_recent_* → compact list
+              if (toolName === "list_recent_expenses" || toolName === "list_recent_incomes") {
+                const rows: any[] = output?.expenses || output?.incomes || [];
+                if (!rows.length) {
+                  return (
+                    <div key={idx} className="text-xs text-text-muted italic">Sem registos encontrados.</div>
+                  );
+                }
+                const isExp = toolName === "list_recent_expenses";
+                return (
+                  <div key={idx} className="max-w-md bg-surface border border-border-subtle rounded-2xl divide-y divide-border-subtle/60 shadow-sm overflow-hidden">
+                    {rows.slice(0, 6).map((r) => {
+                      const Icon = isExp ? categoryIcon(r.category) : TrendingUp;
+                      return (
+                        <div key={r.id} className="flex items-center gap-3 px-3.5 py-2.5">
+                          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${isExp ? "bg-status-negative/10 text-status-negative" : "bg-primary/10 text-primary"}`}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{r.description}</p>
+                            <p className="text-[11px] text-text-muted">{r.date} · {isExp ? r.category : r.type}</p>
+                          </div>
+                          <p className={`text-sm font-semibold tabular-nums ${isExp ? "text-foreground" : "text-primary"}`}>
+                            {isExp ? "−" : "+"}{eur(r.value)}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              }
+
+              // Default success pill
               return (
-                <div key={idx} className={`inline-flex items-center gap-2 text-[11px] px-2.5 py-1 rounded-full border ${
-                  failed || !success
-                    ? "bg-status-negative/10 border-status-negative/30 text-status-negative"
-                    : done
-                      ? "bg-primary/10 border-primary/30 text-primary"
-                      : "bg-surface-hover border-border-subtle text-text-muted"
-                }`}>
-                  <span className="font-medium">{label}</span>
-                  {done && output?.error && <span className="text-text-muted truncate max-w-[200px]">— {String(output.error)}</span>}
+                <div key={idx} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/25">
+                  <Check className="h-3.5 w-3.5" />
+                  {TOOL_LABEL[toolName] || toolName.replace(/_/g, " ")}
                 </div>
               );
             }
