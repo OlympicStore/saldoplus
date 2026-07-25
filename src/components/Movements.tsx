@@ -63,7 +63,7 @@ export function Movements(props: Props) {
       items.push({ id: `in-${i.id}`, date: i.date, label: i.description || "Entrada", sub: i.account || "—", value: i.value, sign: 1, kind: "Receita" });
     });
     props.investments.filter(i => isDateInMonth(i.date, props.selectedMonth)).forEach(i => {
-      items.push({ id: `iv-${i.id}`, date: i.date, label: i.name, sub: i.type, value: i.amount, sign: 0, kind: "Investimento" });
+      items.push({ id: `iv-${i.id}`, date: i.date, label: i.name, sub: String(i.type), value: i.value, sign: 0, kind: "Investimento" });
     });
     props.transfers.filter(t => isDateInMonth(t.date, props.selectedMonth)).forEach(t => {
       items.push({ id: `tr-${t.id}`, date: t.date, label: t.description || `${t.from_account} → ${t.to_account}`, sub: `${t.from_account} → ${t.to_account}`, value: t.value, sign: 0, kind: "Transferência" });
