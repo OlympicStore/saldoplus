@@ -247,7 +247,7 @@ const Index = () => {
     <PullToRefresh onRefresh={async () => { await data.reload(); window.location.reload(); }}>
     <div className="min-h-screen bg-background">
       <PartnerOnboarding />
-      <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange} plan={userPlan} />
+      <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange as any} plan={userPlan} />
       <ExpirationBanner />
       <TrialBanner />
       <header className="border-b border-border-subtle/60 bg-surface">
