@@ -21,8 +21,10 @@ import TrialBanner from "@/components/TrialBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
 import { AIAssistant } from "@/components/AIAssistant";
 import BottomNav from "@/components/BottomNav";
+import { Movements } from "@/components/Movements";
+import { Objectives } from "@/components/Objectives";
 
-import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowDownCircle, ArrowUpCircle, LineChart, CalendarDays, Target, PieChart, Building2, User as UserIcon, Sparkles } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowLeftRight, CalendarDays, Target, Building2, User as UserIcon, Sparkles, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -37,30 +39,46 @@ const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julh
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
-type Tab = "dashboard" | "assistente" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
+type Tab =
+  | "dashboard"
+  | "assistente"
+  | "movements"
+  | "goals"
+  // Secondary — accessible from "Mais"
+  | "balance"
+  | "annual"
+  | "budgets"
+  | "minha_casa"
+  | "account";
 
-const allTabs: { key: Tab; label: string; icon: typeof Home }[] = [
+// Primary tabs shown in the top nav + bottom bar
+const PRIMARY_TABS: { key: Tab; label: string; icon: typeof Home }[] = [
   { key: "dashboard", label: "Home", icon: Home },
   { key: "assistente", label: "Assistente", icon: Sparkles },
-  { key: "balance", label: "Saldo", icon: Wallet },
-  { key: "entries", label: "Entradas", icon: ArrowDownCircle },
-  { key: "expenses", label: "Despesas", icon: ArrowUpCircle },
-  { key: "investments", label: "Investimentos", icon: LineChart },
-  { key: "annual", label: "Anual", icon: CalendarDays },
-  { key: "goals", label: "Metas", icon: Target },
-  { key: "budgets", label: "Orçamentos", icon: PieChart },
-  { key: "minha_casa", label: "Minha Casa", icon: Building2 },
-  { key: "account", label: "Conta", icon: UserIcon },
+  { key: "movements", label: "Movimentos", icon: ArrowLeftRight },
+  { key: "goals", label: "Objetivos", icon: Target },
 ];
 
+// Items shown inside the "Mais" drawer
+type MoreItem = { key: Tab; label: string; icon: typeof Home; hint?: string };
+const MORE_ITEMS: MoreItem[] = [
+  { key: "balance", label: "Saldo & Contas", icon: Wallet, hint: "Contas e saldo inicial" },
+  { key: "annual", label: "Vista Anual", icon: CalendarDays, hint: "Estado das contas por mês" },
+  { key: "minha_casa", label: "Minha Casa", icon: Building2, hint: "Crédito habitação" },
+  { key: "account", label: "Conta & Plano", icon: UserIcon, hint: "Perfil, plano, faturação" },
+];
+
+const ALL_TAB_KEYS: Tab[] = ["dashboard","assistente","movements","goals","balance","annual","budgets","minha_casa","account"];
+
 const planTabs: Record<string, Tab[]> = {
-  essencial: ["dashboard", "balance", "entries", "expenses", "account"],
-  casa: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
-  pro: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
-  imobiliaria: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
+  essencial: ["dashboard", "movements", "balance", "account"],
+  casa: ["dashboard", "assistente", "movements", "goals", "balance", "annual", "account"],
+  pro: ["dashboard", "assistente", "movements", "goals", "balance", "annual", "budgets", "account"],
+  imobiliaria: ["dashboard", "assistente", "movements", "goals", "balance", "annual", "budgets", "minha_casa", "account"],
 };
 
-const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
+const isTab = (value: string | null): value is Tab => !!value && (ALL_TAB_KEYS as string[]).includes(value);
+
 
 const Index = () => {
   const { profile, isAdmin, partnerBranding, signOut } = useAuth();
@@ -70,8 +88,9 @@ const Index = () => {
   const now = new Date();
   const userPlan = profile?.plan || "essencial";
   // Admins têm acesso completo a todas as tabs, independentemente do plano
-  const allowedTabs = isAdmin ? allTabs.map((t) => t.key) : (planTabs[userPlan] || planTabs.essencial);
-  const tabs = allTabs.filter((t) => allowedTabs.includes(t.key));
+  const allowedTabs: Tab[] = isAdmin ? ALL_TAB_KEYS : (planTabs[userPlan] || planTabs.essencial);
+  const primaryTabs = PRIMARY_TABS.filter((t) => allowedTabs.includes(t.key));
+  const moreItems = MORE_ITEMS.filter((t) => allowedTabs.includes(t.key));
   const requestedTab = searchParams.get("tab");
 
   const [activeTab, setActiveTab] = useState<Tab>(isTab(requestedTab) ? requestedTab : "dashboard");
@@ -228,7 +247,7 @@ const Index = () => {
     <PullToRefresh onRefresh={async () => { await data.reload(); window.location.reload(); }}>
     <div className="min-h-screen bg-background">
       <PartnerOnboarding />
-      <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange} plan={userPlan} />
+      <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange as any} plan={userPlan} />
       <ExpirationBanner />
       <TrialBanner />
       <header className="border-b border-border-subtle/60 bg-surface">
@@ -369,22 +388,31 @@ const Index = () => {
             )}
           </SheetHeader>
 
-          <nav className="px-3 py-4 space-y-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const active = activeTab === tab.key;
+          <div className="px-5 py-3">
+            <p className="label-caps text-text-muted">Mais</p>
+          </div>
+          <nav className="px-3 pb-2 space-y-1">
+            {moreItems.map((item) => {
+              const Icon = item.icon;
+              const active = activeTab === item.key;
               return (
                 <button
-                  key={tab.key}
-                  onClick={() => { handleTabChange(tab.key); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  key={item.key}
+                  onClick={() => { handleTabChange(item.key); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium transition-colors ${
                     active
                       ? "bg-primary/10 text-primary"
                       : "text-text-secondary hover:bg-surface-hover hover:text-foreground"
                   }`}
                 >
-                  <Icon className={`h-4.5 w-4.5 ${active ? "text-primary" : "text-text-muted"}`} strokeWidth={active ? 2.4 : 2} />
-                  <span>{tab.label}</span>
+                  <span className="h-9 w-9 rounded-xl bg-background flex items-center justify-center">
+                    <Icon className={`h-4 w-4 ${active ? "text-primary" : "text-text-muted"}`} />
+                  </span>
+                  <span className="flex-1 text-left">
+                    <span className="block">{item.label}</span>
+                    {item.hint && <span className="block text-[11px] font-normal text-text-muted">{item.hint}</span>}
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-text-muted" />
                 </button>
               );
             })}
@@ -424,6 +452,7 @@ const Index = () => {
           </div>
         </SheetContent>
       </Sheet>
+
 
 
       {/* Categories panel */}
@@ -502,11 +531,11 @@ const Index = () => {
         </div>
       )}
 
-      <nav className="hidden lg:block border-b border-border-subtle/60 bg-surface overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <div className="max-w-5xl mx-auto px-2 sm:px-6 flex gap-0">
-          {tabs.map((tab) => (
+      <nav className="hidden lg:block border-b border-border-subtle/60 bg-surface">
+        <div className="max-w-5xl mx-auto px-2 sm:px-6 flex gap-0 items-center">
+          {primaryTabs.map((tab) => (
             <button key={tab.key} onClick={() => handleTabChange(tab.key)}
-              className={`relative px-2.5 sm:px-4 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.key ? "text-foreground" : "text-text-muted hover:text-text-secondary"
               }`}>
               {tab.label}
@@ -516,8 +545,15 @@ const Index = () => {
               )}
             </button>
           ))}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="ml-auto flex items-center gap-1.5 px-4 py-3 text-sm font-medium text-text-muted hover:text-foreground transition-colors"
+          >
+            <Menu className="h-4 w-4" /> Mais
+          </button>
         </div>
       </nav>
+
 
       <main className={activeTab === "assistente" ? "max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-6" : "max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8"}>
         {activeTab === "assistente" && <AIAssistant />}
@@ -560,33 +596,30 @@ const Index = () => {
             onDelete={data.deleteAccount}
           />
         )}
-        {activeTab === "entries" && (
-          <Entries
-            incomes={yearIncomes} salaryConfigs={yearSalaryConfigs}
-            accounts={data.accounts} transfers={yearTransfers} people={data.people} selectedMonth={selectedMonth}
+        {activeTab === "movements" && (
+          <Movements
+            fixedExpenses={yearFixedExpenses}
+            variableExpenses={yearVariableExpenses}
+            incomes={yearIncomes}
+            salaryConfigs={yearSalaryConfigs}
+            investments={yearInvestments}
+            transfers={yearTransfers}
+            accounts={data.accounts}
+            categories={data.categories}
+            variableCategories={data.variableCategories}
+            people={data.people}
+            selectedMonth={selectedMonth}
             onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
             onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
             onAddTransfer={data.addTransfer} onDeleteTransfer={data.deleteTransfer}
-          />
-        )}
-        {activeTab === "expenses" && (
-          <Expenses
-            fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
-            categories={data.categories} accounts={data.accounts}
-            people={data.people} selectedMonth={selectedMonth}
             onAddFixed={yearAddFixed} onUpdateFixed={data.updateFixed}
             onUpdateFixedMonthly={yearUpdateFixedMonthly} onDeleteFixed={data.deleteFixed}
             onAddVariable={data.addVariable} onUpdateVariable={data.updateVariable}
             onDeleteVariable={data.deleteVariable}
             onAddCategoryItem={data.addCategoryItem}
-          />
-        )}
-        {activeTab === "investments" && (
-          <Investments
-            investments={yearInvestments} accounts={data.accounts}
-            selectedMonth={selectedMonth}
-            onAdd={data.addInvestment} onUpdate={data.updateInvestment}
-            onDelete={data.deleteInvestment}
+            onAddInvestment={data.addInvestment}
+            onUpdateInvestment={data.updateInvestment}
+            onDeleteInvestment={data.deleteInvestment}
           />
         )}
         {activeTab === "annual" && (
@@ -596,11 +629,26 @@ const Index = () => {
             onAddBill={yearAddFixed} onRemoveBill={data.deleteFixed} selectedMonth={selectedMonth} selectedYear={selectedYear} />
         )}
         {activeTab === "goals" && (
-          <FinancialGoals goals={data.financialGoals}
-            onAdd={data.addGoal}
-            onUpdate={data.updateGoal}
-            onDelete={data.deleteGoal} />
+          <Objectives
+            goals={data.financialGoals}
+            fixedExpenses={yearFixedExpenses}
+            variableExpenses={yearVariableExpenses}
+            incomes={yearIncomes}
+            salaryConfigs={yearSalaryConfigs}
+            people={data.people}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            variableCategories={data.variableCategories}
+            onAddGoal={data.addGoal}
+            onUpdateGoal={data.updateGoal}
+            onDeleteGoal={data.deleteGoal}
+            onAddCategory={data.addCategory}
+            onDeleteCategory={data.deleteCategory}
+            onUpdatePeople={data.updatePeople}
+            showBudgets={allowedTabs.includes("budgets")}
+          />
         )}
+
         {activeTab === "budgets" && (
           <CategoryBudgets
             categories={data.variableCategories}

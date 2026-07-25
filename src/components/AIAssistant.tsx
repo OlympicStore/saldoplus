@@ -495,10 +495,18 @@ export const AIAssistant = () => {
               <div className="h-14 w-14 rounded-3xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center mb-4 shadow-md">
                 <Sparkles className="h-6 w-6 text-primary-foreground" />
               </div>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-2">Olá! Como posso ajudar?</h3>
+              <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                {(() => {
+                  const h = new Date().getHours();
+                  const name = (user?.user_metadata?.full_name || user?.email?.split("@")[0] || "").split(" ")[0];
+                  const g = h < 12 ? "Bom dia" : h < 19 ? "Boa tarde" : "Boa noite";
+                  return name ? `${g}, ${name}.` : `${g}.`;
+                })()}
+              </h3>
               <p className="text-sm text-text-muted max-w-md mb-6">
-                Sou o teu assistente financeiro. Pergunta-me sobre gastos, poupanças, metas ou padrões nas tuas finanças.
+                Em que posso ajudar hoje? Pergunta-me sobre gastos, poupanças, metas ou pede-me para registar algo.
               </p>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
                 {SUGGESTIONS.map((s) => (
                   <button key={s} onClick={() => handleSuggestion(s)}
