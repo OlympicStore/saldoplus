@@ -20,8 +20,9 @@ import ExpirationBanner from "@/components/ExpirationBanner";
 import TrialBanner from "@/components/TrialBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
 
-import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowDownCircle, ArrowUpCircle, LineChart, CalendarDays, Target, PieChart, Building2, User as UserIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
@@ -36,17 +37,17 @@ const MAX_YEAR = 2028;
 
 type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
 
-const allTabs: { key: Tab; label: string }[] = [
-  { key: "dashboard", label: "Home" },
-  { key: "balance", label: "Saldo" },
-  { key: "entries", label: "Entradas" },
-  { key: "expenses", label: "Despesas" },
-  { key: "investments", label: "Investimentos" },
-  { key: "annual", label: "Anual" },
-  { key: "goals", label: "Metas" },
-  { key: "budgets", label: "Orçamentos" },
-  { key: "minha_casa", label: "Minha Casa" },
-  { key: "account", label: "Conta" },
+const allTabs: { key: Tab; label: string; icon: typeof Home }[] = [
+  { key: "dashboard", label: "Home", icon: Home },
+  { key: "balance", label: "Saldo", icon: Wallet },
+  { key: "entries", label: "Entradas", icon: ArrowDownCircle },
+  { key: "expenses", label: "Despesas", icon: ArrowUpCircle },
+  { key: "investments", label: "Investimentos", icon: LineChart },
+  { key: "annual", label: "Anual", icon: CalendarDays },
+  { key: "goals", label: "Metas", icon: Target },
+  { key: "budgets", label: "Orçamentos", icon: PieChart },
+  { key: "minha_casa", label: "Minha Casa", icon: Building2 },
+  { key: "account", label: "Conta", icon: UserIcon },
 ];
 
 const planTabs: Record<string, Tab[]> = {
@@ -78,6 +79,7 @@ const Index = () => {
   const [showCategoriesPanel, setShowCategoriesPanel] = useState(false);
   const [editingPeople, setEditingPeople] = useState("");
   const [showTour, setShowTour] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleShowTour = useCallback(() => setShowTour(true), []);
 
@@ -310,29 +312,115 @@ const Index = () => {
               </span>
             )}
             {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && <SubAccountSwitcher />}
-            <SuggestionsDialog />
-            <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
-              className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
-              <Tag className="h-4 w-4" />
-              <span className="hidden sm:inline">Categorias</span>
-            </button>
-            {isAdmin && (
-              <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors text-sm">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Admin</span>
+            <div className="hidden lg:flex items-center gap-3">
+              <SuggestionsDialog />
+              <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
+                className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
+                <Tag className="h-4 w-4" />
+                <span className="hidden sm:inline">Categorias</span>
               </button>
-            )}
-            <button onClick={openPeopleEditor} className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Nomes</span>
-            </button>
-            <button onClick={signOut} className="flex items-center gap-1.5 text-text-muted hover:text-status-negative transition-colors text-sm">
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sair</span>
+              {isAdmin && (
+                <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors text-sm">
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">Admin</span>
+                </button>
+              )}
+              <button onClick={openPeopleEditor} className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Nomes</span>
+              </button>
+              <button onClick={signOut} className="flex items-center gap-1.5 text-text-muted hover:text-status-negative transition-colors text-sm">
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sair</span>
+              </button>
+            </div>
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border border-border-subtle/70 bg-surface hover:bg-surface-hover transition-colors"
+              aria-label="Abrir menu"
+            >
+              <Menu className="h-5 w-5 text-foreground" />
             </button>
           </div>
         </div>
       </header>
+
+      {/* Mobile side drawer */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="w-[82vw] max-w-[320px] p-0 bg-surface border-r border-border-subtle/60">
+          <SheetHeader className="px-5 pt-6 pb-4 border-b border-border-subtle/60">
+            <SheetTitle className="flex items-center gap-2 text-left">
+              {partnerBranding?.brand_logo_url ? (
+                <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-9 w-9 rounded-lg object-contain" />
+              ) : null}
+              <span className="text-2xl font-bold tracking-tight leading-none">
+                <span className="text-foreground">Saldo</span>
+                <span className="text-primary text-3xl font-black">+</span>
+              </span>
+            </SheetTitle>
+            {profile && (
+              <p className="text-[11px] text-text-muted text-left mt-1">
+                {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
+              </p>
+            )}
+          </SheetHeader>
+
+          <nav className="px-3 py-4 space-y-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => { handleTabChange(tab.key); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-primary/10 text-primary"
+                      : "text-text-secondary hover:bg-surface-hover hover:text-foreground"
+                  }`}
+                >
+                  <Icon className={`h-4.5 w-4.5 ${active ? "text-primary" : "text-text-muted"}`} strokeWidth={active ? 2.4 : 2} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="px-3 py-3 border-t border-border-subtle/60 space-y-1">
+            <button
+              onClick={() => { setShowCategoriesPanel(true); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
+            >
+              <Tag className="h-4 w-4 text-text-muted" />
+              Categorias
+            </button>
+            <button
+              onClick={() => { openPeopleEditor(); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
+            >
+              <Settings className="h-4 w-4 text-text-muted" />
+              Nomes
+            </button>
+            {isAdmin && (
+              <button
+                onClick={() => { navigate("/admin"); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-primary transition-colors"
+              >
+                <Shield className="h-4 w-4 text-text-muted" />
+                Admin
+              </button>
+            )}
+            <button
+              onClick={() => { signOut(); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-status-negative transition-colors"
+            >
+              <LogOut className="h-4 w-4 text-text-muted" />
+              Sair
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
 
       {/* Categories panel */}
       {showCategoriesPanel && (
@@ -410,7 +498,7 @@ const Index = () => {
         </div>
       )}
 
-      <nav className="border-b border-border-subtle/60 bg-surface overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <nav className="hidden lg:block border-b border-border-subtle/60 bg-surface overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <div className="max-w-5xl mx-auto px-2 sm:px-6 flex gap-0">
           {tabs.map((tab) => (
             <button key={tab.key} onClick={() => handleTabChange(tab.key)}

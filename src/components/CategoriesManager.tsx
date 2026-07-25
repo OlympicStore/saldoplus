@@ -29,29 +29,31 @@ export const CategoriesManager = ({ categories, onAdd, onUpdate, onDelete }: Cat
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
+    <div className="space-y-5 bg-surface rounded-3xl border border-border-subtle/60 shadow-sm p-5 sm:p-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Categorias</h3>
-          <p className="text-xs text-text-muted mt-0.5">Define o tipo para cada categoria. Isto controla automaticamente relatórios e gráficos.</p>
+          <h3 className="font-display text-lg font-semibold text-foreground">Categorias</h3>
+          <p className="text-xs text-text-muted mt-1">Define o tipo para cada categoria. Isto controla automaticamente relatórios e gráficos.</p>
         </div>
       </div>
 
       {/* Add form */}
-      <div className="flex gap-2 items-end">
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
         <div className="flex-1">
           <input value={newName} onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             placeholder="Nova categoria (ex: Netflix, Gasolina)"
-            className="w-full text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+            className="w-full text-sm bg-background border border-border-subtle rounded-2xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition" />
         </div>
-        <select value={newType} onChange={(e) => setNewType(e.target.value as CategoryType)}
-          className="text-sm bg-background border border-border-subtle rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary">
-          {typeOrder.map(t => <option key={t} value={t}>{CATEGORY_TYPE_LABELS[t]}</option>)}
-        </select>
-        <button onClick={handleAdd} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
-          <Plus className="h-4 w-4" />
-        </button>
+        <div className="flex gap-2">
+          <select value={newType} onChange={(e) => setNewType(e.target.value as CategoryType)}
+            className="flex-1 sm:flex-none text-sm bg-background border border-border-subtle rounded-2xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition">
+            {typeOrder.map(t => <option key={t} value={t}>{CATEGORY_TYPE_LABELS[t]}</option>)}
+          </select>
+          <button onClick={handleAdd} className="inline-flex items-center justify-center h-11 w-11 rounded-2xl bg-primary text-primary-foreground shadow-sm hover:opacity-90 transition-opacity">
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Categories by type */}
