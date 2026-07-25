@@ -21,8 +21,10 @@ import TrialBanner from "@/components/TrialBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
 import { AIAssistant } from "@/components/AIAssistant";
 import BottomNav from "@/components/BottomNav";
+import { Movements } from "@/components/Movements";
+import { Objectives } from "@/components/Objectives";
 
-import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowDownCircle, ArrowUpCircle, LineChart, CalendarDays, Target, PieChart, Building2, User as UserIcon, Sparkles } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowLeftRight, CalendarDays, Target, Building2, User as UserIcon, Sparkles, ChevronRight } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -37,30 +39,46 @@ const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julh
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
-type Tab = "dashboard" | "assistente" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
+type Tab =
+  | "dashboard"
+  | "assistente"
+  | "movements"
+  | "goals"
+  // Secondary — accessible from "Mais"
+  | "balance"
+  | "annual"
+  | "budgets"
+  | "minha_casa"
+  | "account";
 
-const allTabs: { key: Tab; label: string; icon: typeof Home }[] = [
+// Primary tabs shown in the top nav + bottom bar
+const PRIMARY_TABS: { key: Tab; label: string; icon: typeof Home }[] = [
   { key: "dashboard", label: "Home", icon: Home },
   { key: "assistente", label: "Assistente", icon: Sparkles },
-  { key: "balance", label: "Saldo", icon: Wallet },
-  { key: "entries", label: "Entradas", icon: ArrowDownCircle },
-  { key: "expenses", label: "Despesas", icon: ArrowUpCircle },
-  { key: "investments", label: "Investimentos", icon: LineChart },
-  { key: "annual", label: "Anual", icon: CalendarDays },
-  { key: "goals", label: "Metas", icon: Target },
-  { key: "budgets", label: "Orçamentos", icon: PieChart },
-  { key: "minha_casa", label: "Minha Casa", icon: Building2 },
-  { key: "account", label: "Conta", icon: UserIcon },
+  { key: "movements", label: "Movimentos", icon: ArrowLeftRight },
+  { key: "goals", label: "Objetivos", icon: Target },
 ];
 
+// Items shown inside the "Mais" drawer
+type MoreItem = { key: Tab; label: string; icon: typeof Home; hint?: string };
+const MORE_ITEMS: MoreItem[] = [
+  { key: "balance", label: "Saldo & Contas", icon: Wallet, hint: "Contas e saldo inicial" },
+  { key: "annual", label: "Vista Anual", icon: CalendarDays, hint: "Estado das contas por mês" },
+  { key: "minha_casa", label: "Minha Casa", icon: Building2, hint: "Crédito habitação" },
+  { key: "account", label: "Conta & Plano", icon: UserIcon, hint: "Perfil, plano, faturação" },
+];
+
+const ALL_TAB_KEYS: Tab[] = ["dashboard","assistente","movements","goals","balance","annual","budgets","minha_casa","account"];
+
 const planTabs: Record<string, Tab[]> = {
-  essencial: ["dashboard", "balance", "entries", "expenses", "account"],
-  casa: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
-  pro: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
-  imobiliaria: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
+  essencial: ["dashboard", "movements", "balance", "account"],
+  casa: ["dashboard", "assistente", "movements", "goals", "balance", "annual", "account"],
+  pro: ["dashboard", "assistente", "movements", "goals", "balance", "annual", "budgets", "account"],
+  imobiliaria: ["dashboard", "assistente", "movements", "goals", "balance", "annual", "budgets", "minha_casa", "account"],
 };
 
-const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
+const isTab = (value: string | null): value is Tab => !!value && (ALL_TAB_KEYS as string[]).includes(value);
+
 
 const Index = () => {
   const { profile, isAdmin, partnerBranding, signOut } = useAuth();
