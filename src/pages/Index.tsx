@@ -543,6 +543,7 @@ const Index = () => {
               financialGoals={homeGoals}
               userPlan={userPlan}
               accounts={homeAccounts}
+              onUpdatePeople={data.updatePeople}
             />
           </>
         )}
