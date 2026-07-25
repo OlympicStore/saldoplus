@@ -8,6 +8,8 @@ import type { FinancialGoal } from "@/types/goal";
 import { TERM_LABELS, TERM_COLORS } from "@/types/goal";
 import type { Account } from "@/types/account";
 import { isDateInMonth } from "@/lib/dateOnly";
+import { FinancialScore } from "@/components/FinancialScore";
+import { CoupleMode } from "@/components/CoupleMode";
 
 const personColors = [
   { bar: "bg-person-claudia", bg: "bg-person-claudia-bg", text: "text-person-claudia" },
