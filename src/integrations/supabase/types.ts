@@ -58,6 +58,50 @@ export type Database = {
           },
         ]
       }
+      ai_action_log: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          snapshot: Json | null
+          target_id: string | null
+          target_table: string
+          undone: boolean
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          snapshot?: Json | null
+          target_id?: string | null
+          target_table: string
+          undone?: boolean
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          snapshot?: Json | null
+          target_id?: string | null
+          target_table?: string
+          undone?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_action_log_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_conversations: {
         Row: {
           created_at: string
