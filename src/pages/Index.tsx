@@ -20,6 +20,7 @@ import ExpirationBanner from "@/components/ExpirationBanner";
 import TrialBanner from "@/components/TrialBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
 import { AIAssistant } from "@/components/AIAssistant";
+import BottomNav from "@/components/BottomNav";
 
 import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowDownCircle, ArrowUpCircle, LineChart, CalendarDays, Target, PieChart, Building2, User as UserIcon, Sparkles } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
