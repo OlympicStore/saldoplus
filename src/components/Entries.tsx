@@ -370,7 +370,7 @@ export const Entries = ({
           </div>
           <div className="space-y-2.5">
             {origin.slice(0, 5).map((o) => {
-              const cat = CAT_BY_NAME.get(o.name)!;
+              const cat = CAT_BY_NAME.get(o.name as typeof CATEGORIES[number]["value"]) ?? CAT_BY_NAME.get("Outros")!;
               return (
                 <div key={o.name}>
                   <div className="flex items-center justify-between text-xs mb-1">
