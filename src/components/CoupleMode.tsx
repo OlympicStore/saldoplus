@@ -31,6 +31,21 @@ export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryCon
     enabled: false, personA: null, personB: null, splitMode: "equal",
   });
   const [editing, setEditing] = useState(false);
+  const [newPersonName, setNewPersonName] = useState("");
+
+  const addPerson = () => {
+    const name = newPersonName.trim();
+    if (!name || people.includes(name) || !onUpdatePeople) return;
+    const next = [...people, name];
+    onUpdatePeople(next);
+    setNewPersonName("");
+    // auto-fill missing slot
+    setConfig(c => ({
+      ...c,
+      personA: c.personA ?? next[0] ?? null,
+      personB: c.personB ?? (next.find(p => p !== (c.personA ?? next[0])) ?? null),
+    }));
+  };
 
   useEffect(() => {
     try {
