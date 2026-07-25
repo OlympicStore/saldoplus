@@ -176,8 +176,12 @@ export const Entries = ({
                 {row.date ? formatDateOnly(row.date, { day: "2-digit", month: "2-digit" }) : "—"}
               </div>
               <div className="col-span-1 text-right">
-                <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
-                  <Trash2 className="h-3.5 w-3.5" />
+                <button
+                  onClick={() => { if (confirm(`Eliminar "${row.description || cat.value}" (€${row.value.toFixed(2)})?`)) onDeleteIncome(row.id); }}
+                  className="text-text-muted hover:text-status-negative transition-colors p-1"
+                  aria-label="Eliminar entrada"
+                >
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -198,8 +202,12 @@ export const Entries = ({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="font-mono text-sm text-status-paid tabular-nums font-semibold">+ {fmt(row.value)}</span>
-                  <button onClick={() => onDeleteIncome(row.id)} className="text-text-muted hover:text-status-negative transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" />
+                  <button
+                    onClick={() => { if (confirm(`Eliminar "${row.description || cat.value}" (€${row.value.toFixed(2)})?`)) onDeleteIncome(row.id); }}
+                    className="text-text-muted hover:text-status-negative transition-colors p-1"
+                    aria-label="Eliminar entrada"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
