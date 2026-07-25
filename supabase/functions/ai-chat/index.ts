@@ -506,7 +506,7 @@ Deno.serve(async (req) => {
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,
-      stopWhen: stepCountIs(20),
+      stopWhen: stepCountIs(50),
       onError: (err) => console.error("streamText error", err),
     });
 
