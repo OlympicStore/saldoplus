@@ -37,17 +37,17 @@ const MAX_YEAR = 2028;
 
 type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
 
-const allTabs: { key: Tab; label: string }[] = [
-  { key: "dashboard", label: "Home" },
-  { key: "balance", label: "Saldo" },
-  { key: "entries", label: "Entradas" },
-  { key: "expenses", label: "Despesas" },
-  { key: "investments", label: "Investimentos" },
-  { key: "annual", label: "Anual" },
-  { key: "goals", label: "Metas" },
-  { key: "budgets", label: "Orçamentos" },
-  { key: "minha_casa", label: "Minha Casa" },
-  { key: "account", label: "Conta" },
+const allTabs: { key: Tab; label: string; icon: typeof Home }[] = [
+  { key: "dashboard", label: "Home", icon: Home },
+  { key: "balance", label: "Saldo", icon: Wallet },
+  { key: "entries", label: "Entradas", icon: ArrowDownCircle },
+  { key: "expenses", label: "Despesas", icon: ArrowUpCircle },
+  { key: "investments", label: "Investimentos", icon: LineChart },
+  { key: "annual", label: "Anual", icon: CalendarDays },
+  { key: "goals", label: "Metas", icon: Target },
+  { key: "budgets", label: "Orçamentos", icon: PieChart },
+  { key: "minha_casa", label: "Minha Casa", icon: Building2 },
+  { key: "account", label: "Conta", icon: UserIcon },
 ];
 
 const planTabs: Record<string, Tab[]> = {
