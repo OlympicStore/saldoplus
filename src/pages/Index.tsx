@@ -609,6 +609,7 @@ const Index = () => {
             variableCategories={data.variableCategories}
             people={data.people}
             selectedMonth={selectedMonth}
+            onOpenAI={() => setActiveTab("assistente")}
             onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
             onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
             onAddTransfer={data.addTransfer} onDeleteTransfer={data.deleteTransfer}
