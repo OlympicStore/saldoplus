@@ -612,6 +612,12 @@ const Index = () => {
         {activeTab === "minha_casa" && <MinhaCasa onSave={data.refetchFixedExpenses} />}
         {activeTab === "account" && <AccountPanel onShowTour={handleShowTour} />}
       </main>
+      <BottomNav
+        activeTab={activeTab}
+        allowedTabs={allowedTabs as string[]}
+        onNavigate={(t) => handleTabChange(t as Tab)}
+        onOpenMore={() => setMobileMenuOpen(true)}
+      />
     </div>
     </PullToRefresh>
   );
