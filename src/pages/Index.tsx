@@ -388,22 +388,31 @@ const Index = () => {
             )}
           </SheetHeader>
 
-          <nav className="px-3 py-4 space-y-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const active = activeTab === tab.key;
+          <div className="px-5 py-3">
+            <p className="label-caps text-text-muted">Mais</p>
+          </div>
+          <nav className="px-3 pb-2 space-y-1">
+            {moreItems.map((item) => {
+              const Icon = item.icon;
+              const active = activeTab === item.key;
               return (
                 <button
-                  key={tab.key}
-                  onClick={() => { handleTabChange(tab.key); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  key={item.key}
+                  onClick={() => { handleTabChange(item.key); setMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium transition-colors ${
                     active
                       ? "bg-primary/10 text-primary"
                       : "text-text-secondary hover:bg-surface-hover hover:text-foreground"
                   }`}
                 >
-                  <Icon className={`h-4.5 w-4.5 ${active ? "text-primary" : "text-text-muted"}`} strokeWidth={active ? 2.4 : 2} />
-                  <span>{tab.label}</span>
+                  <span className="h-9 w-9 rounded-xl bg-background flex items-center justify-center">
+                    <Icon className={`h-4 w-4 ${active ? "text-primary" : "text-text-muted"}`} />
+                  </span>
+                  <span className="flex-1 text-left">
+                    <span className="block">{item.label}</span>
+                    {item.hint && <span className="block text-[11px] font-normal text-text-muted">{item.hint}</span>}
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-text-muted" />
                 </button>
               );
             })}
@@ -443,6 +452,7 @@ const Index = () => {
           </div>
         </SheetContent>
       </Sheet>
+
 
 
       {/* Categories panel */}
