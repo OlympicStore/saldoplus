@@ -99,10 +99,10 @@ export const calculateFinancialScore = (inp: Input): FinancialScoreResult => {
   if (evoPts < 8 && prevAvg > 0) suggestions.push("Gastos acima da média dos últimos 3 meses.");
 
   // 5. Progresso em metas (10 pts)
-  const activeGoals = inp.financialGoals.filter(g => g.currentAmount < g.targetAmount);
+  const activeGoals = inp.financialGoals.filter(g => g.currentValue < g.totalValue);
   let goalPts = 5;
   if (activeGoals.length > 0) {
-    const avgProgress = activeGoals.reduce((s, g) => s + (g.currentAmount / (g.targetAmount || 1)), 0) / activeGoals.length;
+    const avgProgress = activeGoals.reduce((s, g) => s + (g.currentValue / (g.totalValue || 1)), 0) / activeGoals.length;
     goalPts = Math.min(10, Math.round(avgProgress * 10) + 2);
   } else if (inp.financialGoals.length === 0) {
     goalPts = 0;
