@@ -129,9 +129,8 @@ export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryCon
         <button
           onClick={() => setEditing(true)}
           className="text-sm font-semibold text-primary hover:underline"
-          disabled={people.length < 2}
         >
-          {people.length < 2 ? "Adicione pelo menos 2 pessoas" : "Ativar Modo Casal →"}
+          {people.length < 2 ? "Configurar (adicionar pessoas) →" : "Ativar Modo Casal →"}
         </button>
       </motion.div>
     );
