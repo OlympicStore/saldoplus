@@ -36,12 +36,13 @@ interface DashboardProps {
   financialGoals?: FinancialGoal[];
   userPlan?: string;
   accounts?: Account[];
+  onUpdatePeople?: (people: string[]) => void;
 }
 
 export const Dashboard = ({
   fixedExpenses, variableExpenses, incomes, salaryConfigs,
   people, selectedMonth,
-  financialGoals = [], userPlan = "essencial", accounts = [],
+  financialGoals = [], userPlan = "essencial", accounts = [], onUpdatePeople,
 }: DashboardProps) => {
 
   // === CALCULATIONS ===
