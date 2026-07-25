@@ -36,10 +36,11 @@ const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julh
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
-type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
+type Tab = "dashboard" | "assistente" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
 
 const allTabs: { key: Tab; label: string; icon: typeof Home }[] = [
   { key: "dashboard", label: "Home", icon: Home },
+  { key: "assistente", label: "Assistente", icon: Sparkles },
   { key: "balance", label: "Saldo", icon: Wallet },
   { key: "entries", label: "Entradas", icon: ArrowDownCircle },
   { key: "expenses", label: "Despesas", icon: ArrowUpCircle },
@@ -53,9 +54,9 @@ const allTabs: { key: Tab; label: string; icon: typeof Home }[] = [
 
 const planTabs: Record<string, Tab[]> = {
   essencial: ["dashboard", "balance", "entries", "expenses", "account"],
-  casa: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
-  pro: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
-  imobiliaria: ["dashboard", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
+  casa: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "account"],
+  pro: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "account"],
+  imobiliaria: ["dashboard", "assistente", "balance", "entries", "expenses", "investments", "annual", "goals", "budgets", "minha_casa", "account"],
 };
 
 const isTab = (value: string | null): value is Tab => allTabs.some((tab) => tab.key === value);
