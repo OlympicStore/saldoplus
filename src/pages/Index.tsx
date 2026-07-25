@@ -498,7 +498,7 @@ const Index = () => {
         </div>
       )}
 
-      <nav className="border-b border-border-subtle/60 bg-surface overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <nav className="hidden lg:block border-b border-border-subtle/60 bg-surface overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <div className="max-w-5xl mx-auto px-2 sm:px-6 flex gap-0">
           {tabs.map((tab) => (
             <button key={tab.key} onClick={() => handleTabChange(tab.key)}
