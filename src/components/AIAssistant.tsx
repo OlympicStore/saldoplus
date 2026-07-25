@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Plus, MessageSquare, Trash2, Sparkles, Loader2, Undo2 } from "lucide-react";
+import { Send, Plus, MessageSquare, Trash2, Sparkles, Loader2, Undo2, ShoppingCart, Utensils, Car, Home as HomeIcon, Zap, Wifi, Heart, GraduationCap, Plane, Gift, Tag as TagIcon, TrendingUp, TrendingDown, Pencil, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 type Conversation = { id: string; title: string; updated_at: string };
