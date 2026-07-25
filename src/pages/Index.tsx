@@ -20,8 +20,9 @@ import ExpirationBanner from "@/components/ExpirationBanner";
 import TrialBanner from "@/components/TrialBanner";
 import PartnerOnboarding from "@/components/PartnerOnboarding";
 
-import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowDownCircle, ArrowUpCircle, LineChart, CalendarDays, Target, PieChart, Building2, User as UserIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
