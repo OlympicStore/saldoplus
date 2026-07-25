@@ -156,6 +156,34 @@ export const CoupleMode = ({ fixedExpenses, variableExpenses, incomes, salaryCon
           ))}
         </div>
 
+        {onUpdatePeople && (
+          <div className="mb-4">
+            <label className="text-xs font-semibold text-text-muted uppercase block mb-2">Adicionar pessoa</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newPersonName}
+                onChange={(e) => setNewPersonName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addPerson(); } }}
+                placeholder="Nome"
+                className="flex-1 text-sm bg-background border border-border-subtle rounded-lg px-3 py-2"
+              />
+              <button
+                type="button"
+                onClick={addPerson}
+                disabled={!newPersonName.trim() || people.includes(newPersonName.trim())}
+                className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+              >
+                Adicionar
+              </button>
+            </div>
+            {people.length > 0 && (
+              <p className="text-[11px] text-text-muted mt-1.5">Atuais: {people.join(", ")}</p>
+            )}
+          </div>
+        )}
+
+
         <div className="mb-4">
           <label className="text-xs font-semibold text-text-muted uppercase block mb-2">Modo de divisão</label>
           <div className="grid grid-cols-2 gap-2">
