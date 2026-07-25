@@ -146,10 +146,9 @@ export const AIAssistant = () => {
   }
 
   function renderMessage(m: UIMessage) {
-    const text = m.parts
-      .map((p: any) => (p.type === "text" ? p.text : ""))
-      .join("");
     const isUser = m.role === "user";
+    const parts: any[] = m.parts as any[];
+
     return (
       <motion.div
         key={m.id}
@@ -157,16 +156,48 @@ export const AIAssistant = () => {
         animate={{ opacity: 1, y: 0 }}
         className={`flex ${isUser ? "justify-end" : "justify-start"}`}
       >
-        <div className={`max-w-[85%] ${isUser ? "" : "w-full"}`}>
-          {isUser ? (
-            <div className="bg-primary text-primary-foreground rounded-3xl rounded-br-lg px-4 py-2.5 text-sm shadow-sm">
-              {text}
-            </div>
-          ) : (
-            <div className="prose prose-sm max-w-none text-foreground prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-strong:text-foreground prose-strong:font-semibold prose-headings:font-display prose-headings:text-foreground">
-              <ReactMarkdown>{text || "…"}</ReactMarkdown>
-            </div>
-          )}
+        <div className={`max-w-[85%] ${isUser ? "" : "w-full"} space-y-2`}>
+          {parts.map((p, idx) => {
+            if (p.type === "text") {
+              if (isUser) {
+                return (
+                  <div key={idx} className="bg-primary text-primary-foreground rounded-3xl rounded-br-lg px-4 py-2.5 text-sm shadow-sm">
+                    {p.text}
+                  </div>
+                );
+              }
+              return (
+                <div key={idx} className="prose prose-sm max-w-none text-foreground prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-strong:text-foreground prose-strong:font-semibold prose-headings:font-display prose-headings:text-foreground">
+                  <ReactMarkdown>{p.text || "…"}</ReactMarkdown>
+                </div>
+              );
+            }
+            // Tool invocation parts (ai sdk v5: type is `tool-<name>`)
+            if (typeof p.type === "string" && p.type.startsWith("tool-")) {
+              const toolName = p.type.slice(5);
+              const state = p.state as string | undefined;
+              const done = state === "output-available" || state === "result";
+              const failed = state === "output-error";
+              const output = p.output as any;
+              const success = output?.ok !== false;
+              const label = done
+                ? (failed || !success ? `⚠️ ${toolName}` : `✓ ${toolName.replace(/_/g, " ")}`)
+                : `⚙️ ${toolName.replace(/_/g, " ")}…`;
+              return (
+                <div key={idx} className={`inline-flex items-center gap-2 text-[11px] px-2.5 py-1 rounded-full border ${
+                  failed || !success
+                    ? "bg-status-negative/10 border-status-negative/30 text-status-negative"
+                    : done
+                      ? "bg-primary/10 border-primary/30 text-primary"
+                      : "bg-surface-hover border-border-subtle text-text-muted"
+                }`}>
+                  <span className="font-medium">{label}</span>
+                  {done && output?.error && <span className="text-text-muted truncate max-w-[200px]">— {String(output.error)}</span>}
+                </div>
+              );
+            }
+            return null;
+          })}
         </div>
       </motion.div>
     );
