@@ -1,7 +1,13 @@
 import { motion } from "framer-motion";
-import { Sparkles, TrendingUp, Info } from "lucide-react";
-import { useMemo, useState } from "react";
-import { calculateFinancialScore } from "@/lib/financialScore";
+import { Sparkles, TrendingUp, Info, Sliders, RotateCcw } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import {
+  calculateFinancialScore,
+  DEFAULT_WEIGHTS,
+  CRITERION_LABELS,
+  type ScoreWeights,
+  type ScoreCriterionKey,
+} from "@/lib/financialScore";
 import type { FixedExpense, VariableExpense } from "@/types/expense";
 import type { Income, SalaryConfig } from "@/types/income";
 import type { FinancialGoal } from "@/types/goal";
@@ -15,12 +21,30 @@ interface Props {
   selectedMonth: number;
 }
 
+const WEIGHTS_KEY = "financial_score_weights";
+
 export const FinancialScore = (props: Props) => {
   const [open, setOpen] = useState(false);
-  const result = useMemo(() => calculateFinancialScore(props), [props]);
+  const [tuning, setTuning] = useState(false);
+  const [weights, setWeights] = useState<ScoreWeights>(DEFAULT_WEIGHTS);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(WEIGHTS_KEY);
+      if (raw) setWeights({ ...DEFAULT_WEIGHTS, ...JSON.parse(raw) });
+    } catch {}
+  }, []);
+
+  const persist = (w: ScoreWeights) => {
+    setWeights(w);
+    localStorage.setItem(WEIGHTS_KEY, JSON.stringify(w));
+  };
+
+  const result = useMemo(() => calculateFinancialScore({ ...props, weights }), [props, weights]);
   const { score, classification, color, breakdown, suggestions } = result;
 
-  // Circular progress
+  const totalWeight = Object.values(weights).reduce((s, v) => s + v, 0);
+
   const R = 52;
   const C = 2 * Math.PI * R;
   const offset = C - (score / 100) * C;
@@ -42,12 +66,21 @@ export const FinancialScore = (props: Props) => {
             <p className="text-xs text-text-muted">Avaliação do mês</p>
           </div>
         </div>
-        <button
-          onClick={() => setOpen(o => !o)}
-          className="text-xs font-semibold text-text-muted hover:text-foreground inline-flex items-center gap-1"
-        >
-          <Info className="h-3.5 w-3.5" /> {open ? "Ocultar" : "Detalhes"}
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => { setTuning(t => !t); setOpen(false); }}
+            className="text-xs font-semibold text-text-muted hover:text-foreground inline-flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-secondary"
+            title="Ajustar pesos"
+          >
+            <Sliders className="h-3.5 w-3.5" /> Pesos
+          </button>
+          <button
+            onClick={() => { setOpen(o => !o); setTuning(false); }}
+            className="text-xs font-semibold text-text-muted hover:text-foreground inline-flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-secondary"
+          >
+            <Info className="h-3.5 w-3.5" /> {open ? "Ocultar" : "Detalhes"}
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-6">
@@ -84,10 +117,48 @@ export const FinancialScore = (props: Props) => {
         </div>
       </div>
 
+      {tuning && (
+        <div className="mt-5 pt-5 border-t border-border-subtle/60 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Ajustar pesos</p>
+              <p className="text-[11px] text-text-muted">
+                Total: <span className={`tabular-nums font-semibold ${Math.round(totalWeight) === 100 ? "text-status-paid" : "text-status-pending"}`}>{Math.round(totalWeight)}</span>
+                {" "}(é normalizado para 100)
+              </p>
+            </div>
+            <button
+              onClick={() => persist(DEFAULT_WEIGHTS)}
+              className="text-xs font-semibold text-text-muted hover:text-foreground inline-flex items-center gap-1"
+            >
+              <RotateCcw className="h-3 w-3" /> Repor
+            </button>
+          </div>
+          {(Object.keys(DEFAULT_WEIGHTS) as ScoreCriterionKey[]).map(key => (
+            <div key={key}>
+              <div className="flex justify-between items-baseline text-xs mb-1">
+                <span className="font-medium text-foreground">{CRITERION_LABELS[key].label}</span>
+                <span className="font-mono tabular-nums font-semibold text-foreground">{weights[key]}</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={50}
+                step={1}
+                value={weights[key]}
+                onChange={(e) => persist({ ...weights, [key]: Number(e.target.value) })}
+                className="w-full accent-primary"
+              />
+              <p className="text-[10px] text-text-muted mt-0.5">{CRITERION_LABELS[key].hint}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {open && (
         <div className="mt-5 pt-5 border-t border-border-subtle/60 space-y-3">
           {breakdown.map((b) => {
-            const pct = (b.points / b.max) * 100;
+            const pct = b.max > 0 ? (b.points / b.max) * 100 : 0;
             return (
               <div key={b.label}>
                 <div className="flex justify-between items-baseline text-xs mb-1">
