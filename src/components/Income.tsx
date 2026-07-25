@@ -186,8 +186,12 @@ export const Income = ({
                 <span className="font-mono text-sm font-semibold text-status-paid tabular-nums shrink-0">
                   + {fmt(income.value)}
                 </span>
-                <button onClick={() => onDeleteIncome(income.id)} className="text-text-muted hover:text-status-negative transition-colors">
-                  <Trash2 className="h-3.5 w-3.5" />
+                <button
+                  onClick={() => { if (confirm(`Eliminar "${income.description}" (€${income.value.toFixed(2)})?`)) onDeleteIncome(income.id); }}
+                  className="text-text-muted hover:text-status-negative transition-colors p-1"
+                  aria-label="Eliminar receita"
+                >
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
