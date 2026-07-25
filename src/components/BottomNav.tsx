@@ -43,10 +43,11 @@ export default function BottomNav({ activeTab, onNavigate, onOpenMore, allowedTa
               {/* Slot 2: Transações */}
               <NavButton
                 icon={ArrowLeftRight}
-                label="Transações"
-                active={isActive("expenses") || isActive("entries")}
-                onClick={() => onNavigate("expenses")}
+                label="Movimentos"
+                active={isActive("movements")}
+                onClick={() => onNavigate("movements")}
               />
+
               {/* Slot 3: + (central, elevated) */}
               <div className="flex justify-center">
                 <button
