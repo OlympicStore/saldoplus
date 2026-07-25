@@ -79,6 +79,7 @@ const Index = () => {
   const [showCategoriesPanel, setShowCategoriesPanel] = useState(false);
   const [editingPeople, setEditingPeople] = useState("");
   const [showTour, setShowTour] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleShowTour = useCallback(() => setShowTour(true), []);
 
