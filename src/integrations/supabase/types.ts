@@ -397,6 +397,7 @@ export type Database = {
           sub_account_id: string | null
           updated_at: string
           user_id: string
+          value_type: string
         }
         Insert: {
           account?: string
@@ -410,6 +411,7 @@ export type Database = {
           sub_account_id?: string | null
           updated_at?: string
           user_id: string
+          value_type?: string
         }
         Update: {
           account?: string
@@ -423,6 +425,7 @@ export type Database = {
           sub_account_id?: string | null
           updated_at?: string
           user_id?: string
+          value_type?: string
         }
         Relationships: [
           {

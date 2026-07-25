@@ -1,0 +1,1 @@
+ALTER TABLE public.fixed_expenses ADD COLUMN IF NOT EXISTS value_type text NOT NULL DEFAULT 'fixed' CHECK (value_type IN ('fixed','variable'));

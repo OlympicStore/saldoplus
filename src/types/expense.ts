@@ -2,11 +2,15 @@ export type BillStatus = "pendente" | "paga" | "divida";
 
 export type VariableCategory = "Comida" | "Sr. João" | "Carro (Gasolina)" | "Diversão";
 
+export type FixedValueType = "fixed" | "variable";
+
 export interface FixedExpense {
   id: string;
   item: string;
   dueDay: number;
   account: string;
+  /** "fixed" = valor constante (Netflix, seguro); "variable" = valor muda a cada mês (água, luz) */
+  valueType?: FixedValueType;
   /** value per month (0-11) */
   monthlyValues: Record<number, number>;
   /** responsible per month (0-11) */

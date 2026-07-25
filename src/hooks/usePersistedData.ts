@@ -83,6 +83,7 @@ export function usePersistedData(subAccountId?: string | null) {
           const needsMigration = Object.keys(mv).some(k => Number(k) >= 0 && Number(k) <= 11);
           return {
             id: r.id, item: r.item, dueDay: r.due_day, account: r.account || "",
+            valueType: (r.value_type as "fixed" | "variable") || "fixed",
             monthlyValues: needsMigration ? migrateKeys(mv) : mv,
             monthlyResponsible: needsMigration ? migrateKeys(mr) : mr,
             monthlyPaid: needsMigration ? migrateKeys(mp) : mp,
@@ -250,6 +251,7 @@ export function usePersistedData(subAccountId?: string | null) {
     await supabase.from("fixed_expenses").upsert({ ...subField,
       id: expense.id, user_id: userId, item: expense.item, due_day: expense.dueDay,
       account: expense.account || "",
+      value_type: expense.valueType || "fixed",
       monthly_values: expense.monthlyValues, monthly_responsible: expense.monthlyResponsible,
       monthly_paid: expense.monthlyPaid,
     }, { onConflict: "id" });
@@ -682,6 +684,7 @@ export function usePersistedData(subAccountId?: string | null) {
         const needsMigration = Object.keys(mv).some(k => Number(k) >= 0 && Number(k) <= 11);
         return {
           id: r.id, item: r.item, dueDay: r.due_day, account: r.account || "",
+          valueType: (r.value_type as "fixed" | "variable") || "fixed",
           monthlyValues: needsMigration ? migrateKeys(mv) : mv,
           monthlyResponsible: needsMigration ? migrateKeys(mr) : mr,
           monthlyPaid: needsMigration ? migrateKeys(mp) : mp,
