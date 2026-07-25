@@ -502,11 +502,11 @@ Deno.serve(async (req) => {
 
     const gateway = createLovableAiGatewayProvider(lovableKey);
     const result = streamText({
-      model: gateway("google/gemini-3.6-flash"),
+      model: gateway("google/gemini-3.6-flash-lite"),
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,
-      stopWhen: stepCountIs(50),
+      stopWhen: stepCountIs(20),
       onError: (err) => console.error("streamText error", err),
     });
 
