@@ -596,33 +596,30 @@ const Index = () => {
             onDelete={data.deleteAccount}
           />
         )}
-        {activeTab === "entries" && (
-          <Entries
-            incomes={yearIncomes} salaryConfigs={yearSalaryConfigs}
-            accounts={data.accounts} transfers={yearTransfers} people={data.people} selectedMonth={selectedMonth}
+        {activeTab === "movements" && (
+          <Movements
+            fixedExpenses={yearFixedExpenses}
+            variableExpenses={yearVariableExpenses}
+            incomes={yearIncomes}
+            salaryConfigs={yearSalaryConfigs}
+            investments={yearInvestments}
+            transfers={yearTransfers}
+            accounts={data.accounts}
+            categories={data.categories}
+            variableCategories={data.variableCategories}
+            people={data.people}
+            selectedMonth={selectedMonth}
             onAddIncome={data.addIncome} onUpdateIncome={data.updateIncome}
             onDeleteIncome={data.deleteIncome} onUpdateSalary={data.updateSalary}
             onAddTransfer={data.addTransfer} onDeleteTransfer={data.deleteTransfer}
-          />
-        )}
-        {activeTab === "expenses" && (
-          <Expenses
-            fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses}
-            categories={data.categories} accounts={data.accounts}
-            people={data.people} selectedMonth={selectedMonth}
             onAddFixed={yearAddFixed} onUpdateFixed={data.updateFixed}
             onUpdateFixedMonthly={yearUpdateFixedMonthly} onDeleteFixed={data.deleteFixed}
             onAddVariable={data.addVariable} onUpdateVariable={data.updateVariable}
             onDeleteVariable={data.deleteVariable}
             onAddCategoryItem={data.addCategoryItem}
-          />
-        )}
-        {activeTab === "investments" && (
-          <Investments
-            investments={yearInvestments} accounts={data.accounts}
-            selectedMonth={selectedMonth}
-            onAdd={data.addInvestment} onUpdate={data.updateInvestment}
-            onDelete={data.deleteInvestment}
+            onAddInvestment={data.addInvestment}
+            onUpdateInvestment={data.updateInvestment}
+            onDeleteInvestment={data.deleteInvestment}
           />
         )}
         {activeTab === "annual" && (
@@ -632,11 +629,26 @@ const Index = () => {
             onAddBill={yearAddFixed} onRemoveBill={data.deleteFixed} selectedMonth={selectedMonth} selectedYear={selectedYear} />
         )}
         {activeTab === "goals" && (
-          <FinancialGoals goals={data.financialGoals}
-            onAdd={data.addGoal}
-            onUpdate={data.updateGoal}
-            onDelete={data.deleteGoal} />
+          <Objectives
+            goals={data.financialGoals}
+            fixedExpenses={yearFixedExpenses}
+            variableExpenses={yearVariableExpenses}
+            incomes={yearIncomes}
+            salaryConfigs={yearSalaryConfigs}
+            people={data.people}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            variableCategories={data.variableCategories}
+            onAddGoal={data.addGoal}
+            onUpdateGoal={data.updateGoal}
+            onDeleteGoal={data.deleteGoal}
+            onAddCategory={data.addCategory}
+            onDeleteCategory={data.deleteCategory}
+            onUpdatePeople={data.updatePeople}
+            showBudgets={allowedTabs.includes("budgets")}
+          />
         )}
+
         {activeTab === "budgets" && (
           <CategoryBudgets
             categories={data.variableCategories}
