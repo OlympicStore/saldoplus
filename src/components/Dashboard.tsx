@@ -257,6 +257,7 @@ export const Dashboard = ({
           salaryConfigs={salaryConfigs}
           people={people}
           selectedMonth={selectedMonth}
+          onUpdatePeople={onUpdatePeople}
         />
       </div>
 
