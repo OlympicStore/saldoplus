@@ -517,7 +517,8 @@ const Index = () => {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main className={activeTab === "assistente" ? "max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-6" : "max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8"}>
+        {activeTab === "assistente" && <AIAssistant />}
         {activeTab === "dashboard" && (
           <>
             {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && (
