@@ -4,7 +4,7 @@
 // (add/list/delete expenses & incomes), and persists conversations/messages.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { convertToModelMessages, streamText, tool, stepCountIs, type UIMessage } from "npm:ai";
-import { z } from "npm:zod@3.23.8";
+import { z } from "npm:zod@4";
 import { createLovableAiGatewayProvider } from "../_shared/ai-gateway.ts";
 
 const corsHeaders = {
