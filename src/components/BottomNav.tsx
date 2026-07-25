@@ -1,20 +1,21 @@
 import { Home, ArrowLeftRight, Target, Menu, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
-type NavKey = "dashboard" | "expenses" | "assistente" | "goals" | "more";
+type NavKey = "dashboard" | "movements" | "assistente" | "goals" | "more";
 
 interface BottomNavProps {
   activeTab: string;
-  onNavigate: (tab: "dashboard" | "expenses" | "goals" | "assistente") => void;
+  onNavigate: (tab: "dashboard" | "movements" | "goals" | "assistente") => void;
   onOpenMore: () => void;
   allowedTabs: string[];
 }
 
 const items: { key: Exclude<NavKey, "assistente" | "more">; label: string; icon: typeof Home }[] = [
   { key: "dashboard", label: "Início", icon: Home },
-  { key: "expenses", label: "Transações", icon: ArrowLeftRight },
+  { key: "movements", label: "Movimentos", icon: ArrowLeftRight },
   { key: "goals", label: "Objetivos", icon: Target },
 ];
+
 
 export default function BottomNav({ activeTab, onNavigate, onOpenMore, allowedTabs }: BottomNavProps) {
   const canAssist = allowedTabs.includes("assistente");
@@ -42,10 +43,11 @@ export default function BottomNav({ activeTab, onNavigate, onOpenMore, allowedTa
               {/* Slot 2: Transações */}
               <NavButton
                 icon={ArrowLeftRight}
-                label="Transações"
-                active={isActive("expenses") || isActive("entries")}
-                onClick={() => onNavigate("expenses")}
+                label="Movimentos"
+                active={isActive("movements")}
+                onClick={() => onNavigate("movements")}
               />
+
               {/* Slot 3: + (central, elevated) */}
               <div className="flex justify-center">
                 <button
