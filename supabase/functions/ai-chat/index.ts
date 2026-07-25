@@ -249,31 +249,37 @@ Deno.serve(async (req) => {
 
     const defaultAccount = ctx.accounts[0]?.name ?? "Principal";
 
+    async function logAction(kind: string, target_table: string, target_id: string | null, snapshot: unknown) {
+      await admin.from("ai_action_log").insert({
+        user_id: userId,
+        conversation_id: conversationId,
+        kind,
+        target_table,
+        target_id,
+        snapshot: snapshot as object | null,
+      });
+    }
+
     const tools = {
       add_expense: tool({
-        description: "Adiciona uma despesa variável (compra pontual). Usa quando o utilizador diz 'gastei X em Y', 'paguei X', 'adiciona despesa'.",
+        description: "Adiciona uma despesa variável. Usa quando o utilizador diz 'gastei X em Y', 'paguei X', 'adiciona despesa'.",
         inputSchema: z.object({
-          description: z.string().describe("Breve descrição (ex: 'Almoço', 'Fatura água')"),
-          value: z.number().positive().describe("Valor em euros (ex: 50.5)"),
-          category: z.string().describe("Categoria da despesa (usa uma das listadas ou 'Outros')"),
-          date: z.string().describe("Data YYYY-MM-DD. Se não indicada, usa hoje."),
-          account: z.string().nullable().describe("Nome exato da conta. Se null, usa a conta principal."),
-          paid: z.boolean().describe("true se já foi paga, false se pendente. Por defeito true."),
+          description: z.string(),
+          value: z.number().positive(),
+          category: z.string(),
+          date: z.string().describe("YYYY-MM-DD. Se não indicada, hoje."),
+          account: z.string().nullable(),
+          paid: z.boolean(),
         }),
         execute: async ({ description, value, category, date, account, paid }) => {
           const acc = account?.trim() || defaultAccount;
-          const { error } = await admin.from("variable_expenses").insert({
-            user_id: userId,
-            description,
-            value,
-            category,
-            date: date || todayISO(),
-            account: acc,
-            paid: paid ?? true,
-            recurring: false,
-          });
+          const { data, error } = await admin.from("variable_expenses").insert({
+            user_id: userId, description, value, category,
+            date: date || todayISO(), account: acc, paid: paid ?? true, recurring: false,
+          }).select("id").single();
           if (error) return { ok: false, error: error.message };
-          return { ok: true, message: `Despesa "${description}" de ${fmt(value)} em ${category} (${acc}) adicionada em ${date}.` };
+          await logAction("add_expense", "variable_expenses", data.id, null);
+          return { ok: true, id: data.id, message: `Despesa "${description}" de ${fmt(value)} em ${category} (${acc}) adicionada em ${date}.` };
         },
       }),
 
@@ -282,35 +288,31 @@ Deno.serve(async (req) => {
         inputSchema: z.object({
           description: z.string(),
           value: z.number().positive(),
-          type: z.string().describe("Tipo de receita (ex: 'Salário', 'Freelance', 'Outros')"),
-          date: z.string().describe("YYYY-MM-DD. Se não indicada, hoje."),
+          type: z.string(),
+          date: z.string(),
           account: z.string().nullable(),
-          person: z.string().nullable().describe("Pessoa associada, se aplicável"),
+          person: z.string().nullable(),
         }),
         execute: async ({ description, value, type, date, account, person }) => {
           const acc = account?.trim() || defaultAccount;
-          const { error } = await admin.from("incomes").insert({
-            user_id: userId,
-            description,
-            value,
-            type,
-            date: date || todayISO(),
-            account: acc,
-            person: person ?? null,
-          });
+          const { data, error } = await admin.from("incomes").insert({
+            user_id: userId, description, value, type,
+            date: date || todayISO(), account: acc, person: person ?? null,
+          }).select("id").single();
           if (error) return { ok: false, error: error.message };
-          return { ok: true, message: `Receita "${description}" de ${fmt(value)} (${type}, ${acc}) adicionada em ${date}.` };
+          await logAction("add_income", "incomes", data.id, null);
+          return { ok: true, id: data.id, message: `Receita "${description}" de ${fmt(value)} (${type}, ${acc}) adicionada em ${date}.` };
         },
       }),
 
       list_recent_expenses: tool({
-        description: "Lista as despesas variáveis mais recentes com IDs completos, para poderes eliminar ou identificar. Usa antes de delete_expense.",
+        description: "Lista despesas variáveis recentes com IDs. Usa antes de editar/eliminar.",
         inputSchema: z.object({
-          limit: z.number().int().min(1).max(20).describe("Número máximo de despesas (1-20). Por defeito 10."),
-          query: z.string().nullable().describe("Filtro opcional por descrição ou categoria (ex: 'água')."),
+          limit: z.number().int().min(1).max(20),
+          query: z.string().nullable(),
         }),
         execute: async ({ limit, query }) => {
-          let q = admin.from("variable_expenses").select("id,description,category,value,date,account").eq("user_id", userId).order("date", { ascending: false }).limit(limit ?? 10);
+          let q = admin.from("variable_expenses").select("id,description,category,value,date,account,paid").eq("user_id", userId).order("date", { ascending: false }).limit(limit ?? 10);
           if (query) q = q.or(`description.ilike.%${query}%,category.ilike.%${query}%`);
           const { data, error } = await q;
           if (error) return { ok: false, error: error.message };
@@ -318,33 +320,176 @@ Deno.serve(async (req) => {
         },
       }),
 
-      delete_expense: tool({
-        description: "Elimina uma despesa variável pelo ID completo (UUID). Usa list_recent_expenses primeiro para obter o ID.",
+      list_recent_incomes: tool({
+        description: "Lista receitas recentes com IDs. Usa antes de editar/eliminar.",
         inputSchema: z.object({
-          id: z.string().describe("UUID completo da despesa a eliminar"),
+          limit: z.number().int().min(1).max(20),
+          query: z.string().nullable(),
         }),
-        execute: async ({ id }) => {
-          const { data: existing, error: findErr } = await admin.from("variable_expenses").select("description,value").eq("id", id).eq("user_id", userId).maybeSingle();
+        execute: async ({ limit, query }) => {
+          let q = admin.from("incomes").select("id,description,type,value,date,account,person").eq("user_id", userId).order("date", { ascending: false }).limit(limit ?? 10);
+          if (query) q = q.or(`description.ilike.%${query}%,type.ilike.%${query}%`);
+          const { data, error } = await q;
+          if (error) return { ok: false, error: error.message };
+          return { ok: true, incomes: data ?? [] };
+        },
+      }),
+
+      edit_expense: tool({
+        description: "Atualiza campos de uma despesa variável existente. Passa apenas os campos a mudar.",
+        inputSchema: z.object({
+          id: z.string(),
+          description: z.string().nullable(),
+          value: z.number().positive().nullable(),
+          category: z.string().nullable(),
+          date: z.string().nullable(),
+          account: z.string().nullable(),
+          paid: z.boolean().nullable(),
+        }),
+        execute: async ({ id, description, value, category, date, account, paid }) => {
+          const { data: existing, error: findErr } = await admin.from("variable_expenses").select("*").eq("id", id).eq("user_id", userId).maybeSingle();
           if (findErr) return { ok: false, error: findErr.message };
           if (!existing) return { ok: false, error: "Despesa não encontrada." };
+          const patch: Record<string, unknown> = {};
+          if (description !== null && description !== undefined) patch.description = description;
+          if (value !== null && value !== undefined) patch.value = value;
+          if (category !== null && category !== undefined) patch.category = category;
+          if (date !== null && date !== undefined) patch.date = date;
+          if (account !== null && account !== undefined) patch.account = account;
+          if (paid !== null && paid !== undefined) patch.paid = paid;
+          if (Object.keys(patch).length === 0) return { ok: false, error: "Nenhum campo para atualizar." };
+          const { error } = await admin.from("variable_expenses").update(patch).eq("id", id).eq("user_id", userId);
+          if (error) return { ok: false, error: error.message };
+          await logAction("edit_expense", "variable_expenses", id, existing);
+          return { ok: true, message: `Despesa "${existing.description}" atualizada.`, updated: patch };
+        },
+      }),
+
+      edit_income: tool({
+        description: "Atualiza campos de uma receita existente. Passa apenas os campos a mudar.",
+        inputSchema: z.object({
+          id: z.string(),
+          description: z.string().nullable(),
+          value: z.number().positive().nullable(),
+          type: z.string().nullable(),
+          date: z.string().nullable(),
+          account: z.string().nullable(),
+          person: z.string().nullable(),
+        }),
+        execute: async ({ id, description, value, type, date, account, person }) => {
+          const { data: existing, error: findErr } = await admin.from("incomes").select("*").eq("id", id).eq("user_id", userId).maybeSingle();
+          if (findErr) return { ok: false, error: findErr.message };
+          if (!existing) return { ok: false, error: "Receita não encontrada." };
+          const patch: Record<string, unknown> = {};
+          if (description !== null && description !== undefined) patch.description = description;
+          if (value !== null && value !== undefined) patch.value = value;
+          if (type !== null && type !== undefined) patch.type = type;
+          if (date !== null && date !== undefined) patch.date = date;
+          if (account !== null && account !== undefined) patch.account = account;
+          if (person !== null && person !== undefined) patch.person = person;
+          if (Object.keys(patch).length === 0) return { ok: false, error: "Nenhum campo para atualizar." };
+          const { error } = await admin.from("incomes").update(patch).eq("id", id).eq("user_id", userId);
+          if (error) return { ok: false, error: error.message };
+          await logAction("edit_income", "incomes", id, existing);
+          return { ok: true, message: `Receita "${existing.description}" atualizada.`, updated: patch };
+        },
+      }),
+
+      delete_expense: tool({
+        description: "Elimina uma despesa. FLUXO 2 PASSOS: chama com confirm=false para preview e pergunta ao utilizador; só depois chama com confirm=true.",
+        inputSchema: z.object({
+          id: z.string(),
+          confirm: z.boolean().describe("false = apenas mostrar preview; true = executar eliminação"),
+        }),
+        execute: async ({ id, confirm }) => {
+          const { data: existing, error: findErr } = await admin.from("variable_expenses").select("*").eq("id", id).eq("user_id", userId).maybeSingle();
+          if (findErr) return { ok: false, error: findErr.message };
+          if (!existing) return { ok: false, error: "Despesa não encontrada." };
+          if (!confirm) {
+            return {
+              ok: true,
+              requiresConfirmation: true,
+              preview: {
+                description: existing.description, value: existing.value,
+                category: existing.category, date: existing.date, account: existing.account,
+              },
+              message: `A eliminar: "${existing.description}" · ${fmt(Number(existing.value))} · ${existing.category} · ${existing.date} (${existing.account}). Confirmar?`,
+            };
+          }
           const { error } = await admin.from("variable_expenses").delete().eq("id", id).eq("user_id", userId);
           if (error) return { ok: false, error: error.message };
+          await logAction("delete_expense", "variable_expenses", id, existing);
           return { ok: true, message: `Despesa "${existing.description}" (${fmt(Number(existing.value))}) eliminada.` };
         },
       }),
 
       delete_income: tool({
-        description: "Elimina uma receita pelo ID completo (UUID).",
+        description: "Elimina uma receita. FLUXO 2 PASSOS: chama com confirm=false para preview; só depois com confirm=true.",
         inputSchema: z.object({
-          id: z.string().describe("UUID completo da receita a eliminar"),
+          id: z.string(),
+          confirm: z.boolean(),
         }),
-        execute: async ({ id }) => {
-          const { data: existing, error: findErr } = await admin.from("incomes").select("description,value").eq("id", id).eq("user_id", userId).maybeSingle();
+        execute: async ({ id, confirm }) => {
+          const { data: existing, error: findErr } = await admin.from("incomes").select("*").eq("id", id).eq("user_id", userId).maybeSingle();
           if (findErr) return { ok: false, error: findErr.message };
           if (!existing) return { ok: false, error: "Receita não encontrada." };
+          if (!confirm) {
+            return {
+              ok: true,
+              requiresConfirmation: true,
+              preview: {
+                description: existing.description, value: existing.value,
+                type: existing.type, date: existing.date, account: existing.account,
+              },
+              message: `A eliminar receita: "${existing.description}" · ${fmt(Number(existing.value))} · ${existing.type} · ${existing.date} (${existing.account}). Confirmar?`,
+            };
+          }
           const { error } = await admin.from("incomes").delete().eq("id", id).eq("user_id", userId);
           if (error) return { ok: false, error: error.message };
+          await logAction("delete_income", "incomes", id, existing);
           return { ok: true, message: `Receita "${existing.description}" (${fmt(Number(existing.value))}) eliminada.` };
+        },
+      }),
+
+      undo_last_action: tool({
+        description: "Desfaz a ÚLTIMA ação (add/edit/delete de despesa ou receita) executada pelo assistente para este utilizador. Não requer parâmetros.",
+        inputSchema: z.object({}),
+        execute: async () => {
+          const { data: last, error: findErr } = await admin
+            .from("ai_action_log")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("undone", false)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (findErr) return { ok: false, error: findErr.message };
+          if (!last) return { ok: false, error: "Não há ações recentes para desfazer." };
+
+          const table = last.target_table as string;
+          const kind = last.kind as string;
+          const targetId = last.target_id as string | null;
+          const snap = last.snapshot as Record<string, unknown> | null;
+
+          try {
+            if (kind.startsWith("add_") && targetId) {
+              const { error } = await admin.from(table).delete().eq("id", targetId).eq("user_id", userId);
+              if (error) throw error;
+            } else if (kind.startsWith("delete_") && snap) {
+              const { error } = await admin.from(table).insert(snap);
+              if (error) throw error;
+            } else if (kind.startsWith("edit_") && targetId && snap) {
+              const { id: _ignore, created_at: _c, updated_at: _u, ...rest } = snap as any;
+              const { error } = await admin.from(table).update(rest).eq("id", targetId).eq("user_id", userId);
+              if (error) throw error;
+            } else {
+              return { ok: false, error: "Ação não é reversível." };
+            }
+            await admin.from("ai_action_log").update({ undone: true }).eq("id", last.id);
+            return { ok: true, message: `Ação "${kind}" desfeita com sucesso.` };
+          } catch (e) {
+            return { ok: false, error: (e as Error).message };
+          }
         },
       }),
     };
