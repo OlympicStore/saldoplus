@@ -18,6 +18,38 @@ const SUGGESTIONS = [
   "Quanto falta para atingir as minhas metas?",
 ];
 
+const eur = (v: number | string | undefined | null) => {
+  const n = typeof v === "string" ? parseFloat(v) : (v ?? 0);
+  return (isNaN(n as number) ? 0 : (n as number)).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
+};
+
+function categoryIcon(cat?: string | null) {
+  const c = (cat || "").toLowerCase();
+  if (/(aliment|super|merc|resta|café|cafe|comida)/.test(c)) return ShoppingCart;
+  if (/(refei|almoç|jantar|snack|bar)/.test(c)) return Utensils;
+  if (/(transp|combust|gasol|carro|uber|táxi|taxi)/.test(c)) return Car;
+  if (/(casa|renda|aluguer|habita)/.test(c)) return HomeIcon;
+  if (/(luz|energia|eletric|eléctr)/.test(c)) return Zap;
+  if (/(net|internet|tv|telem|telefone|comunic)/.test(c)) return Wifi;
+  if (/(saúde|saude|farm|médico|medico|hosp)/.test(c)) return Heart;
+  if (/(educa|escola|livro|curso)/.test(c)) return GraduationCap;
+  if (/(viag|férias|ferias|voo|hotel)/.test(c)) return Plane;
+  if (/(present|oferta|lazer|diver)/.test(c)) return Gift;
+  return TagIcon;
+}
+
+const TOOL_LABEL: Record<string, string> = {
+  add_expense: "Despesa registada",
+  add_income: "Receita registada",
+  edit_expense: "Despesa atualizada",
+  edit_income: "Receita atualizada",
+  delete_expense: "Despesa eliminada",
+  delete_income: "Receita eliminada",
+  list_recent_expenses: "Despesas recentes",
+  list_recent_incomes: "Receitas recentes",
+  undo_last_action: "Ação desfeita",
+};
+
 async function getAuthHeader() {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
