@@ -145,6 +145,11 @@ export const AIAssistant = () => {
     sendMessage({ text });
   }
 
+  function handleUndo() {
+    if (isLoading) return;
+    sendMessage({ text: "Desfaz a última ação que executaste (usa a tool undo_last_action)." });
+  }
+
   function renderMessage(m: UIMessage) {
     const isUser = m.role === "user";
     const parts: any[] = m.parts as any[];
