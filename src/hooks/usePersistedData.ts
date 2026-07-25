@@ -684,6 +684,7 @@ export function usePersistedData(subAccountId?: string | null) {
         const needsMigration = Object.keys(mv).some(k => Number(k) >= 0 && Number(k) <= 11);
         return {
           id: r.id, item: r.item, dueDay: r.due_day, account: r.account || "",
+          valueType: (r.value_type as "fixed" | "variable") || "fixed",
           monthlyValues: needsMigration ? migrateKeys(mv) : mv,
           monthlyResponsible: needsMigration ? migrateKeys(mr) : mr,
           monthlyPaid: needsMigration ? migrateKeys(mp) : mp,
