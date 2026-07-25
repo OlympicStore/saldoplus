@@ -239,8 +239,27 @@ export const Dashboard = ({
         </div>
       </div>
 
+      {/* Score + Modo Casal */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <FinancialScore
+          fixedExpenses={fixedExpenses}
+          variableExpenses={variableExpenses}
+          incomes={incomes}
+          salaryConfigs={salaryConfigs}
+          financialGoals={financialGoals}
+          selectedMonth={selectedMonth}
+        />
+        <CoupleMode
+          fixedExpenses={fixedExpenses}
+          variableExpenses={variableExpenses}
+          people={people}
+          selectedMonth={selectedMonth}
+        />
+      </div>
+
       {/* Chart row: Evolução saldo (2/3) + Categorias donut (1/3) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
         <div className="lg:col-span-2 rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
