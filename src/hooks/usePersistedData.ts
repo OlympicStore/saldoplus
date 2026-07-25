@@ -443,9 +443,16 @@ export function usePersistedData(subAccountId?: string | null) {
   }, [syncIncome]);
 
   const deleteIncome = useCallback(async (id: string) => {
+    if (!userId) return;
+    const { error } = await supabase.from("incomes").delete().eq("id", id).eq("user_id", userId);
+    if (error) {
+      console.error("deleteIncome failed", error);
+      const { toast } = await import("sonner");
+      toast.error("Não foi possível eliminar a receita: " + error.message);
+      return;
+    }
     setIncomes(prev => prev.filter(i => i.id !== id));
-    if (userId) await supabase.from("incomes").delete().eq("id", id);
-  }, [userId, subAccountId]);
+  }, [userId]);
 
   const updateSalary = useCallback((person: string, updates: Partial<SalaryConfig>) => {
     setSalaryConfigs(prev => {
