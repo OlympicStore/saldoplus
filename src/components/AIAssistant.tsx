@@ -343,6 +343,20 @@ export const AIAssistant = () => {
 
         {/* Composer */}
         <form onSubmit={handleSubmit} className="border-t border-border-subtle/60 p-3 sm:p-4">
+          {messages.length > 0 && (
+            <div className="flex justify-end mb-2">
+              <button
+                type="button"
+                onClick={handleUndo}
+                disabled={isLoading}
+                className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border border-border-subtle bg-background hover:bg-surface-hover text-text-secondary hover:text-foreground transition-colors disabled:opacity-40"
+                title="Desfazer o último registo adicionado, editado ou eliminado pelo assistente"
+              >
+                <Undo2 className="h-3 w-3" />
+                Desfazer último registo
+              </button>
+            </div>
+          )}
           <div className="flex items-end gap-2 bg-background rounded-3xl border border-border-subtle focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all p-2">
             <textarea
               ref={inputRef}
