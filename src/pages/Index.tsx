@@ -521,11 +521,11 @@ const Index = () => {
         </div>
       )}
 
-      <nav className="hidden lg:block border-b border-border-subtle/60 bg-surface overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <div className="max-w-5xl mx-auto px-2 sm:px-6 flex gap-0">
-          {tabs.map((tab) => (
+      <nav className="hidden lg:block border-b border-border-subtle/60 bg-surface">
+        <div className="max-w-5xl mx-auto px-2 sm:px-6 flex gap-0 items-center">
+          {primaryTabs.map((tab) => (
             <button key={tab.key} onClick={() => handleTabChange(tab.key)}
-              className={`relative px-2.5 sm:px-4 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.key ? "text-foreground" : "text-text-muted hover:text-text-secondary"
               }`}>
               {tab.label}
@@ -535,8 +535,15 @@ const Index = () => {
               )}
             </button>
           ))}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="ml-auto flex items-center gap-1.5 px-4 py-3 text-sm font-medium text-text-muted hover:text-foreground transition-colors"
+          >
+            <Menu className="h-4 w-4" /> Mais
+          </button>
         </div>
       </nav>
+
 
       <main className={activeTab === "assistente" ? "max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-6" : "max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8"}>
         {activeTab === "assistente" && <AIAssistant />}
