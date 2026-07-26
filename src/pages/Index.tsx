@@ -24,7 +24,7 @@ import BottomNav from "@/components/BottomNav";
 import { Movements } from "@/components/Movements";
 import { Objectives } from "@/components/Objectives";
 
-import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowLeftRight, CalendarDays, Target, Building2, User as UserIcon, Sparkles, ChevronRight } from "lucide-react";
+import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowLeftRight, CalendarDays, Target, Building2, User as UserIcon, Sparkles, ChevronRight, Heart, Home as HouseIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigate, useSearchParams } from "react-router-dom";
