@@ -34,22 +34,26 @@ export default function BottomNav({ activeTab, onNavigate, onOpenMore, allowedTa
           <div className="relative bg-surface/95 backdrop-blur-xl border border-border-subtle/70 shadow-[0_8px_32px_-8px_rgba(15,23,42,0.15)] rounded-[28px] px-2 py-2">
             <div className="grid grid-cols-5 items-end">
               {/* Slot 1: Início */}
-              <NavButton
-                icon={Home}
-                label="Início"
-                active={isActive("dashboard")}
-                onClick={() => onNavigate("dashboard")}
-              />
-              {/* Slot 2: Transações */}
-              <NavButton
-                icon={ArrowLeftRight}
-                label="Movimentos"
-                active={isActive("movements")}
-                onClick={() => onNavigate("movements")}
-              />
+              <div data-tour="nav-dashboard">
+                <NavButton
+                  icon={Home}
+                  label="Início"
+                  active={isActive("dashboard")}
+                  onClick={() => onNavigate("dashboard")}
+                />
+              </div>
+              {/* Slot 2: Movimentos */}
+              <div data-tour="nav-movements">
+                <NavButton
+                  icon={ArrowLeftRight}
+                  label="Movimentos"
+                  active={isActive("movements")}
+                  onClick={() => onNavigate("movements")}
+                />
+              </div>
 
-              {/* Slot 3: + (central, elevated) */}
-              <div className="flex justify-center">
+              {/* Slot 3: + Assistente (central, elevated) */}
+              <div className="flex justify-center" data-tour="nav-assistente">
                 <button
                   type="button"
                   onClick={() => canAssist && onNavigate("assistente")}
@@ -67,20 +71,24 @@ export default function BottomNav({ activeTab, onNavigate, onOpenMore, allowedTa
                 </button>
               </div>
               {/* Slot 4: Objetivos */}
-              <NavButton
-                icon={Target}
-                label="Objetivos"
-                active={isActive("goals")}
-                onClick={() => onNavigate("goals")}
-                disabled={!allowedTabs.includes("goals")}
-              />
+              <div data-tour="nav-goals">
+                <NavButton
+                  icon={Target}
+                  label="Objetivos"
+                  active={isActive("goals")}
+                  onClick={() => onNavigate("goals")}
+                  disabled={!allowedTabs.includes("goals")}
+                />
+              </div>
               {/* Slot 5: Mais */}
-              <NavButton
-                icon={Menu}
-                label="Mais"
-                active={false}
-                onClick={onOpenMore}
-              />
+              <div data-tour="nav-more">
+                <NavButton
+                  icon={Menu}
+                  label="Mais"
+                  active={false}
+                  onClick={onOpenMore}
+                />
+              </div>
             </div>
           </div>
         </div>

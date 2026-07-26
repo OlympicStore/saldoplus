@@ -71,7 +71,7 @@ export default function AppHeader({
         </div>
 
         {/* Center: month/year picker */}
-        <div className="relative">
+        <div className="relative" data-tour="month-selector">
           <button
             onClick={() => setPickerOpen(v => !v)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold text-foreground bg-background hover:bg-surface-hover border border-border-subtle/60 transition-colors capitalize"
