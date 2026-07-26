@@ -59,8 +59,14 @@ export const Dashboard = ({
     const activeSalaries = salaryConfigs.filter((s) => s.active);
     const configuredSalary = activeSalaries.reduce((s, c) => s + (c.monthlyValues[month] ?? 0), 0);
     const monthIncomesInMonth = incomes.filter((i) => isDateInMonth(i.date, month));
-    const salaryEntries = monthIncomesInMonth.filter((i) => i.type === "salary").reduce((s, i) => s + i.value, 0);
-    const monthOtherIncome = monthIncomesInMonth.filter((i) => i.type === "other").reduce((s, i) => s + i.value, 0);
+    const isSalaryType = (t: string | null | undefined) =>
+      !!t && t.toString().toLowerCase().startsWith("sal");
+    const salaryEntries = monthIncomesInMonth
+      .filter((i) => isSalaryType(i.type))
+      .reduce((s, i) => s + i.value, 0);
+    const monthOtherIncome = monthIncomesInMonth
+      .filter((i) => !isSalaryType(i.type))
+      .reduce((s, i) => s + i.value, 0);
     const totalSalary = configuredSalary + salaryEntries;
     const totalIncome = totalSalary + monthOtherIncome;
     return { totalFixed: totalFixedAll, totalFixedPaid, totalVariable, totalExpenses: totalExpenses + totalVariable, totalExpensesPaid, totalIncome, totalSalary, monthOtherIncome, monthVars };
