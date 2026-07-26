@@ -24,11 +24,11 @@ export default function BottomNav({ activeTab, onNavigate, onOpenMore, allowedTa
   return (
     <>
       {/* spacer so page content isn't hidden behind fixed bar */}
-      <div className="lg:hidden h-24" aria-hidden />
+      <div className="h-24" aria-hidden />
 
       <nav
         aria-label="Navegação principal"
-        className="lg:hidden fixed bottom-0 inset-x-0 z-40 pointer-events-none"
+        className="fixed bottom-0 inset-x-0 z-40 pointer-events-none"
       >
         <div className="pointer-events-auto mx-auto max-w-md px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)]">
           <div className="relative bg-surface/95 backdrop-blur-xl border border-border-subtle/70 shadow-[0_8px_32px_-8px_rgba(15,23,42,0.15)] rounded-[28px] px-2 py-2">
