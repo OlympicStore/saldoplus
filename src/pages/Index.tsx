@@ -250,18 +250,55 @@ const Index = () => {
       <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange as any} plan={userPlan} />
       <ExpirationBanner />
       <TrialBanner />
-      <header className="border-b border-border-subtle/60 bg-surface">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {partnerBranding?.brand_logo_url && (
+      <header className="border-b border-border-subtle/60 bg-surface/95 backdrop-blur-md sticky top-0 z-30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {partnerBranding?.brand_logo_url ? (
               <button
                 onClick={() => handleTabChange("dashboard")}
-                className="focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
+                className="focus:outline-none focus:ring-2 focus:ring-primary rounded-lg shrink-0"
                 aria-label="Ir para a Home"
               >
-                <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-12 w-12 rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity" />
+                <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-8 w-8 rounded-lg object-contain" />
+              </button>
+            ) : (
+              <button
+                onClick={() => handleTabChange("dashboard")}
+                className="focus:outline-none focus:ring-2 focus:ring-primary rounded shrink-0"
+                aria-label="Ir para a Home"
+              >
+                <span className="text-xl font-bold tracking-tight leading-none">
+                  <span className="text-foreground">Saldo</span>
+                  <span className="text-primary text-2xl font-black">+</span>
+                </span>
               </button>
             )}
+
+            {/* User chip: first name + workspace badge */}
+            {profile && (
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="hidden sm:flex items-center gap-2 pl-2 pr-2.5 py-1 rounded-full hover:bg-surface-hover transition-colors min-w-0"
+              >
+                <div className="h-6 w-6 rounded-full bg-primary/12 text-primary flex items-center justify-center text-[11px] font-semibold shrink-0">
+                  {(profile.full_name || profile.email || "U").charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm font-medium text-foreground truncate max-w-[110px]">
+                  {(profile.full_name || profile.email || "").split(/\s+/)[0]}
+                </span>
+                {partnerBranding?.name && (
+                  <span className="hidden md:inline-flex items-center gap-1 text-[10px] font-medium text-text-muted bg-background border border-border-subtle/60 rounded-full px-1.5 py-0.5">
+                    <Building2 className="h-2.5 w-2.5" />
+                    {partnerBranding.name}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && <SubAccountSwitcher />}
+
             {partnerBranding?.consultant_photo_url && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -269,17 +306,17 @@ const Index = () => {
                     <img
                       src={partnerBranding.consultant_photo_url}
                       alt={partnerBranding.consultant_name || ""}
-                      className="h-12 w-12 rounded-full object-cover border-2 border-border-subtle cursor-pointer hover:opacity-90 transition-opacity"
+                      className="h-8 w-8 rounded-full object-cover border border-border-subtle hover:opacity-90 transition-opacity"
                       style={{ objectPosition: partnerBranding.consultant_photo_position || "center" }}
                     />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 p-4" align="start">
+                <PopoverContent className="w-64 p-4" align="end">
                   <div className="flex items-center gap-3 mb-3">
                     <img
                       src={partnerBranding.consultant_photo_url}
                       alt={partnerBranding.consultant_name || ""}
-                      className="h-14 w-14 rounded-full object-cover border-2 border-border-subtle"
+                      className="h-12 w-12 rounded-full object-cover border-2 border-border-subtle"
                       style={{ objectPosition: partnerBranding.consultant_photo_position || "center" }}
                     />
                     <div>
@@ -289,19 +326,13 @@ const Index = () => {
                   </div>
                   <div className="space-y-2">
                     {partnerBranding.consultant_phone && (
-                      <a
-                        href={`tel:${partnerBranding.consultant_phone}`}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-surface-hover transition-colors text-sm text-foreground"
-                      >
+                      <a href={`tel:${partnerBranding.consultant_phone}`} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-surface-hover transition-colors text-sm text-foreground">
                         <Phone className="h-4 w-4 text-primary" />
                         <span>{partnerBranding.consultant_phone}</span>
                       </a>
                     )}
                     {partnerBranding.consultant_email && (
-                      <a
-                        href={`mailto:${partnerBranding.consultant_email}`}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-surface-hover transition-colors text-sm text-foreground"
-                      >
+                      <a href={`mailto:${partnerBranding.consultant_email}`} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-surface-hover transition-colors text-sm text-foreground">
                         <Mail className="h-4 w-4 text-primary" />
                         <span className="truncate">{partnerBranding.consultant_email}</span>
                       </a>
@@ -310,63 +341,18 @@ const Index = () => {
                 </PopoverContent>
               </Popover>
             )}
-            <div>
-              <button
-                onClick={() => handleTabChange("dashboard")}
-                className="focus:outline-none focus:ring-2 focus:ring-primary rounded"
-                aria-label="Ir para a Home"
-              >
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none cursor-pointer hover:opacity-90 transition-opacity">
-                  <span className="text-foreground">Saldo</span>
-                  <span className="text-primary text-3xl sm:text-4xl font-black leading-none">+</span>
-                </h1>
-              </button>
-              {partnerBranding?.consultant_name && (
-                <p className="text-[10px] text-text-muted leading-tight mt-0.5">
-                  {partnerBranding.consultant_name} · {partnerBranding.name}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {profile && (
-              <span className="text-xs text-text-muted hidden sm:inline">
-                {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
-              </span>
-            )}
-            {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && <SubAccountSwitcher />}
-            <div className="hidden lg:flex items-center gap-3">
-              <SuggestionsDialog />
-              <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
-                className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
-                <Tag className="h-4 w-4" />
-                <span className="hidden sm:inline">Categorias</span>
-              </button>
-              {isAdmin && (
-                <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors text-sm">
-                  <Shield className="h-4 w-4" />
-                  <span className="hidden sm:inline">Admin</span>
-                </button>
-              )}
-              <button onClick={openPeopleEditor} className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Nomes</span>
-              </button>
-              <button onClick={signOut} className="flex items-center gap-1.5 text-text-muted hover:text-status-negative transition-colors text-sm">
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Sair</span>
-              </button>
-            </div>
+
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border border-border-subtle/70 bg-surface hover:bg-surface-hover transition-colors"
+              className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-border-subtle/70 bg-surface hover:bg-surface-hover transition-colors"
               aria-label="Abrir menu"
             >
-              <Menu className="h-5 w-5 text-foreground" />
+              <Menu className="h-4 w-4 text-foreground" />
             </button>
           </div>
         </div>
       </header>
+
 
       {/* Mobile side drawer */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
