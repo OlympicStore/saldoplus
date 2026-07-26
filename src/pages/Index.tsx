@@ -1,17 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Dashboard } from "@/components/Dashboard";
-import { Expenses } from "@/components/Expenses";
-import { Entries } from "@/components/Entries";
 import { Investments } from "@/components/Investments";
-import { AnnualOverview } from "@/components/AnnualOverview";
-import { FinancialGoals } from "@/components/FinancialGoals";
+import { CentralContas } from "@/components/CentralContas";
 import { CategoryBudgets } from "@/components/CategoryBudgets";
 import { InitialBalance } from "@/components/InitialBalance";
 import { CategoriesManager } from "@/components/CategoriesManager";
-import { SuggestionsDialog } from "@/components/SuggestionsDialog";
 import { AISuggestions } from "@/components/AISuggestions";
-import { SubAccountSwitcher } from "@/components/SubAccountSwitcher";
 import { useSubAccount } from "@/contexts/SubAccountContext";
 import AccountPanel from "@/components/AccountPanel";
 import GuidedTour from "@/components/GuidedTour";
@@ -23,10 +18,9 @@ import { AIAssistant } from "@/components/AIAssistant";
 import BottomNav from "@/components/BottomNav";
 import { Movements } from "@/components/Movements";
 import { Objectives } from "@/components/Objectives";
-
-import { Settings, ChevronDown, LogOut, Shield, Tag, Phone, Mail, Menu, Home, Wallet, ArrowLeftRight, CalendarDays, Target, Building2, User as UserIcon, Sparkles, ChevronRight } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import AppHeader from "@/components/AppHeader";
+import AppSideMenu from "@/components/AppSideMenu";
+import { X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePersistedData } from "@/hooks/usePersistedData";
@@ -35,7 +29,6 @@ import type { FixedExpense } from "@/types/expense";
 import { ym } from "@/lib/yearMonth";
 import { isDateInYear } from "@/lib/dateOnly";
 
-const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const MIN_YEAR = 2026;
 const MAX_YEAR = 2028;
 
@@ -44,29 +37,11 @@ type Tab =
   | "assistente"
   | "movements"
   | "goals"
-  // Secondary — accessible from "Mais"
   | "balance"
   | "annual"
   | "budgets"
   | "minha_casa"
   | "account";
-
-// Primary tabs shown in the top nav + bottom bar
-const PRIMARY_TABS: { key: Tab; label: string; icon: typeof Home }[] = [
-  { key: "dashboard", label: "Home", icon: Home },
-  { key: "assistente", label: "Assistente", icon: Sparkles },
-  { key: "movements", label: "Movimentos", icon: ArrowLeftRight },
-  { key: "goals", label: "Objetivos", icon: Target },
-];
-
-// Items shown inside the "Mais" drawer
-type MoreItem = { key: Tab; label: string; icon: typeof Home; hint?: string };
-const MORE_ITEMS: MoreItem[] = [
-  { key: "balance", label: "Saldo & Contas", icon: Wallet, hint: "Contas e saldo inicial" },
-  { key: "annual", label: "Vista Anual", icon: CalendarDays, hint: "Estado das contas por mês" },
-  { key: "minha_casa", label: "Minha Casa", icon: Building2, hint: "Crédito habitação" },
-  { key: "account", label: "Conta & Plano", icon: UserIcon, hint: "Perfil, plano, faturação" },
-];
 
 const ALL_TAB_KEYS: Tab[] = ["dashboard","assistente","movements","goals","balance","annual","budgets","minha_casa","account"];
 
