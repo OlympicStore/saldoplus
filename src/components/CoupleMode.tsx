@@ -159,7 +159,7 @@ export const CoupleMode = ({
       fixedExpenses.forEach(e => {
         const v = e.monthlyValues[selectedMonth] ?? 0;
         if (!v) return;
-        catTotal[e.category] = (catTotal[e.category] ?? 0) + v;
+        catTotal[e.item] = (catTotal[e.item] ?? 0) + v;
       });
       variableExpenses
         .filter(e => isDateInMonth(e.date, selectedMonth))
