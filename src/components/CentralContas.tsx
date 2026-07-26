@@ -94,7 +94,7 @@ export const CentralContas = ({
       <div className="mb-6 flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Central de Contas</h1>
-          <p className="text-sm text-text-muted mt-1">As tuas contas recorrentes num só sítio.</p>
+          <p className="text-sm text-text-muted mt-1">As tuas contas recorrentes e faturas num só sítio.</p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
