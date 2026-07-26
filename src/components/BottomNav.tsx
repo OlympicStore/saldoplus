@@ -100,18 +100,21 @@ function NavButton({
   active,
   onClick,
   disabled,
+  dataTour,
 }: {
   icon: typeof Home;
   label: string;
   active: boolean;
   onClick: () => void;
   disabled?: boolean;
+  dataTour?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      data-tour={dataTour}
       className={`relative flex flex-col items-center gap-1 py-1.5 rounded-2xl transition-colors ${
         active ? "text-primary" : "text-text-muted hover:text-foreground"
       } disabled:opacity-30 disabled:cursor-not-allowed`}
