@@ -116,51 +116,49 @@ const COMPARISON_ROWS: Array<[string, boolean, boolean, boolean]> = [
 ];
 
 
-const formatEuro = (value: number) => `${value.toFixed(2).replace(".", ",")}€`;
-
-const PAYMENT_LINKS: Record<string, string> = {
-  essencial: "https://buy.stripe.com/14A8wP6neamK7BFfUgbMQ0j",
-  casa: "https://buy.stripe.com/cNiaEXh1S9iGe030ZmbMQ0k",
-  pro: "https://buy.stripe.com/fZu28r9zqbqO3lpcI4bMQ0l",
-};
-
 const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const usersCounter = useCounter(500);
   const savingsCounter = useCounter(150);
   const timeCounter = useCounter(5);
 
   const handleAddToCart = (planId: string) => {
-    const plan = PLANS.find((p) => p.id === planId);
-    const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
-    fbTrack("AddToCart", { content_name: planId, currency: "EUR", value });
+    const plan = PLAN_MAP[planId as keyof typeof PLAN_MAP];
+    fbTrack("AddToCart", { content_name: planId, currency: "EUR", value: plan?.price ?? 0 });
   };
 
-  const handleSelectPlan = (planId: string) => {
-    const plan = PLANS.find((p) => p.id === planId);
-    const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
+  const handleSelectPlan = async (planId: string) => {
+    const plan = PLAN_MAP[planId as keyof typeof PLAN_MAP];
     handleAddToCart(planId);
-    fbTrackInitiateCheckout(planId, value);
+    fbTrackInitiateCheckout(planId, plan?.price ?? 0);
 
-    // If user not logged in → send to signup (start 3-day trial)
     if (!user) {
       navigate(`/auth?mode=signup&plan=${planId}`);
       return;
     }
 
-    // Logged-in user → open Stripe checkout
-    const link = PAYMENT_LINKS[planId];
-    if (!link) return;
-    const separator = link.includes("?") ? "&" : "?";
-    const email = user.email || "";
-    const url = email
-      ? `${link}${separator}prefilled_email=${encodeURIComponent(email)}`
-      : link;
-    window.open(url, "_blank");
+    setLoadingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { plan: planId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer");
+      } else {
+        throw new Error("Não foi possível criar a sessão de pagamento.");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao iniciar checkout.");
+    } finally {
+      setLoadingPlan(null);
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-background">
