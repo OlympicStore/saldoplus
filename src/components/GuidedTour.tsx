@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, ArrowLeft, Home, Wallet, ArrowDownCircle, Receipt, Target, BarChart3, Settings, Sparkles, HomeIcon, Calculator } from "lucide-react";
+import {
+  X, ArrowRight, ArrowLeft, Home, ArrowLeftRight, Target,
+  Sparkles, Menu, Plus, HomeIcon, Calculator,
+} from "lucide-react";
 
-type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account";
+type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account" | "movements" | "assistente";
 
 interface TourStep {
   title: string;
@@ -10,85 +13,89 @@ interface TourStep {
   icon: React.ElementType;
   tip?: string;
   tab?: Tab;
+  /** CSS selector of the element to highlight on screen. */
+  target?: string;
 }
 
 const TOUR_STEPS: TourStep[] = [
   {
     title: "Bem-vindo ao Saldo+! 🎉",
-    description: "Vamos mostrar-lhe como tirar o máximo partido da sua conta. A cada passo vamos abrir a secção correspondente para que veja tudo na prática.",
+    description: "Vou mostrar-lhe rapidamente as áreas principais da app. Em cada passo destaco no ecrã onde deve olhar.",
     icon: Sparkles,
-    tip: "Pode rever este guia a qualquer momento na aba Conta.",
+    tip: "Pode saltar a qualquer momento e rever este guia na aba Conta.",
   },
   {
-    title: "Home — Visão geral",
-    description: "Aqui encontra o saldo acumulado, o balanço do mês (entradas vs saídas) e gráficos de evolução. É o ponto de partida para perceber rapidamente como estão as suas finanças.",
+    title: "Início — a sua visão geral",
+    description: "Aqui vê o saldo acumulado, o balanço do mês (entradas vs. saídas), a evolução do saldo e o seu Score Financeiro.",
     icon: Home,
-    tip: "Clique no saldo acumulado para editá-lo manualmente.",
+    tip: "Toque no saldo acumulado para ajustar manualmente.",
     tab: "dashboard",
+    target: "[data-tour='nav-dashboard']",
   },
   {
-    title: "Saldo — As suas contas",
-    description: "Adicione as suas contas bancárias (corrente, poupança, investimento) e veja o saldo total consolidado. O sistema calcula tudo automaticamente.",
-    icon: Wallet,
-    tip: "Crie contas separadas para organizar melhor o seu dinheiro.",
-    tab: "balance",
+    title: "Movimentos — tudo o que entra e sai",
+    description: "Uma timeline única com receitas, despesas e investimentos. Pesquise, filtre por tipo e veja detalhes com um toque.",
+    icon: ArrowLeftRight,
+    tip: "Investimentos aparecem separados e não contam como despesa.",
+    tab: "movements",
+    target: "[data-tour='nav-movements']",
   },
   {
-    title: "Entradas — Rendimentos",
-    description: "Registe salários, rendimentos extra e transferências entre contas. Pode configurar salários fixos por pessoa que se repetem todos os meses.",
-    icon: ArrowDownCircle,
-    tip: "Use o botão 'Salários' para definir valores mensais automáticos.",
-    tab: "entries",
+    title: "Assistente IA — o coração do Saldo+",
+    description: "Toque no botão + central para falar com o assistente. Peça em linguagem natural: 'gastei 12€ no almoço', 'recebi 30€', 'quanto gastei em comida este mês?'. Ele regista, edita, apaga e responde por si.",
+    icon: Sparkles,
+    tip: "Diga 'desfaz o último registo' se se enganar.",
+    tab: "assistente",
+    target: "[data-tour='nav-assistente']",
   },
   {
-    title: "Despesas — Gastos fixos e variáveis",
-    description: "Organize todas as suas despesas: contas da casa (água, luz, internet) como gastos fixos, e compras do dia a dia como gastos variáveis por categoria.",
-    icon: Receipt,
-    tip: "Atribua um responsável a cada despesa para dividir contas.",
-    tab: "expenses",
+    title: "Objetivos — metas e score",
+    description: "Defina metas de poupança, acompanhe entradas/retiradas por meta e veja o seu Score Financeiro com sugestões concretas de melhoria.",
+    icon: Target,
+    tip: "Pode ajustar os pesos do score ao seu perfil.",
+    tab: "goals",
+    target: "[data-tour='nav-goals']",
   },
   {
-    title: "Mês a mês",
-    description: "Use o seletor de mês no topo para navegar entre meses. Cada mês tem os seus próprios valores, permitindo um controlo detalhado ao longo do tempo.",
-    icon: BarChart3,
-    tip: "Os dados são independentes por mês — pode planear meses futuros.",
+    title: "Mais — tudo o resto",
+    description: "No menu 'Mais' encontra Contas, Rendimentos, Despesas fixas/variáveis, Central de Contas, Investimentos, Modo Casal, Categorias e a área de Conta.",
+    icon: Menu,
+    tip: "O Modo Casal permite dividir despesas 50/50, proporcional, personalizado ou por categorias.",
     tab: "dashboard",
+    target: "[data-tour='nav-more']",
   },
   {
-    title: "Configurações rápidas",
-    description: "Use o botão 'Nomes' para editar as pessoas da casa e 'Categorias' para gerir categorias de despesas. Na aba 'Conta' pode alterar a password e ver o seu plano.",
-    icon: Settings,
-    tip: "Adicione todos os membros da família para dividir despesas.",
-    tab: "account",
+    title: "Seletor de mês",
+    description: "No topo pode navegar entre meses. Cada mês tem os seus próprios valores — planeie o futuro ou reveja o passado.",
+    icon: Home,
+    tab: "dashboard",
+    target: "[data-tour='month-selector']",
   },
   {
     title: "Tudo pronto! 🚀",
-    description: "Comece por adicionar as suas contas na aba 'Saldo', depois registe os primeiros rendimentos e despesas. Em poucos minutos terá uma visão completa das suas finanças!",
-    icon: Target,
-    tip: "Dica: comece pelo mês atual e vá preenchendo aos poucos.",
-    tab: "dashboard",
+    description: "Comece por adicionar uma conta e os primeiros movimentos — ou peça diretamente ao Assistente. Em minutos terá uma visão clara das suas finanças.",
+    icon: Sparkles,
+    tip: "Pode rever este tutorial na aba Conta a qualquer momento.",
   },
 ];
 
-// Steps adicionais para o plano Imobiliária — inseridos antes do "Tudo pronto"
 const IMOBILIARIA_EXTRA_STEPS: TourStep[] = [
   {
-    title: "Minha Casa — Acompanhe a sua habitação",
-    description: "Aqui pode controlar a prestação mensal, acompanhar a taxa de esforço (peso da casa no rendimento) e ver o progresso do pagamento da casa ao longo do tempo. Tudo num só sítio.",
+    title: "Minha Casa",
+    description: "Controle a prestação mensal, veja a taxa de esforço e o progresso do pagamento da sua habitação num só sítio.",
     icon: HomeIcon,
-    tip: "A taxa de esforço ideal está abaixo de 30% do seu rendimento.",
+    tip: "Taxa de esforço ideal: abaixo de 30% do rendimento.",
     tab: "minha_casa",
   },
   {
     title: "Simulador de Crédito",
-    description: "Dentro de Minha Casa tem um Simulador de Crédito completo: pode atualizar o seu crédito atual, simular cenários alternativos com taxas/prazos diferentes e ver quanto poupa com pagamentos extra.",
+    description: "Simule cenários de crédito com taxas e prazos diferentes e veja quanto poupa com pagamentos extra.",
     icon: Calculator,
-    tip: "Use 'Copiar atual' para criar simulações baseadas no seu crédito real.",
     tab: "minha_casa",
   },
 ];
 
-const TOUR_STORAGE_KEY = "saldoplus_tour_completed";
+const TOUR_STORAGE_KEY = "saldoplus_tour_completed_v2";
 
 interface GuidedTourProps {
   forceShow?: boolean;
@@ -100,8 +107,8 @@ interface GuidedTourProps {
 const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [rect, setRect] = useState<DOMRect | null>(null);
 
-  // Build steps based on plan: imobiliária inclui Minha Casa + Simulador antes do passo final
   const steps = plan === "imobiliaria"
     ? [...TOUR_STEPS.slice(0, -1), ...IMOBILIARIA_EXTRA_STEPS, TOUR_STEPS[TOUR_STEPS.length - 1]]
     : TOUR_STEPS;
@@ -112,38 +119,57 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
       setIsVisible(true);
       return;
     }
-    const completed = localStorage.getItem(TOUR_STORAGE_KEY);
-    if (!completed) {
-      setIsVisible(true);
-    }
+    if (!localStorage.getItem(TOUR_STORAGE_KEY)) setIsVisible(true);
   }, [forceShow]);
 
-  // Navigate to the relevant tab when the step changes
+  // Navigate to relevant tab when step changes
   useEffect(() => {
     if (!isVisible) return;
     const step = steps[currentStep];
-    if (step?.tab && onNavigate) {
-      onNavigate(step.tab);
-    }
+    if (step?.tab && onNavigate) onNavigate(step.tab);
   }, [currentStep, isVisible, onNavigate, steps]);
+
+  // Compute highlight rect after navigation/layout settles
+  useLayoutEffect(() => {
+    if (!isVisible) { setRect(null); return; }
+    const step = steps[currentStep];
+    if (!step?.target) { setRect(null); return; }
+
+    let raf1 = 0, raf2 = 0, timeout = 0;
+    const update = () => {
+      const el = document.querySelector(step.target!) as HTMLElement | null;
+      if (el) {
+        try { el.scrollIntoView({ behavior: "smooth", block: "center" }); } catch {}
+        setRect(el.getBoundingClientRect());
+      } else {
+        setRect(null);
+      }
+    };
+    // wait a bit for tab change + smooth scroll
+    timeout = window.setTimeout(() => {
+      update();
+      raf1 = requestAnimationFrame(() => { raf2 = requestAnimationFrame(update); });
+    }, 250);
+
+    const onResize = () => update();
+    window.addEventListener("resize", onResize);
+    window.addEventListener("scroll", onResize, true);
+    return () => {
+      clearTimeout(timeout);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onResize, true);
+    };
+  }, [currentStep, isVisible, steps]);
 
   const handleClose = () => {
     setIsVisible(false);
     localStorage.setItem(TOUR_STORAGE_KEY, "true");
     onClose?.();
   };
-
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((s) => s + 1);
-    } else {
-      handleClose();
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentStep > 0) setCurrentStep((s) => s - 1);
-  };
+  const handleNext = () => currentStep < steps.length - 1 ? setCurrentStep(s => s + 1) : handleClose();
+  const handlePrev = () => currentStep > 0 && setCurrentStep(s => s - 1);
 
   if (!isVisible) return null;
 
@@ -152,9 +178,28 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
   const isFirst = currentStep === 0;
   const Icon = step.icon;
 
-  // Always center the tour so the user doesn't need to scroll to see it.
+  const pad = 8;
+  const highlightStyle = rect ? {
+    top: rect.top - pad,
+    left: rect.left - pad,
+    width: rect.width + pad * 2,
+    height: rect.height + pad * 2,
+  } : null;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+      {/* Highlight outline over the target element */}
+      {highlightStyle && (
+        <motion.div
+          key={`hl-${currentStep}`}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.25 }}
+          className="fixed pointer-events-none rounded-2xl ring-4 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]"
+          style={highlightStyle}
+        />
+      )}
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
@@ -162,10 +207,8 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -10 }}
           transition={{ duration: 0.25 }}
-          className="bg-surface shadow-2xl border border-border-subtle/60 w-full overflow-hidden rounded-2xl max-w-md"
-          style={{ pointerEvents: "auto" }}
+          className="relative bg-surface shadow-2xl border border-border-subtle/60 w-full overflow-hidden rounded-2xl max-w-md"
         >
-          {/* Progress bar */}
           <div className="h-1 bg-border-subtle/30">
             <div
               className="h-full bg-primary transition-all duration-300 rounded-full"
@@ -174,7 +217,6 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
           </div>
 
           <div className="p-5 sm:p-6">
-            {/* Close button */}
             <div className="flex justify-between items-start mb-3">
               <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                 <Icon className="h-5 w-5" />
@@ -182,12 +224,12 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
               <button
                 onClick={handleClose}
                 className="text-text-muted hover:text-foreground transition-colors p-1"
+                aria-label="Fechar tutorial"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Content */}
             <h3 className="text-base font-bold text-foreground mb-1.5">{step.title}</h3>
             <p className="text-sm text-text-muted leading-relaxed mb-3">{step.description}</p>
 
@@ -197,13 +239,20 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
               </div>
             )}
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-text-muted">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-text-muted whitespace-nowrap">
                 {currentStep + 1} de {steps.length}
               </span>
 
               <div className="flex items-center gap-2">
+                {!isLast && (
+                  <button
+                    onClick={handleClose}
+                    className="px-3 py-2 rounded-lg text-sm text-text-muted hover:bg-surface-hover transition-colors"
+                  >
+                    Saltar
+                  </button>
+                )}
                 {!isFirst && (
                   <button
                     onClick={handlePrev}
@@ -213,21 +262,11 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
                     Anterior
                   </button>
                 )}
-
-                {isFirst && !forceShow && (
-                  <button
-                    onClick={handleClose}
-                    className="px-3 py-2 rounded-lg text-sm text-text-muted hover:bg-surface-hover transition-colors"
-                  >
-                    Saltar
-                  </button>
-                )}
-
                 <button
                   onClick={handleNext}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
                 >
-                  {isLast ? "Começar a usar" : "Seguinte"}
+                  {isLast ? "Começar" : "Seguinte"}
                   {!isLast && <ArrowRight className="h-4 w-4" />}
                 </button>
               </div>
