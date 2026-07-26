@@ -294,41 +294,40 @@ export const Dashboard = ({
       </div>
 
       {/* Categorias donut */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-          <h3 className="font-display text-lg font-bold text-foreground mb-4">Gastos por Categoria</h3>
-          {categoryData.length > 0 ? (
-            <div className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={180}>
-                <PieChart>
-                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={72} innerRadius={48} paddingAngle={3}>
-                    {categoryData.map((_, idx) => (
-                      <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)" }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="w-full mt-3 space-y-2">
-                {categoryData.slice(0, 4).map((d, i) => (
-                  <div key={d.name} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                      <span className="text-text-muted truncate">{d.name}</span>
-                    </div>
-                    <span className="font-mono font-semibold text-foreground tabular-nums">{fmt(d.value)}</span>
+      <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+        <h3 className="font-display text-lg font-bold text-foreground mb-4">Gastos por Categoria</h3>
+        {categoryData.length > 0 ? (
+          <div className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={72} innerRadius={48} paddingAngle={3}>
+                  {categoryData.map((_, idx) => (
+                    <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} stroke="none" />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)" }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="w-full mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+              {categoryData.slice(0, 6).map((d, i) => (
+                <div key={d.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                    <span className="text-text-muted truncate">{d.name}</span>
                   </div>
-                ))}
-                {categoryData.length > 4 && (
-                  <p className="text-[10px] text-text-muted text-center pt-1">+{categoryData.length - 4} categorias</p>
-                )}
-              </div>
+                  <span className="font-mono font-semibold text-foreground tabular-nums">{fmt(d.value)}</span>
+                </div>
+              ))}
+              {categoryData.length > 6 && (
+                <p className="text-[10px] text-text-muted text-center pt-1 sm:col-span-2">+{categoryData.length - 6} categorias</p>
+              )}
             </div>
-          ) : (
-            <p className="text-sm text-text-muted text-center py-12">Sem gastos neste mês</p>
-          )}
-        </div>
+          </div>
+        ) : (
+          <p className="text-sm text-text-muted text-center py-12">Sem gastos neste mês</p>
+        )}
       </div>
+
 
       {/* Média Anual + Contas Pendentes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
