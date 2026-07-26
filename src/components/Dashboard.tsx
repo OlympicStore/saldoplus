@@ -246,6 +246,32 @@ export const Dashboard = ({
         </div>
       </div>
 
+      {/* Evolução do Saldo — full width, logo abaixo do hero */}
+      <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-display text-lg font-bold text-foreground">Evolução do Saldo</h3>
+            <p className="text-xs text-text-muted mt-0.5">Saldo acumulado ao longo do ano</p>
+          </div>
+          <span className="text-[11px] font-semibold text-status-paid bg-[hsl(var(--status-paid)/0.1)] px-2.5 py-1 rounded-full">Anual</span>
+        </div>
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="saldoGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0.28} />
+                <stop offset="100%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} tickFormatter={(v) => `€${v}`} width={55} axisLine={false} tickLine={false} />
+            <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} />
+            <Area type="monotone" dataKey="saldo" stroke="hsl(160, 84%, 39%)" strokeWidth={2.5} fill="url(#saldoGradient)" dot={{ r: 3, fill: "hsl(160, 84%, 39%)", strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
       {/* Score + Modo Casal */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <FinancialScore
@@ -267,68 +293,41 @@ export const Dashboard = ({
         />
       </div>
 
-      {/* Chart row: Evolução saldo (2/3) + Categorias donut (1/3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-        <div className="lg:col-span-2 rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-display text-lg font-bold text-foreground">Evolução do Saldo</h3>
-              <p className="text-xs text-text-muted mt-0.5">Saldo acumulado ao longo do ano</p>
-            </div>
-            <span className="text-[11px] font-semibold text-status-paid bg-[hsl(var(--status-paid)/0.1)] px-2.5 py-1 rounded-full">Anual</span>
-          </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="saldoGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0.28} />
-                  <stop offset="100%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} tickFormatter={(v) => `€${v}`} width={55} axisLine={false} tickLine={false} />
-              <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} />
-              <Area type="monotone" dataKey="saldo" stroke="hsl(160, 84%, 39%)" strokeWidth={2.5} fill="url(#saldoGradient)" dot={{ r: 3, fill: "hsl(160, 84%, 39%)", strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
-          <h3 className="font-display text-lg font-bold text-foreground mb-4">Gastos por Categoria</h3>
-          {categoryData.length > 0 ? (
-            <div className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={180}>
-                <PieChart>
-                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={72} innerRadius={48} paddingAngle={3}>
-                    {categoryData.map((_, idx) => (
-                      <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)" }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="w-full mt-3 space-y-2">
-                {categoryData.slice(0, 4).map((d, i) => (
-                  <div key={d.name} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                      <span className="text-text-muted truncate">{d.name}</span>
-                    </div>
-                    <span className="font-mono font-semibold text-foreground tabular-nums">{fmt(d.value)}</span>
+      {/* Categorias donut */}
+      <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+        <h3 className="font-display text-lg font-bold text-foreground mb-4">Gastos por Categoria</h3>
+        {categoryData.length > 0 ? (
+          <div className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={72} innerRadius={48} paddingAngle={3}>
+                  {categoryData.map((_, idx) => (
+                    <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} stroke="none" />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)" }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="w-full mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+              {categoryData.slice(0, 6).map((d, i) => (
+                <div key={d.name} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                    <span className="text-text-muted truncate">{d.name}</span>
                   </div>
-                ))}
-                {categoryData.length > 4 && (
-                  <p className="text-[10px] text-text-muted text-center pt-1">+{categoryData.length - 4} categorias</p>
-                )}
-              </div>
+                  <span className="font-mono font-semibold text-foreground tabular-nums">{fmt(d.value)}</span>
+                </div>
+              ))}
+              {categoryData.length > 6 && (
+                <p className="text-[10px] text-text-muted text-center pt-1 sm:col-span-2">+{categoryData.length - 6} categorias</p>
+              )}
             </div>
-          ) : (
-            <p className="text-sm text-text-muted text-center py-12">Sem gastos neste mês</p>
-          )}
-        </div>
+          </div>
+        ) : (
+          <p className="text-sm text-text-muted text-center py-12">Sem gastos neste mês</p>
+        )}
       </div>
+
 
       {/* Média Anual + Contas Pendentes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
