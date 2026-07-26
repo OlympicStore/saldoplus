@@ -412,6 +412,7 @@ const Index = () => {
       onNavigate={(t) => handleTabChange(t as Tab)}
       onOpenMore={() => setMobileMenuOpen(true)}
     />
+    <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange as any} plan={userPlan} />
     </>
   );
 };
