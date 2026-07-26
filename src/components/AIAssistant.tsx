@@ -48,6 +48,7 @@ const TOOL_LABEL: Record<string, string> = {
   list_recent_expenses: "Despesas recentes",
   list_recent_incomes: "Receitas recentes",
   undo_last_action: "Ação desfeita",
+  update_fixed_monthly: "Despesa recorrente atualizada",
 };
 
 async function getAuthHeader() {
