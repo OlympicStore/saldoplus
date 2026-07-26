@@ -1,106 +1,117 @@
-# Saldo+ v2.0 — Simplificação da Arquitetura
+# Redesign V2 — Cabeçalho + Menu + Central de Contas
 
-Reduzir a app de ~10 abas para **5 secções principais**, mantendo todas as funcionalidades mas escondendo-as atrás de contexto e filtros em vez de menus.
+Foco em UI/UX. Sem alterações à base de dados, sem alterar lógica financeira, sem tocar em Home / Movimentos / Objetivos / Assistente / Investimentos.
 
-## Nova navegação (única fonte)
+---
 
-Tanto no desktop (topbar) como no mobile (BottomNav) — apenas 5 destinos:
+## 1. Novo cabeçalho (`src/pages/Index.tsx`)
 
-1. **Home** 🏠 — feed cronológico + resumo
-2. **Assistente** 🤖 — chat IA (existente, com melhorias de copy)
-3. **Movimentos** 💸 — lista unificada com filtros
-4. **Objetivos** 🎯 — metas + orçamentos + score + previsões
-5. **Mais** ☰ — drawer com tudo o resto
+Substituir o header atual por uma barra minimalista com **3 zonas**:
 
-Elimino as abas atuais: `entries`, `expenses`, `annual`, `investments`, `balance`, `people`, `categories`, `mortgage`, `casa` — passam para dentro das 5 secções ou para "Mais".
+```text
+[ Saldo+ ]          [ Julho 2026 ▼ ]           [ 👤 ] [ ☰ ]
+```
 
-## 1. Home (reescrita)
+- **Esquerda**: logo `Saldo+` pequeno (h-8) — clica → Home.
+- **Centro**: seletor de mês/ano (o atual `showMonthPicker` passa para aqui, com o mesmo popover de anos + grelha de meses).
+- **Direita**: só dois ícones circulares — Perfil (`UserIcon` → abre `activeTab="account"`) e Menu (`Menu` → abre o Sheet lateral).
+- Remover: nome do utilizador, plano em texto, "Categorias/Nomes/Admin/Sair" inline, `SubAccountSwitcher` do header (movido para dentro do drawer).
+- Remover a segunda barra `nav` desktop com as tabs (Home/Assistente/…). No desktop passa a existir **só o drawer lateral** (aberto pelo ☰), igual ao mobile. `BottomNav` continua no mobile como está.
+- Branding de parceiro (logo/consultor) preservado — mostrado à esquerda antes do "Saldo+" quando existe.
 
-Substituir o `Dashboard.tsx` atual por um layout tipo feed:
+## 2. Menu lateral reorganizado
 
-- **Hero** — Saldo total (grande, tipografia Sora) + delta do mês
-- **Faixa de cartões horizontais** — Score Financeiro · Próxima despesa · Próxima receita · Objetivo em destaque · Insight IA
-- **Feed cronológico "Atividade recente"** — últimos 15-20 movimentos (despesa + receita + transferência + contribuição objetivo) agrupados por "Hoje / Ontem / Esta semana", com ícone de categoria, valor com sinal, cor semântica
-- **Mini-gráfico "Evolução mensal"** — Area chart compacto (reaproveitar o existente)
-- CTAs: "Ver todos os movimentos" → Movimentos · "Falar com assistente" → Assistente
+Um único componente para desktop e mobile (o `Sheet` já existente), com esta ordem:
 
-Componentes reaproveitados: `FinancialScore`, `AISuggestions`, gráficos do `Dashboard`. Cartões antigos de saldo por conta e resumo detalhado ficam **só na Home**, colapsados/secundários.
+1. Início → `dashboard`
+2. Movimentos → `movements`
+3. Objetivos → `goals`
+4. Assistente IA → `assistente`
+5. Modo Casal → abre `Objectives` no sub-tab casal (mantém funcionalidade existente via query param `?tab=goals&sub=casal`)
+6. Empresa → item "em breve" (disabled, badge "Em breve") — placeholder visual sem lógica
+7. Central de Contas → `annual` (renomeado)
+8. Conta → `account`
+9. Configurações → abre sub-secção com Categorias, Nomes, Admin (se admin), Sair — mantém as ações já existentes
 
-## 2. Assistente
+Feature-gating por `allowedTabs` continua a filtrar itens não permitidos.
 
-Manter `AIAssistant.tsx`. Alterações:
-- Saudação dinâmica por hora do dia + primeiro nome ("Bom dia, Pedro.")
-- Chip de pesquisa dentro do histórico (filtra mensagens)
-- Histórico contínuo já existe (persistido em `ai_messages`) — expor scroll infinito
+## 3. Central de Contas (reescrita de `AnnualOverview.tsx` → novo `CentralContas.tsx`)
 
-## 3. Movimentos (novo componente `Movements.tsx`)
+Nova página premium, sem tabelas. Alimentada pelos mesmos dados (`fixedExpenses`, `billRecords`, `billAttachments`) — **sem alterações de schema**.
 
-Uma única lista unificada agregando: `variable_expenses` + `fixed_expenses` (instâncias do mês) + `incomes` + `transfers` + `investments` + contribuições de `goals`.
+### Layout
 
-- Barra de filtros topo: chips **Todos · Receitas · Despesas · Transferências · Subscrições · Investimentos**
-- Filtros avançados (popover): categoria, conta, pessoa, data (Hoje / 7d / 30d / Este mês / Este ano / Personalizado), gama de valor
-- Pesquisa por texto (descrição)
-- Ordenação por data desc
-- Ações inline: editar / eliminar (reaproveitar handlers existentes)
-- Formulário "Novo movimento" com tipo selecionável no topo (substitui os formulários separados de Entradas/Despesas)
+- **Header da página**: título "Central de Contas" + subtítulo "As tuas contas recorrentes num só sítio" + botão "Adicionar conta".
+- **Cartões resumo** (3): "A pagar este mês", "Pagas", "Em atraso" — contagens + soma €.
+- **Grelha de cartões de conta** (1 col mobile, 2 desktop, `rounded-3xl`, sombra suave):
 
-Elimina a necessidade das abas `entries`, `expenses`, `annual` (o filtro "Este ano" cobre a vista anual).
+  ```text
+  💧 Água                          [Pendente]
+  Recorrente variável · Dia 11
 
-## 4. Objetivos (expansão do atual)
+  Valor esperado    Último valor
+   42 €              39 €
 
-`FinancialGoals.tsx` passa a ser um hub com sub-secções (tabs internos leves):
-- **Metas** (atual)
-- **Orçamentos** (reaproveitar `CategoryBudgets`)
-- **Score Financeiro** (reaproveitar `FinancialScore` com ajuste de pesos)
-- **Previsões / Planeamento** — projeção simples de saldo com base na média
+  [ Atualizar mês ]   [ Ver histórico ]
+  ```
 
-## 5. Mais (Sheet lateral)
+- Ícone derivado do nome (mapa: água→💧, luz/eletricidade→⚡, gás→🔥, internet→🌐, netflix→🎬, spotify→🎵, seguro→🛡️, ginásio→🏋️, telemóvel→📱, default→🧾).
+- Cor do estado usa os tokens já existentes (`status-pending/paid/negative`).
+- **"Valor esperado"** = média dos meses com valor > 0 do ano corrente (fallback: último valor).
+- **"Último valor"** = valor mais recente registado (mês anterior ao atual, ou último com valor).
+- **"Atualizar mês"**:
+  - Fixa → popover só com estado (Pago / Pendente / Em atraso).
+  - Variável → popover com input de valor + estado.
+  - Usa `updateFixedMonthly` já existente.
 
-Reaproveitar o `Sheet` já existente no mobile e criar equivalente no desktop (menu no header). Itens:
-- Conta / Perfil (`AccountPanel`)
-- Modo Casal (`CoupleMode`)
-- Contas & Saldo Inicial (`InitialBalance`)
-- Categorias (`CategoriesManager`)
-- Pessoas (`PersonSelector` config)
-- Minha Casa / Simulador (`MinhaCasa`, `MortgageSimulator`)
-- Exportações (novo botão simples CSV)
-- Plano / Faturação
-- Ajuda · Termos · Privacidade · Sair
+### Modal de detalhe (clicar no cartão)
 
-## Design
+`Dialog` full-height mobile, largura média desktop. Conteúdo:
 
-- Tokens já existentes (`Sora`/`Manrope`, primary emerald) — sem alterações de paleta
-- Aumentar espaçamento vertical entre secções (py-8 → py-12), `rounded-3xl`, sombras muito suaves (`shadow-[0_1px_2px_rgba(0,0,0,0.04)]`)
-- Menos densidade: máx. 1 cartão por linha em mobile, 2-3 em desktop
-- Micro-animações com Framer Motion (fade + translate curtos)
+- Cabeçalho: ícone + nome + categoria + tipo (Fixa/Variável) + dia de vencimento (editáveis via botão pequeno "Editar" — usa `updateFixed`).
+- **Estatísticas rápidas**: média (12m), maior, menor, última atualização.
+- **Histórico mensal** (lista vertical de 12 meses do ano ativo):
+  - Mês · valor · estado · data (se paga) · comprovativo (📎 anexar / miniatura se existir) · observações (input inline opcional — guarda em memória local se não houver campo BD; nesta iteração sem persistência de observações para respeitar "não alterar BD").
+- Botão eliminar conta (com confirmação).
 
-## Ficheiros técnicos
+### Tipo de despesa (fixa vs variável)
+
+Já existe o campo `valueType` em `fixed_expenses` (memoria da última iteração de Despesas). Reutilizar diretamente:
+- Toggle no formulário "Nova conta" e na edição.
+- Não é preciso migração.
+
+### Preparação para OCR (sem implementar)
+
+- Botão "Enviar fatura (em breve)" desactivado no modal.
+- Estrutura de `handleAttachClick` já aceita PDF/imagem; adicionar um wrapper `parseAttachment(file)` que hoje é no-op e no futuro chama edge function OCR. Documentar `// TODO: OCR pipeline` num único local.
+
+### Integração com Assistente IA
+
+- Adicionar cartão discreto "💬 Diz ao assistente: «Água 42€»" no topo da página com botão que abre o assistente com prompt pré-preenchido (`?tab=assistente&prompt=...` — já existe padrão de navegação por query, sem novas edge functions).
+- **Não** alterar o edge function `ai-chat` nesta iteração (as tools `add_expense`/`update_expense` já cobrem o caso; o system prompt existente já entende "paguei a luz 68€").
+
+## 4. Componentes a criar / editar
 
 **Novos:**
-- `src/components/Movements.tsx` — lista unificada + filtros
-- `src/components/HomeFeed.tsx` — Home reescrita (feed + hero)
-- `src/components/MoreMenu.tsx` — conteúdo do Sheet "Mais" partilhado mobile/desktop
+- `src/components/CentralContas.tsx` — página completa
+- `src/components/central-contas/BillCard.tsx` — cartão individual
+- `src/components/central-contas/BillDetailDialog.tsx` — modal de detalhe/histórico
+- `src/components/AppHeader.tsx` — novo cabeçalho minimalista (extraído de Index)
+- `src/components/AppSideMenu.tsx` — conteúdo partilhado do Sheet (usado por mobile e desktop)
 
-**Alterados:**
-- `src/pages/Index.tsx` — reduzir `activeTab` a 5 valores, remover tabs antigas, integrar novos componentes
-- `src/components/BottomNav.tsx` — já tem 5 slots (Home / Movimentos / +IA / Objetivos / Mais) ✓
-- Header desktop — substituir a linha de tabs por 5 links + botão "Mais"
-- `src/components/AIAssistant.tsx` — saudação dinâmica + pesquisa
+**Editados:**
+- `src/pages/Index.tsx` — usar `AppHeader` + `AppSideMenu`, remover barra de tabs desktop, renomear rota "annual" → renderiza `CentralContas`, remover painel `Categorias` inline (passa para dentro do menu Configurações).
 
-**Preservados (movidos para dentro):** `FixedExpenses`, `VariableExpenses`, `Entries`, `Income`, `AnnualOverview`, `Investments`, `InitialBalance`, `CategoriesManager`, `MinhaCasa`, `MortgageSimulator`, `CoupleMode`, `AccountPanel`. Continuam a existir como componentes e são compostos dentro das 5 secções ou abertos a partir de "Mais".
+**Preservados sem alterações:** `Dashboard`, `Movements`, `Objectives`, `AIAssistant`, `Investments`, `Entries`, `Expenses`, `InitialBalance`, `AccountPanel`, `BottomNav`, `usePersistedData`, todas as edge functions.
 
-## Ordem de execução
+## 5. Design tokens
 
-1. Criar `Movements.tsx` (agrega dados de vários hooks)
-2. Criar `HomeFeed.tsx` (feed cronológico + cartões destaque)
-3. Criar `MoreMenu.tsx`
-4. Refactor `Index.tsx` — nova navegação de 5 abas, remover as antigas
-5. Melhorias no Assistente (copy + pesquisa)
-6. Ajustar Objetivos com sub-tabs internos
-7. Verificar build + smoke test das rotas principais
+Usar exclusivamente os tokens existentes (`--primary`, `--surface`, `--status-*`, fontes Sora/Manrope, `rounded-3xl`, `shadow-card`). Animações leves com Framer Motion (fade + translate curto, iguais aos já usados).
 
-## Fora do âmbito
+## 6. Fora do âmbito
 
-- Sem alterações à base de dados
-- Sem novas funcionalidades de negócio — apenas reorganização visual/estrutural
-- Modo Empresa **não** é implementado (pedido para omitir)
+- OCR real (só estrutura preparada)
+- Novas tabelas ou colunas
+- Alteração de qualquer edge function
+- Modo Empresa funcional (só placeholder no menu)
+- Alterações a Home / Movimentos / Objetivos / Assistente / Investimentos / Despesas / Receitas
