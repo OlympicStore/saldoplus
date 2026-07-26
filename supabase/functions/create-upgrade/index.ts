@@ -7,16 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Upgrade para Casa: preço one-off da diferença mensal (13€).
-// Upgrade para Pro: subscrição anual completa (79,99€/ano) com trial 3 dias.
-const UPGRADE_ONEOFF_PRICES: Record<string, Record<string, string>> = {
-  essencial: {
-    casa: "price_1TL3GeImKoY4gMb7cmn0FP4Q", // 13,00€ one-off (diferença mensal)
-  },
-};
-
-// Preço da subscrição Pro anual (mesmo usado em create-checkout)
-const PRO_ANNUAL_PRICE = "price_1TqyJPImKoY4gMb7hm1CEpKU";
+// Upgrade para Casa+ = subscrição mensal Casa+ (28,99€/mês) — Stripe faz prorata.
+// Upgrade para Elite = subscrição anual completa (159,99€/ano).
+const CASA_MONTHLY_PRICE = "price_1TxGZTImKoY4gMb7ykSwbaDu";
+const PRO_ANNUAL_PRICE = "price_1TxGZjImKoY4gMb7Tkg5Cccp";
+const UPGRADE_ONEOFF_PRICES: Record<string, Record<string, string>> = {};
 
 const PLAN_ORDER = ["essencial", "casa", "pro"];
 

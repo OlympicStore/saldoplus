@@ -7,11 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Recurring prices with 3-day trial. Card required at signup.
+// V2 recurring prices with 3-day trial. Card required at signup.
 const PLAN_PRICES: Record<string, string> = {
-  essencial: "price_1TqyGmImKoY4gMb7OYJNNjS9", // 15,99€/mês
-  casa: "price_1TqyH9ImKoY4gMb7hiztT0YH",       // 28,99€/mês
-  pro: "price_1TqyJPImKoY4gMb7hm1CEpKU",         // 79,99€/ano
+  essencial: "price_1TxGZAImKoY4gMb7A6VdD5Bt", // 15,99€/mês
+  casa: "price_1TxGZTImKoY4gMb7ykSwbaDu",       // 28,99€/mês (Casa+)
+  pro: "price_1TxGZjImKoY4gMb7Tkg5Cccp",         // 159,99€/ano (Elite)
 };
 
 serve(async (req) => {
