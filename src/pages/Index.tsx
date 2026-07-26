@@ -64,8 +64,6 @@ const Index = () => {
   const userPlan = profile?.plan || "essencial";
   // Admins têm acesso completo a todas as tabs, independentemente do plano
   const allowedTabs: Tab[] = isAdmin ? ALL_TAB_KEYS : (planTabs[userPlan] || planTabs.essencial);
-  const primaryTabs = PRIMARY_TABS.filter((t) => allowedTabs.includes(t.key));
-  const moreItems = MORE_ITEMS.filter((t) => allowedTabs.includes(t.key));
   const requestedTab = searchParams.get("tab");
 
   const [activeTab, setActiveTab] = useState<Tab>(isTab(requestedTab) ? requestedTab : "dashboard");
