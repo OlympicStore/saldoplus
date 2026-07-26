@@ -355,10 +355,21 @@ const Index = () => {
           />
         )}
         {activeTab === "annual" && (
-          <AnnualOverview records={data.billRecords} attachments={data.billAttachments} billNames={allBillNames}
-            onUpdate={data.updateBillRecord} onAttach={data.addBillAttachment} onRemoveAttachment={data.removeBillAttachment}
-            fixedExpenses={yearFixedExpenses} variableExpenses={yearVariableExpenses} goals={data.financialGoals} people={data.people}
-            onAddBill={yearAddFixed} onRemoveBill={data.deleteFixed} selectedMonth={selectedMonth} selectedYear={selectedYear} />
+          <CentralContas
+            fixedExpenses={yearFixedExpenses}
+            billNames={allBillNames}
+            records={data.billRecords}
+            attachments={data.billAttachments}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            onUpdate={data.updateBillRecord}
+            onAttach={data.addBillAttachment}
+            onRemoveAttachment={data.removeBillAttachment}
+            onAddBill={yearAddFixed}
+            onRemoveBill={data.deleteFixed}
+            onUpdateFixed={data.updateFixed}
+            onUpdateFixedMonthly={data.updateFixedMonthly}
+          />
         )}
         {activeTab === "goals" && (
           <Objectives
