@@ -2,17 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, useInView } from "framer-motion";
-import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles } from "lucide-react";
+import { Check, X as XIcon, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { fbTrackInitiateCheckout } from "@/lib/fbPixel";
 import { fbTrack } from "@/lib/fbPixel";
 import AccountDropdown from "@/components/AccountDropdown";
+import { PLANS as PLAN_MAP, PLAN_ORDER, formatEuro } from "@/lib/plans";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import dashboardGoals from "@/assets/dashboard-goals.png";
 import dashboardBills from "@/assets/dashboard-bills.png";
 import dashboardAnnual from "@/assets/dashboard-annual.png";
+
 
 // Animated counter hook
 const useCounter = (end: number, duration = 2000) => {
