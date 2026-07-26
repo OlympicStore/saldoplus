@@ -354,90 +354,108 @@ const Index = () => {
       </header>
 
 
-      {/* Mobile side drawer */}
+      {/* Side drawer — unified for mobile & desktop */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-[82vw] max-w-[320px] p-0 bg-surface border-r border-border-subtle/60">
+        <SheetContent side="right" className="w-[86vw] max-w-[360px] p-0 bg-surface border-l border-border-subtle/60 flex flex-col">
           <SheetHeader className="px-5 pt-6 pb-4 border-b border-border-subtle/60">
-            <SheetTitle className="flex items-center gap-2 text-left">
-              {partnerBranding?.brand_logo_url ? (
-                <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-9 w-9 rounded-lg object-contain" />
-              ) : null}
-              <span className="text-2xl font-bold tracking-tight leading-none">
-                <span className="text-foreground">Saldo</span>
-                <span className="text-primary text-3xl font-black">+</span>
-              </span>
-            </SheetTitle>
+            <SheetTitle className="sr-only">Menu</SheetTitle>
             {profile && (
-              <p className="text-[11px] text-text-muted text-left mt-1">
-                {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
-              </p>
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-2xl bg-primary/12 text-primary flex items-center justify-center text-base font-semibold">
+                  {(profile.full_name || profile.email || "U").charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1 text-left">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {(profile.full_name || profile.email || "").split(/\s+/)[0]}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <span className="text-[10px] font-medium text-primary bg-primary/10 rounded-full px-2 py-0.5 capitalize">{profile.plan}</span>
+                    {partnerBranding?.name && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-text-muted bg-background border border-border-subtle/60 rounded-full px-1.5 py-0.5">
+                        <Building2 className="h-2.5 w-2.5" />
+                        {partnerBranding.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
           </SheetHeader>
 
-          <div className="px-5 py-3">
-            <p className="label-caps text-text-muted">Mais</p>
-          </div>
-          <nav className="px-3 pb-2 space-y-1">
-            {moreItems.map((item) => {
-              const Icon = item.icon;
-              const active = activeTab === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => { handleTabChange(item.key); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-primary/10 text-primary"
-                      : "text-text-secondary hover:bg-surface-hover hover:text-foreground"
-                  }`}
-                >
-                  <span className="h-9 w-9 rounded-xl bg-background flex items-center justify-center">
-                    <Icon className={`h-4 w-4 ${active ? "text-primary" : "text-text-muted"}`} />
-                  </span>
-                  <span className="flex-1 text-left">
-                    <span className="block">{item.label}</span>
-                    {item.hint && <span className="block text-[11px] font-normal text-text-muted">{item.hint}</span>}
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-text-muted" />
-                </button>
-              );
-            })}
-          </nav>
-
-          <div className="px-3 py-3 border-t border-border-subtle/60 space-y-1">
-            <button
-              onClick={() => { setShowCategoriesPanel(true); setMobileMenuOpen(false); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
-            >
-              <Tag className="h-4 w-4 text-text-muted" />
-              Categorias
+          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
+            {/* Primary */}
+            <button onClick={() => { handleTabChange("account"); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-surface-hover transition-colors">
+              <UserIcon className="h-4 w-4 text-text-muted" /> Perfil
             </button>
-            <button
-              onClick={() => { openPeopleEditor(); setMobileMenuOpen(false); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
-            >
-              <Settings className="h-4 w-4 text-text-muted" />
-              Nomes
-            </button>
-            {isAdmin && (
-              <button
-                onClick={() => { navigate("/admin"); setMobileMenuOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-primary transition-colors"
-              >
-                <Shield className="h-4 w-4 text-text-muted" />
-                Admin
+            {allowedTabs.includes("balance") && (
+              <button onClick={() => { handleTabChange("balance"); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-surface-hover transition-colors">
+                <Wallet className="h-4 w-4 text-text-muted" /> Contas
               </button>
             )}
-            <button
-              onClick={() => { signOut(); setMobileMenuOpen(false); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-status-negative transition-colors"
-            >
-              <LogOut className="h-4 w-4 text-text-muted" />
-              Sair
+            {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && (
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground">
+                <Building2 className="h-4 w-4 text-text-muted shrink-0" />
+                <span className="shrink-0">Workspace</span>
+                <div className="ml-auto"><SubAccountSwitcher /></div>
+              </div>
+            )}
+            {allowedTabs.includes("goals") && (
+              <button onClick={() => { handleTabChange("goals"); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-surface-hover transition-colors">
+                <Heart className="h-4 w-4 text-text-muted" /> Modo Casal
+              </button>
+            )}
+            {allowedTabs.includes("annual") && (
+              <button onClick={() => { handleTabChange("annual"); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-surface-hover transition-colors">
+                <CalendarDays className="h-4 w-4 text-text-muted" /> Vista Anual
+              </button>
+            )}
+            {allowedTabs.includes("minha_casa") && (
+              <button onClick={() => { handleTabChange("minha_casa"); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-surface-hover transition-colors">
+                <HouseIcon className="h-4 w-4 text-text-muted" /> Minha Casa
+              </button>
+            )}
+            {allowedTabs.includes("budgets") && (
+              <button onClick={() => { handleTabChange("budgets"); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-surface-hover transition-colors">
+                <Target className="h-4 w-4 text-text-muted" /> Orçamentos
+              </button>
+            )}
+
+            <div className="h-px bg-border-subtle/60 my-2" />
+            <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">Definições</p>
+            <button onClick={() => { setShowCategoriesPanel(true); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors">
+              <Tag className="h-4 w-4 text-text-muted" /> Categorias
+            </button>
+            <button onClick={() => { openPeopleEditor(); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors">
+              <Settings className="h-4 w-4 text-text-muted" /> Nomes
+            </button>
+            <div className="px-3 py-1">
+              <SuggestionsDialog />
+            </div>
+            {isAdmin && (
+              <button onClick={() => { navigate("/admin"); setMobileMenuOpen(false); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-primary transition-colors">
+                <Shield className="h-4 w-4 text-text-muted" /> Admin
+              </button>
+            )}
+          </div>
+
+          <div className="px-3 py-3 border-t border-border-subtle/60">
+            <button onClick={() => { signOut(); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-status-negative hover:bg-status-negative/8 transition-colors">
+              <LogOut className="h-4 w-4" /> Terminar sessão
             </button>
           </div>
         </SheetContent>
       </Sheet>
+
 
 
 
