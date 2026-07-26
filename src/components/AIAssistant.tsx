@@ -48,7 +48,6 @@ const TOOL_LABEL: Record<string, string> = {
   list_recent_expenses: "Despesas recentes",
   list_recent_incomes: "Receitas recentes",
   undo_last_action: "Ação desfeita",
-  update_fixed_monthly: "Despesa recorrente atualizada",
 };
 
 async function getAuthHeader() {
@@ -334,21 +333,6 @@ export const AIAssistant = () => {
                   <div key={idx} className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-status-negative/10 text-status-negative border border-status-negative/25">
                     <Trash2 className="h-3.5 w-3.5" />
                     {TOOL_LABEL[toolName]}
-                  </div>
-                );
-              }
-
-              // update_fixed_monthly
-              if (toolName === "update_fixed_monthly" && output?.ok) {
-                return (
-                  <div key={idx} className="max-w-md bg-primary/8 border border-primary/25 rounded-2xl p-4">
-                    <div className="flex items-center gap-2 text-primary text-xs font-semibold mb-2">
-                      <Zap className="h-4 w-4" />
-                      Despesa recorrente atualizada
-                    </div>
-                    <p className="text-sm font-semibold text-foreground">{output.billName}</p>
-                    <p className="text-[11px] text-text-muted mt-0.5">{output.month} {output.year} · {output.paid ? "Pago" : "Pendente"}</p>
-                    <p className="text-xl font-semibold text-foreground tabular-nums mt-2">{eur(output.value)}</p>
                   </div>
                 );
               }
