@@ -103,7 +103,7 @@ export const CoupleMode = ({
   // derived category list (union of fixed + variable)
   const allCategories = useMemo(() => {
     const s = new Set<string>();
-    fixedExpenses.forEach(e => e.category && s.add(e.category));
+    fixedExpenses.forEach(e => e.item && s.add(e.item));
     variableExpenses.forEach(e => e.category && s.add(e.category));
     return Array.from(s).sort((a, b) => a.localeCompare(b, "pt-PT"));
   }, [fixedExpenses, variableExpenses]);
