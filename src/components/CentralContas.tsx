@@ -5,7 +5,9 @@ import type { BillStatus, MonthlyBillRecord, BillAttachment, FixedExpense } from
 import { BillCard } from "./central-contas/BillCard";
 import { BillDetailDialog } from "./central-contas/BillDetailDialog";
 import { getBillIcon } from "./central-contas/billIcons";
+import { OtherDocuments } from "./central-contas/OtherDocuments";
 import { useNavigate } from "react-router-dom";
+
 
 const MONTH_NAMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const fmt = (v: number) => `€ ${v.toLocaleString("pt-PT", { minimumFractionDigits: 2 })}`;
