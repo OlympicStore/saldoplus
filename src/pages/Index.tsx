@@ -223,215 +223,39 @@ const Index = () => {
       <GuidedTour forceShow={showTour} onClose={() => setShowTour(false)} onNavigate={handleTabChange as any} plan={userPlan} />
       <ExpirationBanner />
       <TrialBanner />
-      <header className="border-b border-border-subtle/60 bg-surface">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {partnerBranding?.brand_logo_url && (
-              <button
-                onClick={() => handleTabChange("dashboard")}
-                className="focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
-                aria-label="Ir para a Home"
-              >
-                <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-12 w-12 rounded-lg object-contain cursor-pointer hover:opacity-90 transition-opacity" />
-              </button>
-            )}
-            {partnerBranding?.consultant_photo_url && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full">
-                    <img
-                      src={partnerBranding.consultant_photo_url}
-                      alt={partnerBranding.consultant_name || ""}
-                      className="h-12 w-12 rounded-full object-cover border-2 border-border-subtle cursor-pointer hover:opacity-90 transition-opacity"
-                      style={{ objectPosition: partnerBranding.consultant_photo_position || "center" }}
-                    />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-4" align="start">
-                  <div className="flex items-center gap-3 mb-3">
-                    <img
-                      src={partnerBranding.consultant_photo_url}
-                      alt={partnerBranding.consultant_name || ""}
-                      className="h-14 w-14 rounded-full object-cover border-2 border-border-subtle"
-                      style={{ objectPosition: partnerBranding.consultant_photo_position || "center" }}
-                    />
-                    <div>
-                      <p className="font-semibold text-sm text-foreground">{partnerBranding.consultant_name || "Consultor"}</p>
-                      <p className="text-[10px] text-text-muted">{partnerBranding.name}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {partnerBranding.consultant_phone && (
-                      <a
-                        href={`tel:${partnerBranding.consultant_phone}`}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-surface-hover transition-colors text-sm text-foreground"
-                      >
-                        <Phone className="h-4 w-4 text-primary" />
-                        <span>{partnerBranding.consultant_phone}</span>
-                      </a>
-                    )}
-                    {partnerBranding.consultant_email && (
-                      <a
-                        href={`mailto:${partnerBranding.consultant_email}`}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-surface-hover transition-colors text-sm text-foreground"
-                      >
-                        <Mail className="h-4 w-4 text-primary" />
-                        <span className="truncate">{partnerBranding.consultant_email}</span>
-                      </a>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-            <div>
-              <button
-                onClick={() => handleTabChange("dashboard")}
-                className="focus:outline-none focus:ring-2 focus:ring-primary rounded"
-                aria-label="Ir para a Home"
-              >
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none cursor-pointer hover:opacity-90 transition-opacity">
-                  <span className="text-foreground">Saldo</span>
-                  <span className="text-primary text-3xl sm:text-4xl font-black leading-none">+</span>
-                </h1>
-              </button>
-              {partnerBranding?.consultant_name && (
-                <p className="text-[10px] text-text-muted leading-tight mt-0.5">
-                  {partnerBranding.consultant_name} · {partnerBranding.name}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {profile && (
-              <span className="text-xs text-text-muted hidden sm:inline">
-                {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
-              </span>
-            )}
-            {(userPlan === "pro" || userPlan === "imobiliaria" || isAdmin) && <SubAccountSwitcher />}
-            <div className="hidden lg:flex items-center gap-3">
-              <SuggestionsDialog />
-              <button onClick={() => setShowCategoriesPanel(!showCategoriesPanel)}
-                className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
-                <Tag className="h-4 w-4" />
-                <span className="hidden sm:inline">Categorias</span>
-              </button>
-              {isAdmin && (
-                <button onClick={() => navigate("/admin")} className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors text-sm">
-                  <Shield className="h-4 w-4" />
-                  <span className="hidden sm:inline">Admin</span>
-                </button>
-              )}
-              <button onClick={openPeopleEditor} className="flex items-center gap-1.5 text-text-muted hover:text-foreground transition-colors text-sm">
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Nomes</span>
-              </button>
-              <button onClick={signOut} className="flex items-center gap-1.5 text-text-muted hover:text-status-negative transition-colors text-sm">
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Sair</span>
-              </button>
-            </div>
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border border-border-subtle/70 bg-surface hover:bg-surface-hover transition-colors"
-              aria-label="Abrir menu"
-            >
-              <Menu className="h-5 w-5 text-foreground" />
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+        years={[MIN_YEAR, MIN_YEAR + 1, MAX_YEAR]}
+        onMonthChange={setSelectedMonth}
+        onYearChange={setSelectedYear}
+        onOpenMenu={() => setMobileMenuOpen(true)}
+        onOpenProfile={() => handleTabChange("account")}
+        onGoHome={() => handleTabChange("dashboard")}
+      />
 
-      {/* Mobile side drawer */}
-      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-[82vw] max-w-[320px] p-0 bg-surface border-r border-border-subtle/60">
-          <SheetHeader className="px-5 pt-6 pb-4 border-b border-border-subtle/60">
-            <SheetTitle className="flex items-center gap-2 text-left">
-              {partnerBranding?.brand_logo_url ? (
-                <img src={partnerBranding.brand_logo_url} alt={partnerBranding.name} className="h-9 w-9 rounded-lg object-contain" />
-              ) : null}
-              <span className="text-2xl font-bold tracking-tight leading-none">
-                <span className="text-foreground">Saldo</span>
-                <span className="text-primary text-3xl font-black">+</span>
-              </span>
-            </SheetTitle>
-            {profile && (
-              <p className="text-[11px] text-text-muted text-left mt-1">
-                {getDisplayName(profile.full_name) || profile.email} · <span className="capitalize font-medium text-primary">{profile.plan}</span>
-              </p>
-            )}
-          </SheetHeader>
-
-          <div className="px-5 py-3">
-            <p className="label-caps text-text-muted">Mais</p>
-          </div>
-          <nav className="px-3 pb-2 space-y-1">
-            {moreItems.map((item) => {
-              const Icon = item.icon;
-              const active = activeTab === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => { handleTabChange(item.key); setMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-primary/10 text-primary"
-                      : "text-text-secondary hover:bg-surface-hover hover:text-foreground"
-                  }`}
-                >
-                  <span className="h-9 w-9 rounded-xl bg-background flex items-center justify-center">
-                    <Icon className={`h-4 w-4 ${active ? "text-primary" : "text-text-muted"}`} />
-                  </span>
-                  <span className="flex-1 text-left">
-                    <span className="block">{item.label}</span>
-                    {item.hint && <span className="block text-[11px] font-normal text-text-muted">{item.hint}</span>}
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-text-muted" />
-                </button>
-              );
-            })}
-          </nav>
-
-          <div className="px-3 py-3 border-t border-border-subtle/60 space-y-1">
-            <button
-              onClick={() => { setShowCategoriesPanel(true); setMobileMenuOpen(false); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
-            >
-              <Tag className="h-4 w-4 text-text-muted" />
-              Categorias
-            </button>
-            <button
-              onClick={() => { openPeopleEditor(); setMobileMenuOpen(false); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
-            >
-              <Settings className="h-4 w-4 text-text-muted" />
-              Nomes
-            </button>
-            {isAdmin && (
-              <button
-                onClick={() => { navigate("/admin"); setMobileMenuOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-primary transition-colors"
-              >
-                <Shield className="h-4 w-4 text-text-muted" />
-                Admin
-              </button>
-            )}
-            <button
-              onClick={() => { signOut(); setMobileMenuOpen(false); }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-status-negative transition-colors"
-            >
-              <LogOut className="h-4 w-4 text-text-muted" />
-              Sair
-            </button>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-
+      <AppSideMenu
+        open={mobileMenuOpen}
+        onOpenChange={setMobileMenuOpen}
+        activeTab={activeTab}
+        allowedTabs={allowedTabs as string[]}
+        onNavigate={(t) => handleTabChange(t as Tab)}
+        onOpenCategories={() => setShowCategoriesPanel(true)}
+        onOpenPeopleEditor={openPeopleEditor}
+        onOpenCoupleMode={() => handleTabChange("goals")}
+      />
 
       {/* Categories panel */}
       {showCategoriesPanel && (
         <div className="border-b border-border-subtle/60 bg-surface">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-foreground">Categorias</h3>
+              <button onClick={() => setShowCategoriesPanel(false)}
+                className="h-8 w-8 rounded-full bg-background border border-border-subtle text-text-muted hover:bg-surface-hover flex items-center justify-center transition">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
             <CategoriesManager
               categories={data.categories}
               onAdd={data.addCategoryItem}
@@ -441,50 +265,6 @@ const Index = () => {
           </div>
         </div>
       )}
-
-      <div className="border-b border-border-subtle/60 bg-surface">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-center">
-          <div className="relative">
-            <button
-              onClick={() => setShowMonthPicker(!showMonthPicker)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-foreground hover:bg-surface-hover transition-colors capitalize"
-            >
-              {MONTH_NAMES[selectedMonth]} {selectedYear}
-              <ChevronDown className={`h-4 w-4 text-text-muted transition-transform ${showMonthPicker ? "rotate-180" : ""}`} />
-            </button>
-            {showMonthPicker && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
-                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 z-50 bg-surface rounded-xl shadow-card border border-border-subtle/60 p-4 w-[280px]">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    {[MIN_YEAR, MIN_YEAR + 1, MAX_YEAR].map((y) => (
-                      <button key={y} onClick={() => setSelectedYear(y)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                          selectedYear === y ? "bg-primary text-primary-foreground" : "text-text-muted hover:bg-surface-hover"
-                        }`}>
-                        {y}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {MONTH_NAMES.map((name, i) => (
-                      <button key={i}
-                        onClick={() => { setSelectedMonth(i); setShowMonthPicker(false); }}
-                        className={`px-2 py-2 rounded-lg text-xs font-medium transition-colors ${
-                          selectedMonth === i
-                            ? "bg-primary text-primary-foreground"
-                            : "text-text-secondary hover:bg-surface-hover"
-                        }`}>
-                        {name.slice(0, 3)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
 
       {showPeopleEditor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setShowPeopleEditor(false)}>
@@ -504,28 +284,6 @@ const Index = () => {
         </div>
       )}
 
-      <nav className="hidden lg:block border-b border-border-subtle/60 bg-surface">
-        <div className="max-w-5xl mx-auto px-2 sm:px-6 flex gap-0 items-center">
-          {primaryTabs.map((tab) => (
-            <button key={tab.key} onClick={() => handleTabChange(tab.key)}
-              className={`relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
-                activeTab === tab.key ? "text-foreground" : "text-text-muted hover:text-text-secondary"
-              }`}>
-              {tab.label}
-              {activeTab === tab.key && (
-                <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }} />
-              )}
-            </button>
-          ))}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="ml-auto flex items-center gap-1.5 px-4 py-3 text-sm font-medium text-text-muted hover:text-foreground transition-colors"
-          >
-            <Menu className="h-4 w-4" /> Mais
-          </button>
-        </div>
-      </nav>
 
 
       <main className={activeTab === "assistente" ? "max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-6" : "max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8"}>
