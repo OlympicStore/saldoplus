@@ -737,6 +737,51 @@ export type Database = {
         }
         Relationships: []
       }
+      other_documents: {
+        Row: {
+          amount: number | null
+          attachment_name: string | null
+          attachment_url: string | null
+          category: string
+          created_at: string
+          description: string | null
+          doc_date: string | null
+          expires_at: string | null
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          attachment_name?: string | null
+          attachment_url?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          doc_date?: string | null
+          expires_at?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          attachment_name?: string | null
+          attachment_url?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          doc_date?: string | null
+          expires_at?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       partner_consultants: {
         Row: {
           active: boolean
