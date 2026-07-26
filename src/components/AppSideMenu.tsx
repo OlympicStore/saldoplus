@@ -64,7 +64,7 @@ export default function AppSideMenu({
   const contextual: MenuItem[] = [
     { key: "couple", label: "Modo Casal", icon: Users, action: onOpenCoupleMode, requires: "goals", hint: "Divisão entre pessoas" },
     { key: "business", label: "Empresa", icon: Briefcase, disabled: true, badge: "Em breve", hint: "Contabilidade separada" },
-    { key: "annual", label: "Central de Contas", icon: Receipt, tab: "annual", requires: "annual", hint: "Contas recorrentes" },
+    { key: "annual", label: "Central de Contas", icon: Receipt, tab: "annual", requires: "annual", hint: "Contas recorrentes e faturas" },
     { key: "balance", label: "Saldo & Contas", icon: Wallet, tab: "balance", requires: "balance", hint: "Contas bancárias" },
     { key: "minha_casa", label: "Minha Casa", icon: Building2, tab: "minha_casa", requires: "minha_casa", hint: "Crédito habitação" },
   ];
