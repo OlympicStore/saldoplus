@@ -206,6 +206,9 @@ export const CentralContas = ({
         </div>
       )}
 
+      {/* Other documents (garantias, faturas avulsas, etc.) */}
+      <OtherDocuments />
+
       {/* Detail dialog */}
       {selected && (
         <BillDetailDialog
@@ -223,6 +226,7 @@ export const CentralContas = ({
         />
       )}
     </motion.div>
+
   );
 };
 
