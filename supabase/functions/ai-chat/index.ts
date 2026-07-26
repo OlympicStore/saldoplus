@@ -345,6 +345,59 @@ Deno.serve(async (req) => {
         },
       }),
 
+      update_fixed_monthly: tool({
+        description: "Atualiza o valor mensal de uma despesa fixa/recorrente (água, luz, gás, internet, renda, etc.). Identifica-a por NOME (fuzzy). Usa quando o utilizador diz 'Água 42€', 'Luz 78 pago', 'Internet junho 39,90'. Após sucesso, sugere ao utilizador anexar o comprovativo.",
+        inputSchema: z.object({
+          bill_name: z.string().describe("Nome (aproximado) da despesa fixa. Ex: 'agua', 'luz', 'internet'."),
+          value: z.number().positive(),
+          month: z.number().int().min(0).max(11).nullable().describe("Índice 0-11. Se null, usa o mês corrente."),
+          year: z.number().int().nullable().describe("Se null, usa o ano corrente."),
+          paid: z.boolean().nullable().describe("true se o utilizador indicou 'pago'/'paguei'."),
+        }),
+        execute: async ({ bill_name, value, month, year, paid }) => {
+          const now = new Date();
+          const targetMonth = month ?? now.getMonth();
+          const targetYear = year ?? now.getFullYear();
+          const key = String(targetYear * 100 + targetMonth);
+
+          const { data: fixed } = await admin.from("fixed_expenses").select("id,item,monthly_values,monthly_paid").eq("user_id", userId);
+          if (!fixed || fixed.length === 0) return { ok: false, error: "Não tens despesas fixas registadas." };
+
+          const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+          const q = norm(bill_name);
+          const match = fixed.find((f: any) => norm(f.item) === q)
+            ?? fixed.find((f: any) => norm(f.item).includes(q) || q.includes(norm(f.item)));
+          if (!match) return { ok: false, error: `Não encontrei nenhuma despesa fixa parecida com "${bill_name}". Existentes: ${fixed.map((f: any) => f.item).join(", ")}.` };
+
+          const mv = { ...(match.monthly_values as Record<string, number> || {}) };
+          const mp = { ...(match.monthly_paid as Record<string, boolean> || {}) };
+          mv[key] = value;
+          if (paid !== null && paid !== undefined) mp[key] = paid;
+
+          const { error } = await admin.from("fixed_expenses")
+            .update({ monthly_values: mv, monthly_paid: mp })
+            .eq("id", match.id).eq("user_id", userId);
+          if (error) return { ok: false, error: error.message };
+
+          if (paid) {
+            await admin.from("bill_records").upsert({
+              user_id: userId, bill: match.item, month: targetMonth, year: targetYear, status: "paga",
+            }, { onConflict: "user_id,bill,month,year" });
+          }
+
+          await logAction("update_fixed_monthly", "fixed_expenses", match.id, { monthly_values: match.monthly_values, monthly_paid: match.monthly_paid });
+          return {
+            ok: true,
+            billName: match.item,
+            month: MONTHS[targetMonth],
+            year: targetYear,
+            value,
+            paid: paid ?? false,
+            message: `${match.item} de ${MONTHS[targetMonth]} ${targetYear} atualizada para ${fmt(value)}${paid ? " (marcada como paga)" : ""}. Queres anexar o comprovativo?`,
+          };
+        },
+      }),
+
       edit_expense: tool({
         description: "Atualiza campos de uma despesa variável existente. Passa apenas os campos a mudar.",
         inputSchema: z.object({
