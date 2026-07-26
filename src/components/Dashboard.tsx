@@ -246,6 +246,32 @@ export const Dashboard = ({
         </div>
       </div>
 
+      {/* Evolução do Saldo — full width, logo abaixo do hero */}
+      <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-display text-lg font-bold text-foreground">Evolução do Saldo</h3>
+            <p className="text-xs text-text-muted mt-0.5">Saldo acumulado ao longo do ano</p>
+          </div>
+          <span className="text-[11px] font-semibold text-status-paid bg-[hsl(var(--status-paid)/0.1)] px-2.5 py-1 rounded-full">Anual</span>
+        </div>
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="saldoGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0.28} />
+                <stop offset="100%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} tickFormatter={(v) => `€${v}`} width={55} axisLine={false} tickLine={false} />
+            <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} />
+            <Area type="monotone" dataKey="saldo" stroke="hsl(160, 84%, 39%)" strokeWidth={2.5} fill="url(#saldoGradient)" dot={{ r: 3, fill: "hsl(160, 84%, 39%)", strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
       {/* Score + Modo Casal */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <FinancialScore
@@ -267,35 +293,9 @@ export const Dashboard = ({
         />
       </div>
 
-      {/* Chart row: Evolução saldo (2/3) + Categorias donut (1/3) */}
+      {/* Categorias donut */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        <div className="lg:col-span-2 rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-display text-lg font-bold text-foreground">Evolução do Saldo</h3>
-              <p className="text-xs text-text-muted mt-0.5">Saldo acumulado ao longo do ano</p>
-            </div>
-            <span className="text-[11px] font-semibold text-status-paid bg-[hsl(var(--status-paid)/0.1)] px-2.5 py-1 rounded-full">Anual</span>
-          </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="saldoGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0.28} />
-                  <stop offset="100%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "hsl(215, 16%, 57%)" }} tickFormatter={(v) => `€${v}`} width={55} axisLine={false} tickLine={false} />
-              <Tooltip formatter={(value: number) => fmt(value)} contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(214, 32%, 91%)", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }} />
-              <Area type="monotone" dataKey="saldo" stroke="hsl(160, 84%, 39%)" strokeWidth={2.5} fill="url(#saldoGradient)" dot={{ r: 3, fill: "hsl(160, 84%, 39%)", strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="rounded-3xl bg-surface border border-border-subtle/60 shadow-sm p-6">
           <h3 className="font-display text-lg font-bold text-foreground mb-4">Gastos por Categoria</h3>
           {categoryData.length > 0 ? (
             <div className="flex flex-col items-center">
