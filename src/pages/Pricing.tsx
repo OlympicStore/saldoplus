@@ -2,17 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, useInView } from "framer-motion";
-import { Check, Zap, Home, Crown, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles } from "lucide-react";
+import { Check, X as XIcon, TrendingUp, PieChart, Target, Shield, ChevronDown, ChevronUp, ArrowRight, Users, BarChart3, Wallet, ClipboardCheck, Star, Clock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { fbTrackInitiateCheckout } from "@/lib/fbPixel";
 import { fbTrack } from "@/lib/fbPixel";
 import AccountDropdown from "@/components/AccountDropdown";
+import { PLANS as PLAN_MAP, PLAN_ORDER, formatEuro } from "@/lib/plans";
 import dashboardPreview from "@/assets/dashboard-preview.png";
 import dashboardGoals from "@/assets/dashboard-goals.png";
 import dashboardBills from "@/assets/dashboard-bills.png";
 import dashboardAnnual from "@/assets/dashboard-annual.png";
+
 
 // Animated counter hook
 const useCounter = (end: number, duration = 2000) => {
@@ -39,59 +41,8 @@ const useCounter = (end: number, duration = 2000) => {
   return { count, ref };
 };
 
-const PLANS = [
-  {
-    id: "essencial",
-    name: "Essencial",
-    price: "15,99",
-    interval: "mês" as const,
-    subtitle: "Cobrança mensal — cancele quando quiser",
-    tagline: "Ideal para quem está a começar a gerir as suas contas",
-    icon: Zap,
-    features: [
-      "Veja rapidamente para onde vai o seu dinheiro",
-      "Controle despesas fixas sem esquecer nenhuma",
-      "Acompanhe gastos do dia a dia sem esforço",
-      "Resumo anual completo",
-    ],
-    missing: ["Rendimentos", "Metas Financeiras", "Orçamentos por Categoria"],
-  },
-  {
-    id: "casa",
-    name: "Casa",
-    price: "28,99",
-    interval: "mês" as const,
-    subtitle: "Cobrança mensal — cancele quando quiser",
-    tagline: "Ideal para quem quer um controlo completo",
-    icon: Home,
-    popular: true,
-    features: [
-      "Tudo do plano Essencial",
-      "Registe todos os rendimentos da família",
-      "Defina metas e acompanhe o progresso",
-      "Gráficos de evolução mensal",
-      "Divisão justa de despesas entre pessoas",
-    ],
-    missing: ["Orçamentos por Categoria"],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "79,99",
-    interval: "ano" as const,
-    subtitle: "Apenas 6,67€/mês — cobrado anualmente",
-    tagline: "Para quem quer controlo avançado + automação",
-    icon: Crown,
-    features: [
-      "Tudo do plano Casa",
-      "Orçamentos por categoria com alertas",
-      "Sugestões IA personalizadas",
-      "Multi-conta familiar (até 3 contas)",
-      "Controlo total das suas finanças",
-    ],
-    missing: [],
-  },
-];
+// Plan data comes from the canonical source in @/lib/plans.
+const PLANS = PLAN_ORDER.map((id) => PLAN_MAP[id]);
 
 const PROBLEMS = [
   { emoji: "😰", text: "Não sei onde gasto o meu dinheiro" },
@@ -119,16 +70,16 @@ const TESTIMONIALS = [
   { name: "Carla F.", text: "Uso 5 minutos por semana e tenho tudo controlado. Simples e eficaz.", avatar: "CF", rating: 5 },
   { name: "João P.", text: "Já testei várias apps de finanças mas esta é a que melhor se adapta à realidade portuguesa.", avatar: "JP", rating: 5 },
   { name: "Sofia L.", text: "As metas financeiras ajudaram-me a poupar para as férias em 4 meses. Recomendo!", avatar: "SL", rating: 5 },
-  { name: "Pedro M.", text: "Controlo as contas da casa toda com o plano Casa. Simples, rápido e sem stress.", avatar: "PM", rating: 5 },
+  { name: "Pedro M.", text: "Controlo as contas da casa toda com o plano Casa+. Simples, rápido e sem stress.", avatar: "PM", rating: 5 },
 ];
 
 const FAQS = [
   { q: "Preciso saber de Excel ou contabilidade?", a: "Não! O Saldo+ é desenhado para iniciantes. Basta inserir os valores e nós fazemos os cálculos." },
   { q: "Funciona no telemóvel e computador?", a: "Sim, o Saldo+ é 100% responsivo e funciona perfeitamente no telemóvel, tablet e computador." },
-  { q: "É pagamento único?", a: "Sim! Paga uma vez e tem acesso completo durante 1 ano. Sem mensalidades escondidas." },
+  { q: "Como funcionam os 3 dias grátis?", a: "Introduz os dados do cartão, mas só é cobrado ao 4.º dia. Se cancelar dentro de 3 dias, não paga nada." },
+  { q: "Posso cancelar quando quiser?", a: "Sim. Os planos mensais podem ser cancelados a qualquer momento. O Elite é anual e não renova automaticamente." },
   { q: "Os meus dados estão seguros?", a: "Absolutamente. Usamos encriptação de ponta e os seus dados são privados — só você tem acesso." },
-  { q: "Posso mudar de plano depois?", a: "Sim, pode fazer upgrade a qualquer momento e só paga a diferença." },
-  { q: "E se não gostar?", a: "Tem 7 dias de garantia. Se não gostar, devolvemos o dinheiro — sem perguntas." },
+  { q: "Posso mudar de plano depois?", a: "Sim, pode fazer upgrade a qualquer momento a partir da sua conta." },
 ];
 
 const FEATURES_GRID = [
@@ -140,51 +91,74 @@ const FEATURES_GRID = [
   { icon: Shield, title: "100% seguro", desc: "Dados encriptados e privados. Só você tem acesso." },
 ];
 
-const formatEuro = (value: number) => `${value.toFixed(2).replace(".", ",")}€`;
+// Comparison table rows: [label, essencial, casa, pro]
+const COMPARISON_ROWS: Array<[string, boolean, boolean, boolean]> = [
+  ["Receitas ilimitadas", true, true, true],
+  ["Despesas ilimitadas", true, true, true],
+  ["Dashboard financeiro", true, true, true],
+  ["Score Financeiro", true, true, true],
+  ["Calendário anual", true, true, true],
+  ["Exportação PDF", true, true, true],
+  ["Objetivos financeiros", false, true, true],
+  ["Investimentos", false, true, true],
+  ["Orçamentos por categoria", false, true, true],
+  ["Modo Casal", false, true, true],
+  ["Divisão inteligente de despesas", false, true, true],
+  ["IA ilimitada", false, true, true],
+  ["OCR de faturas", false, false, true],
+  ["Leitura de PDFs", false, false, true],
+  ["Leitura de fotografias", false, false, true],
+  ["IA cria despesas automaticamente", false, false, true],
+  ["IA cria recorrências", false, false, true],
+  ["Multi Workspace (até 5 utilizadores)", false, false, true],
+  ["Gestão empresarial", false, false, true],
+  ["Acesso à API (futura)", false, false, true],
+];
 
-const PAYMENT_LINKS: Record<string, string> = {
-  essencial: "https://buy.stripe.com/14A8wP6neamK7BFfUgbMQ0j",
-  casa: "https://buy.stripe.com/cNiaEXh1S9iGe030ZmbMQ0k",
-  pro: "https://buy.stripe.com/fZu28r9zqbqO3lpcI4bMQ0l",
-};
 
 const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const usersCounter = useCounter(500);
   const savingsCounter = useCounter(150);
   const timeCounter = useCounter(5);
 
   const handleAddToCart = (planId: string) => {
-    const plan = PLANS.find((p) => p.id === planId);
-    const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
-    fbTrack("AddToCart", { content_name: planId, currency: "EUR", value });
+    const plan = PLAN_MAP[planId as keyof typeof PLAN_MAP];
+    fbTrack("AddToCart", { content_name: planId, currency: "EUR", value: plan?.price ?? 0 });
   };
 
-  const handleSelectPlan = (planId: string) => {
-    const plan = PLANS.find((p) => p.id === planId);
-    const value = plan ? parseFloat(plan.price.replace(",", ".")) : 0;
+  const handleSelectPlan = async (planId: string) => {
+    const plan = PLAN_MAP[planId as keyof typeof PLAN_MAP];
     handleAddToCart(planId);
-    fbTrackInitiateCheckout(planId, value);
+    fbTrackInitiateCheckout(planId, plan?.price ?? 0);
 
-    // If user not logged in → send to signup (start 3-day trial)
     if (!user) {
       navigate(`/auth?mode=signup&plan=${planId}`);
       return;
     }
 
-    // Logged-in user → open Stripe checkout
-    const link = PAYMENT_LINKS[planId];
-    if (!link) return;
-    const separator = link.includes("?") ? "&" : "?";
-    const email = user.email || "";
-    const url = email
-      ? `${link}${separator}prefilled_email=${encodeURIComponent(email)}`
-      : link;
-    window.open(url, "_blank");
+    setLoadingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { plan: planId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank", "noopener,noreferrer");
+      } else {
+        throw new Error("Não foi possível criar a sessão de pagamento.");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao iniciar checkout.");
+    } finally {
+      setLoadingPlan(null);
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -606,84 +580,183 @@ const Pricing = () => {
       {/* Pricing */}
       <section id="precos" className="bg-surface border-y border-border-subtle/60 py-20">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-4">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              Um pequeno investimento para mudar as suas finanças 💰
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-8">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4 border border-primary/20">
+              <Sparkles className="h-3.5 w-3.5" /> 3 dias grátis · Cancele quando quiser
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-bold text-foreground mb-4 tracking-tight">
+              Escolha o plano certo para si
             </h2>
-            <p className="text-text-muted text-lg max-w-2xl mx-auto mb-2">
-              Pagamento único · Acesso por 1 ano · Sem mensalidades
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+              80% dos utilizadores escolhem <span className="text-foreground font-semibold">Casa+</span>. Faça upgrade a qualquer momento.
             </p>
-            <p className="text-sm text-primary font-medium">🛡️ Garantia de 7 dias — se não gostar, devolvemos o dinheiro</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-10">
-            {PLANS.map((plan, i) => (
-              <motion.div key={plan.id}
-                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className={`relative rounded-2xl border bg-background shadow-card p-6 flex flex-col transition-all hover:shadow-lg ${
-                  plan.popular ? "border-primary ring-2 ring-primary/20 scale-[1.02]" : "border-border-subtle/60"
-                }`}>
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full shadow-lg shadow-primary/30">
-                    ⭐ Mais vendido
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-5 max-w-6xl mx-auto mt-14 items-stretch">
+            {PLANS.map((plan, i) => {
+              const Icon = plan.icon;
+              const isFeatured = plan.featured;
+              const isExclusive = plan.exclusive;
+              const isLoading = loadingPlan === plan.id;
+              return (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className={`relative rounded-3xl p-7 sm:p-8 flex flex-col transition-all ${
+                    isFeatured
+                      ? "border-2 border-primary bg-background shadow-2xl shadow-primary/20 lg:-my-4 lg:scale-[1.04] z-10"
+                      : isExclusive
+                        ? "border border-amber-200 bg-gradient-to-br from-amber-50/60 via-background to-background shadow-xl"
+                        : "border border-border-subtle/60 bg-background shadow-card hover:shadow-lg"
+                  }`}
+                >
+                  {plan.badge && (
+                    <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 text-xs font-bold rounded-full shadow-lg whitespace-nowrap ${
+                      isFeatured
+                        ? "bg-primary text-primary-foreground shadow-primary/40"
+                        : "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-amber-500/40"
+                    }`}>
+                      {plan.badge}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                      isExclusive ? "bg-amber-100 text-amber-700" : "bg-primary/10 text-primary"
+                    }`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
                   </div>
-                )}
 
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <plan.icon className="h-4 w-4 text-primary" />
+                  <p className="text-sm text-text-muted mb-6 min-h-[2.5rem]">{plan.tagline}</p>
+
+                  <div className="mb-6">
+                    {plan.oldPrice && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-base text-text-muted line-through">{formatEuro(plan.oldPrice)}</span>
+                        {plan.savingsBadge && (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                            {plan.savingsBadge}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-5xl font-bold tracking-tight ${isExclusive ? "text-amber-700" : "text-foreground"}`}>
+                        {formatEuro(plan.price, plan.price % 1 === 0 ? 0 : 2)}
+                      </span>
+                      <span className="text-sm text-text-muted">/{plan.interval}</span>
+                    </div>
+                    {plan.savingsAmount && (
+                      <p className="text-xs text-amber-700 font-semibold mt-1.5">
+                        Poupa {plan.savingsAmount}€ face ao mensal
+                      </p>
+                    )}
+                    <p className="text-xs text-text-muted mt-1.5">{plan.subtitle}</p>
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
-                </div>
 
-                {plan.tagline && (
-                  <p className="text-xs text-text-muted mb-4">{plan.tagline}</p>
-                )}
+                  <ul className="space-y-2.5 mb-8 flex-1">
+                    {plan.features.slice(0, 10).map((feature) => (
+                      <li key={feature} className="flex items-start gap-2 text-sm text-foreground">
+                        <Check className={`h-4 w-4 mt-0.5 shrink-0 ${isExclusive ? "text-amber-600" : "text-primary"}`} />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                    {plan.features.length > 10 && (
+                      <li className="text-xs text-text-muted italic pl-6">
+                        + {plan.features.length - 10} funcionalidades
+                      </li>
+                    )}
+                  </ul>
 
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-foreground">{plan.price}€</span>
-                    <span className="text-sm text-text-muted">/{plan.interval}</span>
-                  </div>
-                  <p className="text-xs text-primary font-medium mt-1">
-                    {plan.subtitle}
-                  </p>
-                </div>
+                  <button
+                    onClick={() => handleSelectPlan(plan.id)}
+                    disabled={isLoading}
+                    className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 ${
+                      isFeatured
+                        ? "bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/25"
+                        : isExclusive
+                          ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:opacity-95 shadow-lg shadow-amber-500/25"
+                          : "border-2 border-border-subtle text-foreground hover:bg-surface-hover hover:border-primary/30"
+                    }`}
+                  >
+                    {isLoading ? "A abrir…" : plan.cta}
+                  </button>
 
-                <ul className="space-y-2.5 mb-8 flex-1">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm text-foreground">
-                      <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                  {plan.missing.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm text-text-muted line-through opacity-50">
-                      <Check className="h-4 w-4 mt-0.5 shrink-0 opacity-30" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <p className="text-xs text-amber-600 font-medium mb-3 flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Últimos {plan.id === "essencial" ? "12" : plan.id === "casa" ? "8" : "5"} acessos com este preço
-                </p>
-
-                <button onClick={() => handleSelectPlan(plan.id)}
-                  className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all ${
-                    plan.popular
-                      ? "bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/20"
-                      : "border border-border-subtle text-foreground hover:bg-surface-hover hover:border-primary/30"
-                  }`}>
-                  Começar agora
-                </button>
-              </motion.div>
-            ))}
+                  {isFeatured && (
+                    <p className="text-[11px] text-center text-text-muted mt-3">
+                      💎 Melhor relação qualidade / preço
+                    </p>
+                  )}
+                  {isExclusive && (
+                    <p className="text-[11px] text-center text-amber-700 font-semibold mt-3">
+                      🔥 Poupe 240€ pagando anualmente
+                    </p>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
+
+          {/* Comparison table */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-20 max-w-5xl mx-auto"
+          >
+            <div className="text-center mb-8">
+              <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Compare todos os planos</h3>
+              <p className="text-text-muted text-sm">Veja exatamente o que está incluído</p>
+            </div>
+            <div className="overflow-x-auto rounded-2xl border border-border-subtle/60 bg-background">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border-subtle/60 bg-surface">
+                    <th className="text-left px-5 py-4 font-semibold text-text-muted text-xs uppercase tracking-wider">Funcionalidade</th>
+                    {PLANS.map((p) => (
+                      <th key={p.id} className={`text-center px-4 py-4 font-bold ${p.featured ? "text-primary" : p.exclusive ? "text-amber-700" : "text-foreground"}`}>
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span className="text-sm">{p.name}</span>
+                          <span className="text-[11px] text-text-muted font-normal">
+                            {formatEuro(p.price, p.price % 1 === 0 ? 0 : 2)}/{p.interval}
+                          </span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARISON_ROWS.map(([label, e, c, p], i) => (
+                    <tr key={label} className={i % 2 === 0 ? "bg-background" : "bg-surface/50"}>
+                      <td className="px-5 py-3 text-foreground text-sm">{label}</td>
+                      {[e, c, p].map((v, j) => (
+                        <td key={j} className="text-center px-4 py-3">
+                          {v ? (
+                            <Check className={`h-4 w-4 inline-block ${j === 1 ? "text-primary" : j === 2 ? "text-amber-600" : "text-primary"}`} />
+                          ) : (
+                            <XIcon className="h-4 w-4 inline-block text-text-muted/40" />
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 text-center text-xs text-text-muted">
+              <div className="flex items-center justify-center gap-2"><Shield className="h-4 w-4 text-primary" /> Pagamento Seguro</div>
+              <div className="flex items-center justify-center gap-2"><Clock className="h-4 w-4 text-primary" /> 3 dias grátis</div>
+              <div className="flex items-center justify-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Cancele quando quiser</div>
+            </div>
+          </motion.div>
         </div>
       </section>
+
 
       {/* FAQ */}
       <section className="max-w-3xl mx-auto px-4 py-20">
