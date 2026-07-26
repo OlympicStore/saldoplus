@@ -186,8 +186,12 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
     height: rect.height + pad * 2,
   } : null;
 
+  // When a target is highlighted, the ring's huge box-shadow acts as the dim overlay
+  // (leaving the target visible in the "hole"). Without a target we fall back to a full dim.
+  const hasHighlight = !!highlightStyle;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center px-4 ${hasHighlight ? "" : "bg-black/60"}`}>
       {/* Highlight outline over the target element */}
       {highlightStyle && (
         <motion.div
@@ -195,7 +199,7 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.25 }}
-          className="fixed pointer-events-none rounded-2xl ring-4 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]"
+          className="fixed pointer-events-none rounded-2xl ring-4 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]"
           style={highlightStyle}
         />
       )}
