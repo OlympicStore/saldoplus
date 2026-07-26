@@ -41,59 +41,8 @@ const useCounter = (end: number, duration = 2000) => {
   return { count, ref };
 };
 
-const PLANS = [
-  {
-    id: "essencial",
-    name: "Essencial",
-    price: "15,99",
-    interval: "mês" as const,
-    subtitle: "Cobrança mensal — cancele quando quiser",
-    tagline: "Ideal para quem está a começar a gerir as suas contas",
-    icon: Zap,
-    features: [
-      "Veja rapidamente para onde vai o seu dinheiro",
-      "Controle despesas fixas sem esquecer nenhuma",
-      "Acompanhe gastos do dia a dia sem esforço",
-      "Resumo anual completo",
-    ],
-    missing: ["Rendimentos", "Metas Financeiras", "Orçamentos por Categoria"],
-  },
-  {
-    id: "casa",
-    name: "Casa",
-    price: "28,99",
-    interval: "mês" as const,
-    subtitle: "Cobrança mensal — cancele quando quiser",
-    tagline: "Ideal para quem quer um controlo completo",
-    icon: Home,
-    popular: true,
-    features: [
-      "Tudo do plano Essencial",
-      "Registe todos os rendimentos da família",
-      "Defina metas e acompanhe o progresso",
-      "Gráficos de evolução mensal",
-      "Divisão justa de despesas entre pessoas",
-    ],
-    missing: ["Orçamentos por Categoria"],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    price: "79,99",
-    interval: "ano" as const,
-    subtitle: "Apenas 6,67€/mês — cobrado anualmente",
-    tagline: "Para quem quer controlo avançado + automação",
-    icon: Crown,
-    features: [
-      "Tudo do plano Casa",
-      "Orçamentos por categoria com alertas",
-      "Sugestões IA personalizadas",
-      "Multi-conta familiar (até 3 contas)",
-      "Controlo total das suas finanças",
-    ],
-    missing: [],
-  },
-];
+// Plan data comes from the canonical source in @/lib/plans.
+const PLANS = PLAN_ORDER.map((id) => PLAN_MAP[id]);
 
 const PROBLEMS = [
   { emoji: "😰", text: "Não sei onde gasto o meu dinheiro" },
@@ -121,16 +70,16 @@ const TESTIMONIALS = [
   { name: "Carla F.", text: "Uso 5 minutos por semana e tenho tudo controlado. Simples e eficaz.", avatar: "CF", rating: 5 },
   { name: "João P.", text: "Já testei várias apps de finanças mas esta é a que melhor se adapta à realidade portuguesa.", avatar: "JP", rating: 5 },
   { name: "Sofia L.", text: "As metas financeiras ajudaram-me a poupar para as férias em 4 meses. Recomendo!", avatar: "SL", rating: 5 },
-  { name: "Pedro M.", text: "Controlo as contas da casa toda com o plano Casa. Simples, rápido e sem stress.", avatar: "PM", rating: 5 },
+  { name: "Pedro M.", text: "Controlo as contas da casa toda com o plano Casa+. Simples, rápido e sem stress.", avatar: "PM", rating: 5 },
 ];
 
 const FAQS = [
   { q: "Preciso saber de Excel ou contabilidade?", a: "Não! O Saldo+ é desenhado para iniciantes. Basta inserir os valores e nós fazemos os cálculos." },
   { q: "Funciona no telemóvel e computador?", a: "Sim, o Saldo+ é 100% responsivo e funciona perfeitamente no telemóvel, tablet e computador." },
-  { q: "É pagamento único?", a: "Sim! Paga uma vez e tem acesso completo durante 1 ano. Sem mensalidades escondidas." },
+  { q: "Como funcionam os 3 dias grátis?", a: "Introduz os dados do cartão, mas só é cobrado ao 4.º dia. Se cancelar dentro de 3 dias, não paga nada." },
+  { q: "Posso cancelar quando quiser?", a: "Sim. Os planos mensais podem ser cancelados a qualquer momento. O Elite é anual e não renova automaticamente." },
   { q: "Os meus dados estão seguros?", a: "Absolutamente. Usamos encriptação de ponta e os seus dados são privados — só você tem acesso." },
-  { q: "Posso mudar de plano depois?", a: "Sim, pode fazer upgrade a qualquer momento e só paga a diferença." },
-  { q: "E se não gostar?", a: "Tem 7 dias de garantia. Se não gostar, devolvemos o dinheiro — sem perguntas." },
+  { q: "Posso mudar de plano depois?", a: "Sim, pode fazer upgrade a qualquer momento a partir da sua conta." },
 ];
 
 const FEATURES_GRID = [
@@ -141,6 +90,31 @@ const FEATURES_GRID = [
   { icon: Users, title: "Divisão por pessoa", desc: "Divida contas sem discussões" },
   { icon: Shield, title: "100% seguro", desc: "Dados encriptados e privados. Só você tem acesso." },
 ];
+
+// Comparison table rows: [label, essencial, casa, pro]
+const COMPARISON_ROWS: Array<[string, boolean, boolean, boolean]> = [
+  ["Receitas ilimitadas", true, true, true],
+  ["Despesas ilimitadas", true, true, true],
+  ["Dashboard financeiro", true, true, true],
+  ["Score Financeiro", true, true, true],
+  ["Calendário anual", true, true, true],
+  ["Exportação PDF", true, true, true],
+  ["Objetivos financeiros", false, true, true],
+  ["Investimentos", false, true, true],
+  ["Orçamentos por categoria", false, true, true],
+  ["Modo Casal", false, true, true],
+  ["Divisão inteligente de despesas", false, true, true],
+  ["IA ilimitada", false, true, true],
+  ["OCR de faturas", false, false, true],
+  ["Leitura de PDFs", false, false, true],
+  ["Leitura de fotografias", false, false, true],
+  ["IA cria despesas automaticamente", false, false, true],
+  ["IA cria recorrências", false, false, true],
+  ["Multi Workspace (até 5 utilizadores)", false, false, true],
+  ["Gestão empresarial", false, false, true],
+  ["Acesso à API (futura)", false, false, true],
+];
+
 
 const formatEuro = (value: number) => `${value.toFixed(2).replace(".", ",")}€`;
 
