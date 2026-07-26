@@ -34,28 +34,27 @@ export default function BottomNav({ activeTab, onNavigate, onOpenMore, allowedTa
           <div className="relative bg-surface/95 backdrop-blur-xl border border-border-subtle/70 shadow-[0_8px_32px_-8px_rgba(15,23,42,0.15)] rounded-[28px] px-2 py-2">
             <div className="grid grid-cols-5 items-end">
               {/* Slot 1: Início */}
-              <div data-tour="nav-dashboard">
-                <NavButton
-                  icon={Home}
-                  label="Início"
-                  active={isActive("dashboard")}
-                  onClick={() => onNavigate("dashboard")}
-                />
-              </div>
+              <NavButton
+                icon={Home}
+                label="Início"
+                active={isActive("dashboard")}
+                onClick={() => onNavigate("dashboard")}
+                dataTour="nav-dashboard"
+              />
               {/* Slot 2: Movimentos */}
-              <div data-tour="nav-movements">
-                <NavButton
-                  icon={ArrowLeftRight}
-                  label="Movimentos"
-                  active={isActive("movements")}
-                  onClick={() => onNavigate("movements")}
-                />
-              </div>
+              <NavButton
+                icon={ArrowLeftRight}
+                label="Movimentos"
+                active={isActive("movements")}
+                onClick={() => onNavigate("movements")}
+                dataTour="nav-movements"
+              />
 
               {/* Slot 3: + Assistente (central, elevated) */}
-              <div className="flex justify-center" data-tour="nav-assistente">
+              <div className="flex justify-center">
                 <button
                   type="button"
+                  data-tour="nav-assistente"
                   onClick={() => canAssist && onNavigate("assistente")}
                   disabled={!canAssist}
                   className="relative -mt-8 h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:opacity-40 disabled:cursor-not-allowed"
@@ -71,24 +70,22 @@ export default function BottomNav({ activeTab, onNavigate, onOpenMore, allowedTa
                 </button>
               </div>
               {/* Slot 4: Objetivos */}
-              <div data-tour="nav-goals">
-                <NavButton
-                  icon={Target}
-                  label="Objetivos"
-                  active={isActive("goals")}
-                  onClick={() => onNavigate("goals")}
-                  disabled={!allowedTabs.includes("goals")}
-                />
-              </div>
+              <NavButton
+                icon={Target}
+                label="Objetivos"
+                active={isActive("goals")}
+                onClick={() => onNavigate("goals")}
+                disabled={!allowedTabs.includes("goals")}
+                dataTour="nav-goals"
+              />
               {/* Slot 5: Mais */}
-              <div data-tour="nav-more">
-                <NavButton
-                  icon={Menu}
-                  label="Mais"
-                  active={false}
-                  onClick={onOpenMore}
-                />
-              </div>
+              <NavButton
+                icon={Menu}
+                label="Mais"
+                active={false}
+                onClick={onOpenMore}
+                dataTour="nav-more"
+              />
             </div>
           </div>
         </div>
