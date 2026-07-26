@@ -151,10 +151,14 @@ CONVENÇÃO DE SINAIS (MUITO IMPORTANTE — nunca confundir):
 TOOLS DISPONÍVEIS:
 - **add_expense** → "gastei 50€ em água", "-15 no almoço", "paguei X".
 - **add_income** → "recebi 100€", "+30€ freelance", "entrou X".
+- **update_fixed_monthly** → SEMPRE que o utilizador diga o nome de uma despesa recorrente conhecida e um valor. Ex: "Água 42€", "Luz 78€", "Internet 39,90 pago", "Renda de junho 750". Identifica a despesa fixa por nome (fuzzy — sem acentos, minúsculas), atualiza o valor do mês indicado (ou do mês corrente se não indicado) e marca como paga se o utilizador disser "pago"/"paguei". A seguir pergunta se quer anexar o comprovativo.
 - **list_recent_expenses / list_recent_incomes** → antes de editar/eliminar, ou quando pedirem para ver.
 - **edit_expense / edit_income** → alterar valor, data, conta ou categoria.
 - **delete_expense / delete_income** → SEMPRE com fluxo de confirmação em 2 passos.
 - **undo_last_action** → desfaz a ÚLTIMA ação (add/edit/delete) que o assistente executou.
+
+REGRA CRÍTICA — DESPESAS RECORRENTES:
+Se o utilizador escrever apenas "<nome> <valor>" e esse nome corresponder a uma **despesa fixa/recorrente existente** (ver secção "DESPESAS FIXAS DO MÊS" no contexto ou lista adicional), usa **update_fixed_monthly** — NÃO uses add_expense. Só usa add_expense se o nome NÃO existir na lista de fixas.
 
 FLUXO DE CONFIRMAÇÃO PARA ELIMINAR:
 1. Chama a tool com \`confirm: false\` para obter o preview do registo (descrição, valor, data, conta).
@@ -338,6 +342,59 @@ Deno.serve(async (req) => {
           const { data, error } = await q;
           if (error) return { ok: false, error: error.message };
           return { ok: true, incomes: data ?? [] };
+        },
+      }),
+
+      update_fixed_monthly: tool({
+        description: "Atualiza o valor mensal de uma despesa fixa/recorrente (água, luz, gás, internet, renda, etc.). Identifica-a por NOME (fuzzy). Usa quando o utilizador diz 'Água 42€', 'Luz 78 pago', 'Internet junho 39,90'. Após sucesso, sugere ao utilizador anexar o comprovativo.",
+        inputSchema: z.object({
+          bill_name: z.string().describe("Nome (aproximado) da despesa fixa. Ex: 'agua', 'luz', 'internet'."),
+          value: z.number().positive(),
+          month: z.number().int().min(0).max(11).nullable().describe("Índice 0-11. Se null, usa o mês corrente."),
+          year: z.number().int().nullable().describe("Se null, usa o ano corrente."),
+          paid: z.boolean().nullable().describe("true se o utilizador indicou 'pago'/'paguei'."),
+        }),
+        execute: async ({ bill_name, value, month, year, paid }) => {
+          const now = new Date();
+          const targetMonth = month ?? now.getMonth();
+          const targetYear = year ?? now.getFullYear();
+          const key = String(targetYear * 100 + targetMonth);
+
+          const { data: fixed } = await admin.from("fixed_expenses").select("id,item,monthly_values,monthly_paid").eq("user_id", userId);
+          if (!fixed || fixed.length === 0) return { ok: false, error: "Não tens despesas fixas registadas." };
+
+          const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+          const q = norm(bill_name);
+          const match = fixed.find((f: any) => norm(f.item) === q)
+            ?? fixed.find((f: any) => norm(f.item).includes(q) || q.includes(norm(f.item)));
+          if (!match) return { ok: false, error: `Não encontrei nenhuma despesa fixa parecida com "${bill_name}". Existentes: ${fixed.map((f: any) => f.item).join(", ")}.` };
+
+          const mv = { ...(match.monthly_values as Record<string, number> || {}) };
+          const mp = { ...(match.monthly_paid as Record<string, boolean> || {}) };
+          mv[key] = value;
+          if (paid !== null && paid !== undefined) mp[key] = paid;
+
+          const { error } = await admin.from("fixed_expenses")
+            .update({ monthly_values: mv, monthly_paid: mp })
+            .eq("id", match.id).eq("user_id", userId);
+          if (error) return { ok: false, error: error.message };
+
+          if (paid) {
+            await admin.from("bill_records").upsert({
+              user_id: userId, bill: match.item, month: targetMonth, year: targetYear, status: "paga",
+            }, { onConflict: "user_id,bill,month,year" });
+          }
+
+          await logAction("update_fixed_monthly", "fixed_expenses", match.id, { monthly_values: match.monthly_values, monthly_paid: match.monthly_paid });
+          return {
+            ok: true,
+            billName: match.item,
+            month: MONTHS[targetMonth],
+            year: targetYear,
+            value,
+            paid: paid ?? false,
+            message: `${match.item} de ${MONTHS[targetMonth]} ${targetYear} atualizada para ${fmt(value)}${paid ? " (marcada como paga)" : ""}. Queres anexar o comprovativo?`,
+          };
         },
       }),
 
