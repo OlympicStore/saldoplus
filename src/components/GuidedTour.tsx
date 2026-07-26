@@ -152,26 +152,17 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
   const isFirst = currentStep === 0;
   const Icon = step.icon;
 
-  // First and last steps: centered modal. Middle steps: bottom panel so content is visible.
-  const isCentered = isFirst || isLast;
-
+  // Always center the tour so the user doesn't need to scroll to see it.
   return (
-    <div
-      className={`fixed inset-0 z-[100] flex px-4 ${
-        isCentered ? "items-center justify-center bg-black/50 backdrop-blur-sm" : "items-end justify-center bg-black/20"
-      }`}
-      style={{ pointerEvents: isCentered ? undefined : "none" }}
-    >
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
-          initial={isCentered ? { opacity: 0, scale: 0.95, y: 10 } : { opacity: 0, y: 40 }}
-          animate={isCentered ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, y: 0 }}
-          exit={isCentered ? { opacity: 0, scale: 0.95, y: -10 } : { opacity: 0, y: 40 }}
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: -10 }}
           transition={{ duration: 0.25 }}
-          className={`bg-surface shadow-2xl border border-border-subtle/60 w-full overflow-hidden ${
-            isCentered ? "rounded-2xl max-w-md" : "rounded-t-2xl max-w-lg mb-0 pb-safe"
-          }`}
+          className="bg-surface shadow-2xl border border-border-subtle/60 w-full overflow-hidden rounded-2xl max-w-md"
           style={{ pointerEvents: "auto" }}
         >
           {/* Progress bar */}
