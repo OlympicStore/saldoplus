@@ -261,15 +261,21 @@ export default function AdminAnalytics() {
                       <stop offset="0%" stopColor="hsl(214,85%,55%)" stopOpacity={0.3} />
                       <stop offset="100%" stopColor="hsl(214,85%,55%)" stopOpacity={0} />
                     </linearGradient>
+                    <linearGradient id="g4" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(280,70%,55%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(280,70%,55%)" stopOpacity={0} />
+                    </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(214,32%,91%)" />
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                   <Tooltip />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Area type="monotone" dataKey="visitors" name="Visitantes" stroke="hsl(280,70%,55%)" fill="url(#g4)" strokeWidth={2} />
                   <Area type="monotone" dataKey="signups" name="Registos" stroke="hsl(160,84%,39%)" fill="url(#g1)" strokeWidth={2} />
                   <Area type="monotone" dataKey="checkouts" name="Checkouts" stroke="hsl(214,85%,55%)" fill="url(#g3)" strokeWidth={2} />
                   <Area type="monotone" dataKey="conversions" name="Conversões" stroke="hsl(38,92%,50%)" fill="url(#g2)" strokeWidth={2} />
+
                 </AreaChart>
               </ResponsiveContainer>
             </div>
