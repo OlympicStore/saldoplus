@@ -46,18 +46,17 @@ const ProtectedRoute = ({ children, allowPartnerRedirect = true }: { children: R
     const plan = profile.plan;
     if (plan === "imobiliaria") {
       // Partner clients — allow access
-    } else if (plan === "casa" || plan === "pro") {
+    } else if (plan === "essencial" || plan === "casa" || plan === "pro") {
+      // Card is mandatory: without an active Stripe subscription, force checkout.
+      const hasSubscription = !!profile.stripe_subscription_id;
+      const subStatus = profile.stripe_subscription_status;
+      const subOk = hasSubscription && (subStatus === "trialing" || subStatus === "active" || subStatus === "past_due");
+      if (!subOk) {
+        return <Navigate to="/pricing" replace />;
+      }
       const now = new Date();
       const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
-      if (!expires || expires < now) {
-        // Allow trial_active users without expired plan
-        if (profile.account_status !== "trial_active") {
-          return <Navigate to="/pricing" replace />;
-        }
-      }
-    } else if (plan === "essencial") {
-      const expires = profile.plan_expires_at ? new Date(profile.plan_expires_at) : null;
-      if (expires && expires < new Date() && profile.account_status !== "trial_active") {
+      if (subStatus === "active" && expires && expires < now) {
         return <Navigate to="/pricing" replace />;
       }
     }
