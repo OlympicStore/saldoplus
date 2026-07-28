@@ -8,6 +8,11 @@ const corsHeaders = {
 };
 
 const PRICE_TO_PLAN: Record<string, string> = {
+  // V2 (current)
+  "price_1TxGZAImKoY4gMb7A6VdD5Bt": "essencial",
+  "price_1TxGZTImKoY4gMb7ykSwbaDu": "casa",
+  "price_1TxGZjImKoY4gMb7Tkg5Cccp": "pro",
+  // V1 (legacy — kept so old subscriptions still resolve)
   "price_1TqyGmImKoY4gMb7OYJNNjS9": "essencial",
   "price_1TqyH9ImKoY4gMb7hiztT0YH": "casa",
   "price_1TqyJPImKoY4gMb7hm1CEpKU": "pro",
