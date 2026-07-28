@@ -116,6 +116,65 @@ serve(async (req) => {
       else console.log(`[STRIPE-WEBHOOK] profile updated for ${email} → ${sub.status} / ${plan}`);
     }
 
+    // Helper: send the branded welcome email via the transactional queue.
+    // Failure never blocks the webhook — Stripe would retry the whole event otherwise.
+    async function sendWelcomeEmail(sub: Stripe.Subscription) {
+      try {
+        const { plan, email } = await resolveSubscription(sub);
+        if (!email) return;
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("full_name")
+          .eq("email", email)
+          .maybeSingle();
+
+        const PLAN_LABEL: Record<string, string> = {
+          essencial: "Essencial",
+          casa: "Casa+",
+          pro: "Elite",
+        };
+        const PLAN_AMOUNT: Record<string, string> = {
+          essencial: "15,99€/mês",
+          casa: "28,99€/mês",
+          pro: "159,99€/ano",
+        };
+        const trialEndTs = (sub as any).trial_end as number | null | undefined;
+        const trialEndsAt = trialEndTs
+          ? new Date(trialEndTs * 1000).toLocaleDateString("pt-PT", {
+              day: "2-digit", month: "2-digit", year: "numeric",
+            })
+          : undefined;
+
+        const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+        const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+        const resp = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            templateName: "welcome-subscription",
+            recipientEmail: email,
+            idempotencyKey: `welcome-${sub.id}`,
+            templateData: {
+              fullName: profile?.full_name || undefined,
+              planLabel: plan ? PLAN_LABEL[plan] ?? "Saldo+" : "Saldo+",
+              amountLabel: plan ? PLAN_AMOUNT[plan] : undefined,
+              trialEndsAt,
+            },
+          }),
+        });
+        if (!resp.ok) {
+          console.error(`[STRIPE-WEBHOOK] welcome email failed: ${resp.status} ${await resp.text()}`);
+        } else {
+          console.log(`[STRIPE-WEBHOOK] welcome email enqueued for ${email}`);
+        }
+      } catch (e) {
+        console.error("[STRIPE-WEBHOOK] welcome email error:", (e as Error).message);
+      }
+    }
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -123,9 +182,11 @@ serve(async (req) => {
           const subId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
           const sub = await stripe.subscriptions.retrieve(subId);
           await upsertProfileFromSub(sub);
+          await sendWelcomeEmail(sub);
         }
         break;
       }
+
       case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.trial_will_end":
