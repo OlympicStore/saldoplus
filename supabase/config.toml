@@ -15,5 +15,4 @@ project_id = "tnaimnbayzrmsyewudtv"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
-  [functions.stripe-webhook]
-    verify_jwt = false
+
