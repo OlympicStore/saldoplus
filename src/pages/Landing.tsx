@@ -790,11 +790,8 @@ const Landing = () => {
               Experimenta gratuitamente durante 3 dias. Sem compromisso.
             </p>
             <div className="mt-10 flex justify-center">
-              <CTAButton size="xl" variant="white" />
+              <CTAButton size="xl" variant="white" reassure />
             </div>
-            <p className="mt-6 text-sm text-primary-foreground/80">
-              Cancela quando quiseres · Configuração em menos de 2 minutos
-            </p>
           </div>
         </motion.div>
       </section>
