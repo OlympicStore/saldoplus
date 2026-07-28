@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Users, CreditCard, TrendingUp, Percent, Euro, Calendar, BarChart3,
+  Users, CreditCard, TrendingUp, Percent, Euro, Calendar, BarChart3, Eye, MousePointerClick,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -19,6 +19,15 @@ type Row = {
   stripe_subscription_status: string | null;
   partner_id: string | null;
 };
+
+type Visit = {
+  session_id: string;
+  path: string;
+  device: string | null;
+  utm_source: string | null;
+  created_at: string;
+};
+
 
 const PLAN_PRICE_MONTHLY: Record<string, number> = {
   essencial: 2.99,
