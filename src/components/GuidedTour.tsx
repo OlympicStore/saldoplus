@@ -246,6 +246,31 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
             <h3 className="text-base font-bold text-foreground mb-1.5">{step.title}</h3>
             <p className="text-sm text-text-muted leading-relaxed mb-3">{step.description}</p>
 
+            {step.install && (
+              <div className="space-y-2.5 mb-3">
+                <div className="rounded-xl border border-border-subtle/60 bg-surface-hover/40 p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-primary">iPhone / iPad</span>
+                  </div>
+                  <ol className="text-xs text-text-muted leading-relaxed space-y-1 list-decimal list-inside">
+                    <li>Abra o Saldo+ no <b>Safari</b>.</li>
+                    <li>Toque no ícone <Share className="inline h-3.5 w-3.5 -mt-0.5" /> <b>Partilhar</b> (barra inferior).</li>
+                    <li>Escolha <b>“Adicionar ao ecrã principal”</b> e confirme.</li>
+                  </ol>
+                </div>
+                <div className="rounded-xl border border-border-subtle/60 bg-surface-hover/40 p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-primary">Android</span>
+                  </div>
+                  <ol className="text-xs text-text-muted leading-relaxed space-y-1 list-decimal list-inside">
+                    <li>Abra o Saldo+ no <b>Chrome</b>.</li>
+                    <li>Toque no menu <MoreVertical className="inline h-3.5 w-3.5 -mt-0.5" /> (canto superior direito).</li>
+                    <li>Escolha <b>“Adicionar ao ecrã principal”</b> ou <b>“Instalar app”</b>.</li>
+                  </ol>
+                </div>
+              </div>
+            )}
+
             {step.tip && (
               <div className="rounded-lg bg-primary/5 border border-primary/10 p-2.5 mb-4">
                 <p className="text-xs text-primary font-medium">💡 {step.tip}</p>
