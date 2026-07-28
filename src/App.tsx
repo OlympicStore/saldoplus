@@ -19,6 +19,8 @@ import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 import ConsultantDashboard from "./pages/ConsultantDashboard";
 import Unsubscribe from "./pages/Unsubscribe";
+import { useTrackVisit } from "./hooks/useTrackVisit";
+
 
 const queryClient = new QueryClient();
 
