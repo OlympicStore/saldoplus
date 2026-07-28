@@ -111,21 +111,6 @@ const App = () => (
           <SubAccountProvider>
             <AppRoutes />
 
-              <Route path="/app" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-              <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-              <Route path="/parceiro" element={<ProtectedRoute allowPartnerRedirect={false}><PartnerDashboard /></ProtectedRoute>} />
-              <Route path="/consultor" element={<ProtectedRoute allowPartnerRedirect={false}><ConsultantDashboard /></ProtectedRoute>} />
-              <Route path="/pricing" element={<Navigate to="/" replace />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/trial-expired" element={<TrialExpired />} />
-              <Route path="/termos" element={<Terms />} />
-              <Route path="/privacidade" element={<Privacy />} />
-              <Route path="/unsubscribe" element={<Unsubscribe />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
           </SubAccountProvider>
         </AuthProvider>
       </BrowserRouter>
