@@ -11,7 +11,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import PartnerDashboard from "./pages/PartnerDashboard";
-import Pricing from "./pages/Pricing";
 import Landing from "./pages/Landing";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import TrialExpired from "./pages/TrialExpired";
