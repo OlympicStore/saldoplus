@@ -1,12 +1,12 @@
 import {
   Home, ArrowLeftRight, Target, Sparkles, Users, Briefcase,
-  Receipt, User as UserIcon, Settings, ChevronRight, Tag, Shield, LogOut, Wallet, Building2,
+  Receipt, User as UserIcon, ChevronRight, Tag, Shield, LogOut, Wallet, Building2,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { SubAccountSwitcher } from "@/components/SubAccountSwitcher";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+
 
 type Tab =
   | "dashboard" | "assistente" | "movements" | "goals"
@@ -41,7 +41,7 @@ export default function AppSideMenu({
 }: AppSideMenuProps) {
   const { profile, isAdmin, signOut, partnerBranding } = useAuth();
   const navigate = useNavigate();
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  
   const userPlan = profile?.plan || "essencial";
   const isPro = userPlan === "pro" || userPlan === "imobiliaria" || isAdmin;
 
