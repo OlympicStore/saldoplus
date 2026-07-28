@@ -48,6 +48,7 @@ const startOfDay = (d: Date) => { const x = new Date(d); x.setHours(0,0,0,0); re
 
 export default function AdminAnalytics() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [visits, setVisits] = useState<Visit[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<{ from: string; to: string }>(() => {
     const to = new Date();
@@ -58,13 +59,16 @@ export default function AdminAnalytics() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, created_at, plan, plan_started_at, stripe_customer_id, stripe_subscription_id, stripe_subscription_status, partner_id");
-      setRows((data as Row[]) || []);
+      const [profilesRes, visitsRes] = await Promise.all([
+        supabase.from("profiles").select("id, created_at, plan, plan_started_at, stripe_customer_id, stripe_subscription_id, stripe_subscription_status, partner_id"),
+        supabase.from("site_visits").select("session_id, path, device, utm_source, created_at").order("created_at", { ascending: false }).limit(10000),
+      ]);
+      setRows((profilesRes.data as Row[]) || []);
+      setVisits((visitsRes.data as Visit[]) || []);
       setLoading(false);
     })();
   }, []);
+
 
   const setPreset = (days: number) => {
     const to = new Date();
