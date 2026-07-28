@@ -98,6 +98,7 @@ const App = () => (
               <Route path="/trial-expired" element={<TrialExpired />} />
               <Route path="/termos" element={<Terms />} />
               <Route path="/privacidade" element={<Privacy />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SubAccountProvider>
