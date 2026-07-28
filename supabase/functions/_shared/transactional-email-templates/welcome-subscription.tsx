@@ -24,13 +24,15 @@ interface Props {
   appUrl?: string
 }
 
+const UTM = '?utm_source=email&utm_medium=welcome&utm_campaign=trial_started'
+
 const WelcomeSubscription = ({
   fullName,
   planLabel = 'Saldo+',
   trialEndsAt,
   amountLabel,
-  manageUrl = 'https://saldoplusapp.com/app?tab=account',
-  appUrl = 'https://saldoplusapp.com/app',
+  manageUrl = `https://saldoplusapp.com/app${UTM}&utm_content=manage#account`,
+  appUrl = `https://saldoplusapp.com/app${UTM}&utm_content=cta`,
 }: Props) => (
   <Html lang="pt" dir="ltr">
     <Head />
