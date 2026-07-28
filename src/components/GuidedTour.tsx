@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, ArrowRight, ArrowLeft, Home, ArrowLeftRight, Target,
-  Sparkles, Menu, Plus, HomeIcon, Calculator,
+  Sparkles, Menu, Plus, HomeIcon, Calculator, Smartphone, Share, MoreVertical,
 } from "lucide-react";
 
 type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account" | "movements" | "assistente";
