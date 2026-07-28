@@ -152,49 +152,52 @@ export default function AppSideMenu({
           </div>
           <nav className="px-3 pb-2 space-y-1">{account.map(renderItem)}</nav>
 
-          <div className="px-3 pt-2 pb-4">
+          <div className="px-5 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">Configurações</p>
+          </div>
+          <nav className="px-3 pb-4 space-y-1">
             <button
-              onClick={() => setSettingsOpen(v => !v)}
+              onClick={() => { onOpenCategories(); onOpenChange(false); }}
               className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
             >
               <span className="h-9 w-9 rounded-xl bg-background flex items-center justify-center">
-                <Settings className="h-4 w-4 text-text-muted" />
+                <Tag className="h-4 w-4 text-text-muted" />
               </span>
-              <span className="flex-1 text-left">Configurações</span>
-              <ChevronRight className={`h-4 w-4 text-text-muted transition-transform ${settingsOpen ? "rotate-90" : ""}`} />
+              <span className="flex-1 text-left">Categorias</span>
+              <ChevronRight className="h-4 w-4 text-text-muted" />
             </button>
-
-            {settingsOpen && (
-              <div className="mt-1 ml-3 pl-3 border-l border-border-subtle/60 space-y-1">
-                <button
-                  onClick={() => { onOpenCategories(); onOpenChange(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
-                >
-                  <Tag className="h-4 w-4 text-text-muted" /> Categorias
-                </button>
-                <button
-                  onClick={() => { onOpenPeopleEditor(); onOpenChange(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
-                >
-                  <UserIcon className="h-4 w-4 text-text-muted" /> Nomes
-                </button>
-                {isAdmin && (
-                  <button
-                    onClick={() => { navigate("/admin"); onOpenChange(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-primary transition-colors"
-                  >
-                    <Shield className="h-4 w-4 text-text-muted" /> Admin
-                  </button>
-                )}
-                <button
-                  onClick={() => { signOut(); onOpenChange(false); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary hover:bg-surface-hover hover:text-status-negative transition-colors"
-                >
-                  <LogOut className="h-4 w-4 text-text-muted" /> Terminar sessão
-                </button>
-              </div>
+            <button
+              onClick={() => { onOpenPeopleEditor(); onOpenChange(false); }}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-foreground transition-colors"
+            >
+              <span className="h-9 w-9 rounded-xl bg-background flex items-center justify-center">
+                <UserIcon className="h-4 w-4 text-text-muted" />
+              </span>
+              <span className="flex-1 text-left">Nomes</span>
+              <ChevronRight className="h-4 w-4 text-text-muted" />
+            </button>
+            {isAdmin && (
+              <button
+                onClick={() => { navigate("/admin"); onOpenChange(false); }}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+              >
+                <span className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-primary" />
+                </span>
+                <span className="flex-1 text-left">Admin</span>
+                <ChevronRight className="h-4 w-4 text-primary" />
+              </button>
             )}
-          </div>
+            <button
+              onClick={() => { signOut(); onOpenChange(false); }}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-status-negative transition-colors"
+            >
+              <span className="h-9 w-9 rounded-xl bg-background flex items-center justify-center">
+                <LogOut className="h-4 w-4 text-text-muted" />
+              </span>
+              <span className="flex-1 text-left">Terminar sessão</span>
+            </button>
+          </nav>
         </div>
       </SheetContent>
     </Sheet>
