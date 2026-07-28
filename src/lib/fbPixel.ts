@@ -18,3 +18,10 @@ export const fbTrackInitiateCheckout = (plan: string, value: number) =>
   fbTrack("InitiateCheckout", { content_name: plan, currency: "EUR", value });
 export const fbTrackPurchase = (plan: string, value: number) =>
   fbTrack("Purchase", { content_name: plan, currency: "EUR", value });
+export const fbTrackStartTrial = (plan: string, predictedValue: number) =>
+  fbTrack("StartTrial", {
+    content_name: plan,
+    currency: "EUR",
+    value: 0,
+    predicted_ltv: predictedValue,
+  });

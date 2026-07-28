@@ -5,7 +5,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { fbTrackPurchase } from "@/lib/fbPixel";
+import { fbTrackPurchase, fbTrackStartTrial } from "@/lib/fbPixel";
 
 const EBOOK_URL = "/downloads/SaldoPlus_Guia_Financas.pdf";
 
@@ -35,8 +35,12 @@ const PaymentSuccess = () => {
           setStatus("success");
           const bumps: string[] = Array.isArray(data.bumps) ? data.bumps : [];
           if (bumps.includes("ebook")) setHasEbook(true);
-          const PLAN_VALUES: Record<string, number> = { essencial: 15.99, casa: 28.99, pro: 47.99 };
-          fbTrackPurchase(plan, PLAN_VALUES[plan] || 0);
+          const PLAN_VALUES: Record<string, number> = { essencial: 15.99, casa: 28.99, pro: 159.99 };
+          const value = PLAN_VALUES[plan] || 0;
+          // Estamos a iniciar um trial de 3 dias — dispara StartTrial e Purchase
+          // (predicted_ltv = 12 meses do plano) para o Ads Manager conseguir otimizar.
+          fbTrackStartTrial(plan, plan === "pro" ? value : value * 12);
+          fbTrackPurchase(plan, value);
           await refreshProfile();
           toast.success("Plano ativado com sucesso!");
         } else {
