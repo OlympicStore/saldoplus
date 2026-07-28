@@ -166,6 +166,149 @@ const featureMatrix: { name: string; s: boolean; c: boolean; e: boolean }[] = [
   { name: "Relatórios avançados", s: false, c: true, e: true },
 ];
 
+// Auto-playing AI demo — shows how a message becomes a categorised expense + insight
+const demoScript: Array<
+  | { kind: "user"; text: string }
+  | { kind: "ai"; text: string }
+  | { kind: "card"; category: string; amount: string; icon: string }
+  | { kind: "insight"; label: string; value: string }
+> = [
+  { kind: "user", text: "Supermercado 15€" },
+  { kind: "ai", text: "✓ Despesa registada com sucesso." },
+  { kind: "card", category: "Alimentação", amount: "−15,00€", icon: "🍔" },
+  { kind: "ai", text: "Este mês já gastaste 214€ em alimentação." },
+  { kind: "insight", label: "Alimentação • Novembro", value: "214€ / 250€" },
+  { kind: "ai", text: "Queres definir um limite de 250€?" },
+];
+
+const AIDemoSection = () => {
+  const [visible, setVisible] = useState(1);
+  useEffect(() => {
+    if (visible >= demoScript.length) {
+      const reset = setTimeout(() => setVisible(1), 4500);
+      return () => clearTimeout(reset);
+    }
+    const t = setTimeout(() => setVisible((v) => v + 1), 1100);
+    return () => clearTimeout(t);
+  }, [visible]);
+
+  return (
+    <section className="py-24 sm:py-28 px-6 bg-background">
+      <div className="max-w-3xl mx-auto text-center mb-12">
+        <motion.h2 {...fadeUp} className="font-display text-4xl sm:text-5xl font-bold tracking-tight">
+          Escreve. A IA trata do resto.
+        </motion.h2>
+        <motion.p {...fadeUp} transition={{ duration: 0.6, delay: 0.1 }} className="mt-4 text-lg text-text-secondary">
+          Uma mensagem simples torna-se numa despesa categorizada e num insight — em segundos.
+        </motion.p>
+      </div>
+
+      <motion.div
+        {...fadeUp}
+        className="relative max-w-2xl mx-auto rounded-[2rem] bg-surface border border-border-subtle shadow-2xl p-6 sm:p-8"
+      >
+        <div className="absolute -inset-6 -z-10 bg-gradient-to-br from-primary/15 to-accent/5 rounded-[3rem] blur-2xl" />
+
+        <div className="flex items-center gap-2 mb-6">
+          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold">Assistente Saldo+</div>
+            <div className="text-[10px] text-text-muted flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              A escrever…
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3 min-h-[360px]">
+          <AnimatePresence initial={false}>
+            {demoScript.slice(0, visible).map((step, i) => {
+              if (step.kind === "user" || step.kind === "ai") {
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className={`flex ${step.kind === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[85%] px-4 py-2.5 text-sm rounded-2xl ${
+                        step.kind === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-sm"
+                          : "bg-secondary text-foreground rounded-bl-sm border border-border-subtle"
+                      }`}
+                    >
+                      {step.text}
+                    </div>
+                  </motion.div>
+                );
+              }
+              if (step.kind === "card") {
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.45 }}
+                    className="ml-2 max-w-[85%] rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-center gap-3"
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-surface border border-border-subtle flex items-center justify-center text-lg">
+                      {step.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] uppercase tracking-widest font-bold text-text-muted">Categoria</div>
+                      <div className="text-sm font-semibold">{step.category}</div>
+                    </div>
+                    <div className="text-sm font-bold tabular-nums text-foreground">{step.amount}</div>
+                  </motion.div>
+                );
+              }
+              // insight bar
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45 }}
+                  className="ml-2 max-w-[85%] rounded-2xl border border-border-subtle bg-surface p-4"
+                >
+                  <div className="flex items-center justify-between text-xs text-text-secondary mb-2">
+                    <span className="inline-flex items-center gap-1.5 font-medium">
+                      <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                      {step.label}
+                    </span>
+                    <span className="font-bold text-foreground tabular-nums">{step.value}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: "85%" }}
+                      transition={{ duration: 0.9, ease: "easeOut" }}
+                      className="h-full bg-primary rounded-full"
+                    />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+        <div className="mt-6 rounded-xl bg-secondary/60 border border-border-subtle px-4 py-3 flex items-center gap-2 text-sm text-text-muted">
+          <MessageCircle className="h-4 w-4" />
+          Escreve uma mensagem…
+        </div>
+      </motion.div>
+
+      <div className="mt-10 flex justify-center">
+        <CTAButton size="lg" reassure />
+      </div>
+    </section>
+  );
+};
+
 const Landing = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [scrolled, setScrolled] = useState(false);
