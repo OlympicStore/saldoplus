@@ -104,7 +104,7 @@ const IMOBILIARIA_EXTRA_STEPS: TourStep[] = [
   },
 ];
 
-const TOUR_STORAGE_KEY = "saldoplus_tour_completed_v2";
+const TOUR_STORAGE_KEY = "saldoplus_tour_completed_v3";
 
 interface GuidedTourProps {
   forceShow?: boolean;
