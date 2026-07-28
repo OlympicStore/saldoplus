@@ -36,10 +36,14 @@ const CTAButton = ({
   children = CTA_LABEL,
   size = "lg",
   variant = "primary",
+  reassure = false,
+  align = "center",
 }: {
   children?: React.ReactNode;
   size?: "md" | "lg" | "xl";
   variant?: "primary" | "white";
+  reassure?: boolean;
+  align?: "center" | "start";
 }) => {
   const sizeCls =
     size === "xl" ? "px-9 py-5 text-lg" : size === "md" ? "px-5 py-3 text-sm" : "px-7 py-4 text-base";
@@ -47,14 +51,25 @@ const CTAButton = ({
     variant === "white"
       ? "bg-white text-primary shadow-2xl hover:scale-[1.03]"
       : "bg-primary text-primary-foreground shadow-[0_10px_40px_-10px_hsl(160_84%_39%/0.7)] hover:shadow-[0_16px_50px_-10px_hsl(160_84%_39%/0.9)] hover:scale-[1.02]";
+  const reassureColor = variant === "white" ? "text-primary-foreground/90" : "text-text-secondary";
+  const alignCls = align === "start" ? "items-start" : "items-center";
   return (
-    <Link
-      to={SIGNUP_URL}
-      className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all ${variantCls} ${sizeCls}`}
-    >
-      {children}
-      <ArrowRight className="h-4 w-4" />
-    </Link>
+    <div className={`flex flex-col gap-3 ${alignCls}`}>
+      <Link
+        to={SIGNUP_URL}
+        className={`inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full font-semibold transition-all ${variantCls} ${sizeCls}`}
+      >
+        {children}
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+      {reassure && (
+        <ul className={`flex flex-wrap gap-x-4 gap-y-1 text-xs sm:text-sm ${reassureColor} ${align === "center" ? "justify-center" : ""}`}>
+          <li className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Cancela quando quiseres</li>
+          <li className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Ativação em menos de 2 minutos</li>
+          <li className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Acesso imediato após o registo</li>
+        </ul>
+      )}
+    </div>
   );
 };
 
