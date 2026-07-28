@@ -76,7 +76,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const LandingRoute = () => {
-  return <Pricing />;
+  return <Landing />;
 };
 
 const AppRoutes = () => {
