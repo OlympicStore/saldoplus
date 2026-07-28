@@ -19,6 +19,8 @@ import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 import ConsultantDashboard from "./pages/ConsultantDashboard";
 import Unsubscribe from "./pages/Unsubscribe";
+import { useTrackVisit } from "./hooks/useTrackVisit";
+
 
 const queryClient = new QueryClient();
 
@@ -76,6 +78,29 @@ const LandingRoute = () => {
   return <Pricing />;
 };
 
+const AppRoutes = () => {
+  useTrackVisit();
+  return (
+    <Routes>
+      <Route path="/" element={<LandingRoute />} />
+      <Route path="/app" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/parceiro" element={<ProtectedRoute allowPartnerRedirect={false}><PartnerDashboard /></ProtectedRoute>} />
+      <Route path="/consultor" element={<ProtectedRoute allowPartnerRedirect={false}><ConsultantDashboard /></ProtectedRoute>} />
+      <Route path="/pricing" element={<Navigate to="/" replace />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/trial-expired" element={<TrialExpired />} />
+      <Route path="/termos" element={<Terms />} />
+      <Route path="/privacidade" element={<Privacy />} />
+      <Route path="/unsubscribe" element={<Unsubscribe />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -84,23 +109,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <SubAccountProvider>
-            <Routes>
-              <Route path="/" element={<LandingRoute />} />
-              <Route path="/app" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-              <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-              <Route path="/parceiro" element={<ProtectedRoute allowPartnerRedirect={false}><PartnerDashboard /></ProtectedRoute>} />
-              <Route path="/consultor" element={<ProtectedRoute allowPartnerRedirect={false}><ConsultantDashboard /></ProtectedRoute>} />
-              <Route path="/pricing" element={<Navigate to="/" replace />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/trial-expired" element={<TrialExpired />} />
-              <Route path="/termos" element={<Terms />} />
-              <Route path="/privacidade" element={<Privacy />} />
-              <Route path="/unsubscribe" element={<Unsubscribe />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AppRoutes />
+
           </SubAccountProvider>
         </AuthProvider>
       </BrowserRouter>
