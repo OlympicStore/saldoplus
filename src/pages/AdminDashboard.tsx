@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPartners from "@/components/AdminPartners";
+import AdminAnalytics from "@/components/AdminAnalytics";
 import {
   Users, Crown, TrendingUp, ArrowLeft, Search, Check,
   ChevronUp, ChevronDown, Shield, Calendar, Mail, Plus, X, Trash2,
@@ -335,6 +336,7 @@ const AdminDashboard = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <AdminAnalytics />
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
