@@ -281,7 +281,7 @@ export default function AdminAnalytics() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-xl border border-border-subtle/60 bg-background/50 p-4">
               <p className="text-sm font-semibold text-foreground mb-3">Registos por plano</p>
               <div className="h-56">
@@ -297,7 +297,7 @@ export default function AdminAnalytics() {
               </div>
             </div>
             <div className="rounded-xl border border-border-subtle/60 bg-background/50 p-4">
-              <p className="text-sm font-semibold text-foreground mb-3">Origem</p>
+              <p className="text-sm font-semibold text-foreground mb-3">Origem do tráfego (UTM)</p>
               <div className="h-56">
                 <ResponsiveContainer>
                   <BarChart data={bySource}>
@@ -310,13 +310,28 @@ export default function AdminAnalytics() {
                 </ResponsiveContainer>
               </div>
             </div>
+            <div className="rounded-xl border border-border-subtle/60 bg-background/50 p-4">
+              <p className="text-sm font-semibold text-foreground mb-3">Dispositivos</p>
+              <div className="h-56">
+                <ResponsiveContainer>
+                  <BarChart data={byDevice}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(214,32%,91%)" />
+                    <XAxis dataKey="device" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="hsl(280,70%,55%)" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
 
           <p className="text-[11px] text-text-muted mt-4">
-            Dados calculados a partir dos registos e subscrições Stripe. Para tráfego do site (visitantes, origem, dispositivos), consulte o painel de Analytics do Lovable.
+            Visitantes contados por sessão única nas páginas públicas (Home, Auth, Termos, Privacidade). Registos e conversões vêm dos perfis + estado Stripe — atualiza automaticamente com cada novo cliente.
           </p>
         </>
       )}
     </motion.section>
   );
 }
+
