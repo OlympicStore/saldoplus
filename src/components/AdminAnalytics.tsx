@@ -229,7 +229,7 @@ export default function AdminAnalytics() {
         <div className="h-40 flex items-center justify-center text-text-muted text-sm">A carregar…</div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
             {kpis.map(k => (
               <div key={k.label} className="rounded-xl border border-border-subtle/60 bg-background/50 p-3">
                 <div className="flex items-center gap-2 mb-1.5">
