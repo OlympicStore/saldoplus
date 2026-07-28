@@ -243,17 +243,9 @@ const Landing = () => {
             </p>
 
             <div className="mt-10">
-              <CTAButton size="xl" />
+              <CTAButton size="xl" reassure align="start" />
             </div>
 
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-text-secondary">
-              {["3 dias grátis", "Cancela quando quiseres", "Configuração em menos de 2 minutos"].map((t) => (
-                <li key={t} className="flex items-center gap-1.5">
-                  <Check className="h-4 w-4 text-primary" />
-                  {t}
-                </li>
-              ))}
-            </ul>
 
             {/* Trust row */}
             <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-text-muted">
