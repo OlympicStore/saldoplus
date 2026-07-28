@@ -85,30 +85,51 @@ export default function AdminAnalytics() {
     });
   }, [rows, range]);
 
+  const filteredVisits = useMemo(() => {
+    const from = startOfDay(new Date(range.from)).getTime();
+    const to = startOfDay(new Date(range.to)).getTime() + 24 * 3600 * 1000 - 1;
+    return visits.filter(v => {
+      const t = new Date(v.created_at).getTime();
+      return t >= from && t <= to;
+    });
+  }, [visits, range]);
+
   const metrics = useMemo(() => {
     const signups = filtered.length;
     const checkouts = filtered.filter(r => !!r.stripe_customer_id || !!r.stripe_subscription_id).length;
     const trials = filtered.filter(r => r.stripe_subscription_status === "trialing").length;
     const active = filtered.filter(r => r.stripe_subscription_status === "active").length;
     const paying = filtered.filter(r => ["active", "trialing", "past_due"].includes(r.stripe_subscription_status || "")).length;
-    const conv = signups > 0 ? (paying / signups) * 100 : 0;
+    const pageviews = filteredVisits.length;
+    const uniqueVisitors = new Set(filteredVisits.map(v => v.session_id)).size;
+    const convVisits = uniqueVisitors > 0 ? (paying / uniqueVisitors) * 100 : 0;
+    const convSignups = signups > 0 ? (paying / signups) * 100 : 0;
     const mrr = filtered.reduce((s, r) => {
       if (["active", "trialing"].includes(r.stripe_subscription_status || "")) {
         return s + (PLAN_PRICE_MONTHLY[r.plan || ""] || 0);
       }
       return s;
     }, 0);
-    return { signups, checkouts, trials, active, paying, conv, mrr };
-  }, [filtered]);
+    return { signups, checkouts, trials, active, paying, convVisits, convSignups, mrr, pageviews, uniqueVisitors };
+  }, [filtered, filteredVisits]);
 
   const daily = useMemo(() => {
-    const map = new Map<string, { date: string; signups: number; checkouts: number; conversions: number }>();
+    const map = new Map<string, { date: string; visitors: number; signups: number; checkouts: number; conversions: number; _sessions: Set<string> }>();
     const from = startOfDay(new Date(range.from));
     const to = startOfDay(new Date(range.to));
     for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
       const key = iso(d);
-      map.set(key, { date: key, signups: 0, checkouts: 0, conversions: 0 });
+      map.set(key, { date: key, visitors: 0, signups: 0, checkouts: 0, conversions: 0, _sessions: new Set() });
     }
+    filteredVisits.forEach(v => {
+      const key = iso(new Date(v.created_at));
+      const b = map.get(key);
+      if (!b) return;
+      if (!b._sessions.has(v.session_id)) {
+        b._sessions.add(v.session_id);
+        b.visitors += 1;
+      }
+    });
     filtered.forEach(r => {
       const key = iso(new Date(r.created_at));
       const b = map.get(key);
@@ -118,10 +139,14 @@ export default function AdminAnalytics() {
       if (["active", "trialing", "past_due"].includes(r.stripe_subscription_status || "")) b.conversions += 1;
     });
     return Array.from(map.values()).map(d => ({
-      ...d,
+      date: d.date,
+      visitors: d.visitors,
+      signups: d.signups,
+      checkouts: d.checkouts,
+      conversions: d.conversions,
       label: new Date(d.date).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }),
     }));
-  }, [filtered, range]);
+  }, [filtered, filteredVisits, range]);
 
   const byPlan = useMemo(() => {
     const map: Record<string, number> = { essencial: 0, casa: 0, pro: 0, imobiliaria: 0 };
@@ -132,21 +157,34 @@ export default function AdminAnalytics() {
   }, [filtered]);
 
   const bySource = useMemo(() => {
-    const partner = filtered.filter(r => !!r.partner_id).length;
-    return [
-      { source: "Direto", count: filtered.length - partner },
-      { source: "Parceiros", count: partner },
-    ];
-  }, [filtered]);
+    const counts: Record<string, number> = {};
+    filteredVisits.forEach(v => {
+      const key = v.utm_source || "Direto";
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return Object.entries(counts).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count).slice(0, 6);
+  }, [filteredVisits]);
+
+  const byDevice = useMemo(() => {
+    const counts: Record<string, number> = { desktop: 0, mobile: 0, tablet: 0 };
+    filteredVisits.forEach(v => {
+      const key = v.device || "desktop";
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return Object.entries(counts).map(([device, count]) => ({ device, count }));
+  }, [filteredVisits]);
 
   const kpis = [
+    { label: "Visitantes únicos", value: metrics.uniqueVisitors, icon: Eye, tint: "text-primary", bg: "bg-primary/10" },
+    { label: "Pageviews", value: metrics.pageviews, icon: MousePointerClick, tint: "text-accent", bg: "bg-accent/10" },
     { label: "Registos", value: metrics.signups, icon: Users, tint: "text-primary", bg: "bg-primary/10" },
     { label: "Checkouts iniciados", value: metrics.checkouts, icon: CreditCard, tint: "text-accent", bg: "bg-accent/10" },
     { label: "Em trial", value: metrics.trials, icon: Calendar, tint: "text-yellow-600", bg: "bg-yellow-500/10" },
     { label: "Ativos", value: metrics.active, icon: TrendingUp, tint: "text-status-paid", bg: "bg-status-paid/10" },
-    { label: "Taxa de conversão", value: `${metrics.conv.toFixed(1)}%`, icon: Percent, tint: "text-primary", bg: "bg-primary/10" },
+    { label: "Conv. visita→cliente", value: `${metrics.convVisits.toFixed(1)}%`, icon: Percent, tint: "text-primary", bg: "bg-primary/10" },
     { label: "MRR estimado", value: `€ ${metrics.mrr.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: Euro, tint: "text-status-paid", bg: "bg-status-paid/10" },
   ];
+
 
   return (
     <motion.section
