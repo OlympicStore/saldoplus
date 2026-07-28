@@ -697,7 +697,7 @@ const Landing = () => {
           </motion.div>
 
           <div className="mt-10 flex justify-center">
-            <CTAButton size="lg" />
+            <CTAButton size="lg" reassure />
           </div>
         </div>
       </section>
