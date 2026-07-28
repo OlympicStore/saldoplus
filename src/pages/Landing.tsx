@@ -7,15 +7,19 @@ import {
   ShieldCheck,
   Lock,
   Zap,
-  Target,
-  LineChart,
   Check,
+  X,
   ArrowRight,
   MessageCircle,
   ChevronDown,
+  Star,
+  Home,
+  Gem,
+  CreditCard,
 } from "lucide-react";
 
 const SIGNUP_URL = "/auth?mode=signup";
+const CTA_LABEL = "Começar 3 dias grátis";
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -24,17 +28,31 @@ const fadeUp = {
   transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
 };
 
-const CTAButton = ({ children, size = "lg" }: { children: React.ReactNode; size?: "lg" | "xl" }) => (
-  <Link
-    to={SIGNUP_URL}
-    className={`inline-flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground font-semibold shadow-[0_10px_40px_-10px_hsl(160_84%_39%/0.7)] hover:shadow-[0_16px_50px_-10px_hsl(160_84%_39%/0.9)] hover:scale-[1.02] transition-all ${
-      size === "xl" ? "px-9 py-5 text-lg" : "px-7 py-4 text-base"
-    }`}
-  >
-    {children}
-    <ArrowRight className="h-4 w-4" />
-  </Link>
-);
+const CTAButton = ({
+  children = CTA_LABEL,
+  size = "lg",
+  variant = "primary",
+}: {
+  children?: React.ReactNode;
+  size?: "md" | "lg" | "xl";
+  variant?: "primary" | "white";
+}) => {
+  const sizeCls =
+    size === "xl" ? "px-9 py-5 text-lg" : size === "md" ? "px-5 py-3 text-sm" : "px-7 py-4 text-base";
+  const variantCls =
+    variant === "white"
+      ? "bg-white text-primary shadow-2xl hover:scale-[1.03]"
+      : "bg-primary text-primary-foreground shadow-[0_10px_40px_-10px_hsl(160_84%_39%/0.7)] hover:shadow-[0_16px_50px_-10px_hsl(160_84%_39%/0.9)] hover:scale-[1.02]";
+  return (
+    <Link
+      to={SIGNUP_URL}
+      className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all ${variantCls} ${sizeCls}`}
+    >
+      {children}
+      <ArrowRight className="h-4 w-4" />
+    </Link>
+  );
+};
 
 const ChatBubble = ({ from, text, delay = 0 }: { from: "user" | "ai"; text: string; delay?: number }) => (
   <motion.div
@@ -61,22 +79,65 @@ const faqs = [
     q: "Como funciona o teste gratuito?",
     a: "Tens 3 dias para experimentar tudo. Só és cobrado ao 4.º dia se não cancelares antes.",
   },
+  { q: "Posso cancelar quando quiser?", a: "Sim. Cancelas com um clique no teu painel, sem perguntas nem burocracia." },
+  { q: "Os meus dados estão seguros?", a: "Toda a informação é encriptada em trânsito e em repouso. Pagamentos seguros via Stripe. Nunca partilhamos os teus dados." },
+  { q: "Preciso de cartão para começar?", a: "Sim, é necessário para começar o teste. Não há qualquer cobrança nos primeiros 3 dias." },
+  { q: "Funciona no telemóvel?", a: "Funciona em qualquer dispositivo. Instala como app no iPhone ou Android em segundos." },
+];
+
+// Plans (visual only; keeps brand pricing)
+const plans = [
   {
-    q: "Posso cancelar quando quiser?",
-    a: "Sim. Cancelas com um clique no teu painel, sem perguntas nem burocracia.",
+    id: "essencial",
+    name: "Starter",
+    icon: Zap,
+    price: "15,99€",
+    interval: "/mês",
+    tagline: "Para controlares as tuas finanças pessoais.",
+    highlights: ["Dashboard financeiro", "Despesas e receitas ilimitadas", "Objetivos básicos", "Assistente IA (50 msg/mês)"],
+    cta: CTA_LABEL,
+    featured: false,
   },
   {
-    q: "Os meus dados estão seguros?",
-    a: "Toda a informação é encriptada em trânsito e em repouso. Nunca partilhamos os teus dados.",
+    id: "casa",
+    name: "Casa+",
+    icon: Home,
+    price: "28,99€",
+    interval: "/mês",
+    tagline: "Para famílias e casais que querem tudo automatizado.",
+    highlights: ["Tudo do Starter", "Modo Casal (4 modos de divisão)", "Orçamentos por categoria", "IA ilimitada", "Relatórios avançados"],
+    cta: CTA_LABEL,
+    featured: true,
+    badge: "⭐ MAIS POPULAR",
   },
   {
-    q: "Preciso de cartão para começar?",
-    a: "Sim, é necessário para começar o teste. Não há qualquer cobrança nos primeiros 3 dias.",
+    id: "pro",
+    name: "Elite",
+    icon: Gem,
+    price: "159,99€",
+    interval: "/ano",
+    perMonth: "≈ 13,33€/mês",
+    tagline: "Para quem quer o Saldo+ no máximo, com IA que lê faturas.",
+    highlights: ["Tudo do Casa+", "OCR inteligente de faturas", "IA lê PDFs e fotografias", "Multi Workspace", "Suporte prioritário"],
+    cta: CTA_LABEL,
+    featured: false,
+    savings: "Poupe 60%",
   },
-  {
-    q: "Funciona no telemóvel?",
-    a: "Funciona em qualquer dispositivo. Instala como app no iPhone ou Android em segundos.",
-  },
+];
+
+// Comparison rows: 0 = none, 1 = check
+const featureMatrix: { name: string; s: boolean; c: boolean; e: boolean }[] = [
+  { name: "Dashboard", s: true, c: true, e: true },
+  { name: "Gestão de despesas", s: true, c: true, e: true },
+  { name: "Objetivos", s: true, c: true, e: true },
+  { name: "Modo Casal", s: false, c: true, e: true },
+  { name: "Modo Empresa", s: false, c: true, e: true },
+  { name: "Planeamento com IA", s: false, c: true, e: true },
+  { name: "Assistente IA", s: true, c: true, e: true },
+  { name: "OCR de faturas", s: false, c: false, e: true },
+  { name: "Importação bancária (em breve)", s: false, c: false, e: true },
+  { name: "Prioridade no suporte", s: false, c: true, e: true },
+  { name: "Relatórios avançados", s: false, c: true, e: true },
 ];
 
 const Landing = () => {
@@ -131,7 +192,7 @@ const Landing = () => {
       </header>
 
       {/* HERO */}
-      <section className="relative pt-32 sm:pt-40 pb-20 px-6">
+      <section className="relative pt-32 sm:pt-40 pb-16 px-6">
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute top-20 -left-40 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
           <div className="absolute top-40 right-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[100px]" />
@@ -144,32 +205,39 @@ const Landing = () => {
               <span className="text-xs font-medium text-text-secondary">Assistente financeiro com IA</span>
             </div>
 
-            <h1 className="font-display text-[2.75rem] sm:text-6xl lg:text-7xl leading-[1.02] tracking-tight font-bold">
+            <h1 className="font-display text-[2.5rem] sm:text-6xl lg:text-7xl leading-[1.02] tracking-tight font-bold">
               Nunca mais perguntes:
               <br />
               <span className="text-primary italic font-serif">"Para onde foi o meu dinheiro?"</span>
             </h1>
 
             <p className="mt-8 text-lg sm:text-xl text-text-secondary leading-relaxed max-w-xl">
-              O Saldo+ usa Inteligência Artificial para organizar automaticamente as tuas despesas,
-              mostrar onde estás a gastar demasiado e ajudar-te a poupar todos os meses.
+              O Saldo+ utiliza Inteligência Artificial para organizar automaticamente as tuas finanças
+              e mostrar exatamente onde podes poupar.
             </p>
 
-            <div className="mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <CTAButton size="xl">Começar gratuitamente</CTAButton>
+            <div className="mt-10">
+              <CTAButton size="xl" />
             </div>
 
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-text-secondary">
-              {["3 dias grátis", "Cancela quando quiseres", "Configuração em 2 minutos"].map((t) => (
+              {["3 dias grátis", "Cancela quando quiseres", "Configuração em menos de 2 minutos"].map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-primary" />
                   {t}
                 </li>
               ))}
             </ul>
+
+            {/* Trust row */}
+            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-text-muted">
+              <span className="inline-flex items-center gap-1.5"><Lock className="h-3.5 w-3.5 text-primary" /> Dados encriptados</span>
+              <span className="inline-flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5 text-primary" /> Pagamentos via Stripe</span>
+              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> Privacidade garantida</span>
+            </div>
           </motion.div>
 
-          {/* Mockup */}
+          {/* Mockup IA */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -193,15 +261,11 @@ const Landing = () => {
                 </div>
               </div>
 
-              <div className="space-y-3 min-h-[300px]">
-                <ChatBubble from="user" text="Supermercado 15€" delay={0.4} />
-                <ChatBubble from="ai" text="✓ Despesa registada em Alimentação." delay={0.8} />
-                <ChatBubble from="user" text="Quanto gastei este mês?" delay={1.2} />
-                <ChatBubble
-                  from="ai"
-                  text="Este mês gastaste 487€. Estás a gastar 12% menos em alimentação face ao mês passado 🎉"
-                  delay={1.6}
-                />
+              <div className="space-y-3 min-h-[320px]">
+                <ChatBubble from="user" text="Supermercado 15€" delay={0.3} />
+                <ChatBubble from="ai" text="✓ Despesa registada em Alimentação." delay={0.6} />
+                <ChatBubble from="ai" text="Este mês já gastaste 214€ em alimentação." delay={0.9} />
+                <ChatBubble from="ai" text="Queres definir um limite de 250€?" delay={1.2} />
               </div>
 
               <div className="mt-6 rounded-xl bg-secondary/60 border border-border-subtle px-4 py-3 flex items-center gap-2 text-sm text-text-muted">
@@ -211,15 +275,241 @@ const Landing = () => {
             </div>
           </motion.div>
         </div>
+
+        <p className="text-center text-xs text-text-muted mt-10">
+          Pode cancelar a qualquer momento durante os 3 dias gratuitos.
+        </p>
       </section>
 
-      {/* Social proof strip */}
+      {/* PROBLEMA — Antes vs Depois */}
+      <section className="py-24 sm:py-28 px-6 bg-secondary/40">
+        <div className="max-w-5xl mx-auto">
+          <motion.div {...fadeUp} className="text-center max-w-3xl mx-auto mb-14">
+            <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight">
+              Chega de perder tempo com Excel.
+            </h2>
+            <p className="mt-4 text-lg text-text-secondary">
+              A diferença entre andar às cegas e ter controlo total.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <motion.div {...fadeUp} className="rounded-3xl bg-surface border border-border-subtle p-8">
+              <div className="text-xs uppercase tracking-widest font-bold text-text-muted mb-4">Antes</div>
+              <ul className="space-y-3 text-text-secondary">
+                {["Excel confuso", "Notas soltas no telemóvel", "Calculadora manual", "Nunca sabes onde gastas"].map(
+                  (t) => (
+                    <li key={t} className="flex items-start gap-3">
+                      <X className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                      <span>{t}</span>
+                    </li>
+                  )
+                )}
+              </ul>
+            </motion.div>
+
+            <motion.div
+              {...fadeUp}
+              className="rounded-3xl bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 p-8 shadow-xl"
+            >
+              <div className="text-xs uppercase tracking-widest font-bold text-primary mb-4">Depois</div>
+              <ul className="space-y-3 text-foreground">
+                {[
+                  "A IA organiza tudo por ti",
+                  "Dashboard automático",
+                  "Objetivos financeiros claros",
+                  "Tudo num único lugar",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <span className="font-medium">{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* COMO FUNCIONA A IA */}
+      <section className="py-24 sm:py-28 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.h2
+            {...fadeUp}
+            className="font-display text-4xl sm:text-5xl font-bold tracking-tight text-center mb-16"
+          >
+            Como funciona a IA.
+          </motion.h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { n: "1", t: "Escreve uma mensagem", d: "Como falarias com um amigo." },
+              { n: "2", t: "A IA organiza tudo", d: "Categorias, datas e valores automáticos." },
+              { n: "3", t: "Recebe insights", d: "Descobre onde poupar já este mês." },
+            ].map((s, i) => (
+              <motion.div
+                key={s.n}
+                {...fadeUp}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="text-center"
+              >
+                <div className="mx-auto h-14 w-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mb-5 shadow-lg shadow-primary/30">
+                  {s.n}
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{s.t}</h3>
+                <p className="text-text-secondary text-sm">{s.d}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PLANOS */}
+      <section id="planos" className="py-24 sm:py-28 px-6 bg-secondary/40">
+        <div className="max-w-6xl mx-auto">
+          <motion.div {...fadeUp} className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight">Escolhe o teu plano.</h2>
+            <p className="mt-4 text-lg text-text-secondary">
+              Começa com 3 dias grátis em qualquer plano. Cancela quando quiseres.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6 items-stretch">
+            {plans.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <motion.div
+                  key={p.id}
+                  {...fadeUp}
+                  transition={{ duration: 0.6, delay: i * 0.08 }}
+                  className={`relative rounded-3xl bg-surface p-8 flex flex-col transition-all hover:-translate-y-1 ${
+                    p.featured
+                      ? "border-2 border-primary shadow-[0_20px_60px_-15px_hsl(160_84%_39%/0.35)] md:scale-105 md:-my-2"
+                      : "border border-border-subtle shadow-lg hover:shadow-xl"
+                  }`}
+                >
+                  {p.featured && p.badge && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 shadow-lg">
+                      {p.badge}
+                    </div>
+                  )}
+                  {p.savings && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent text-accent-foreground text-xs font-bold px-4 py-1.5 shadow-lg">
+                      🔥 {p.savings}
+                    </div>
+                  )}
+
+                  <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+
+                  <h3 className="text-2xl font-bold">{p.name}</h3>
+                  <p className="text-sm text-text-secondary mt-1 min-h-[42px]">{p.tagline}</p>
+
+                  <div className="mt-6 flex items-baseline gap-1">
+                    <span className="text-5xl font-black tracking-tight">{p.price}</span>
+                    <span className="text-text-muted font-medium">{p.interval}</span>
+                  </div>
+                  {p.perMonth && (
+                    <div className="mt-2 inline-flex self-start items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-3 py-1">
+                      {p.perMonth}
+                    </div>
+                  )}
+
+                  <ul className="mt-6 space-y-2.5 text-sm flex-1">
+                    {p.highlights.map((h) => (
+                      <li key={h} className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span className="text-text-secondary">{h}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    to={SIGNUP_URL}
+                    className={`mt-8 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-all ${
+                      p.featured
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/40 hover:scale-[1.02]"
+                        : "bg-foreground text-background hover:opacity-90"
+                    }`}
+                  >
+                    {p.cta}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <p className="text-center text-xs text-text-muted mt-10">
+            Sem compromisso. Cancela a qualquer momento durante os 3 dias.
+          </p>
+        </div>
+      </section>
+
+      {/* FUNCIONALIDADES — comparação */}
+      <section className="py-24 sm:py-28 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.div {...fadeUp} className="text-center mb-14">
+            <h2 className="font-display text-4xl sm:text-5xl font-bold tracking-tight">
+              Compara funcionalidades.
+            </h2>
+          </motion.div>
+
+          <motion.div
+            {...fadeUp}
+            className="overflow-hidden rounded-3xl border border-border-subtle bg-surface shadow-xl"
+          >
+            <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr] text-sm">
+              {/* Header */}
+              <div className="p-4 sm:p-5 border-b border-border-subtle bg-secondary/40" />
+              <div className="p-4 sm:p-5 border-b border-border-subtle bg-secondary/40 text-center font-bold">
+                Starter
+              </div>
+              <div className="p-4 sm:p-5 border-b border-border-subtle bg-primary/10 text-center font-bold text-primary">
+                Casa+ ⭐
+              </div>
+              <div className="p-4 sm:p-5 border-b border-border-subtle bg-secondary/40 text-center font-bold">
+                Elite
+              </div>
+
+              {featureMatrix.map((row, idx) => (
+                <div key={row.name} className="contents">
+                  <div className={`p-4 sm:p-5 text-text-secondary font-medium ${idx % 2 ? "bg-secondary/20" : ""}`}>
+                    {row.name}
+                  </div>
+                  {[row.s, row.c, row.e].map((v, i) => (
+                    <div
+                      key={i}
+                      className={`p-4 sm:p-5 flex items-center justify-center ${
+                        i === 1 ? "bg-primary/5" : idx % 2 ? "bg-secondary/20" : ""
+                      }`}
+                    >
+                      {v ? (
+                        <Check className="h-5 w-5 text-primary" />
+                      ) : (
+                        <span className="h-1 w-4 rounded-full bg-border-subtle" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          <div className="mt-10 flex justify-center">
+            <CTAButton size="lg" />
+          </div>
+        </div>
+      </section>
+
+      {/* Confiança curta */}
       <section className="border-y border-border-subtle/60 bg-surface/50">
-        <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
+        <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
           <div className="text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-0.5 text-primary text-lg">
-              {"★★★★★".split("").map((s, i) => (
-                <span key={i}>{s}</span>
+            <div className="flex items-center justify-center md:justify-start gap-0.5 text-primary">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Star key={i} className="h-4 w-4 fill-primary" />
               ))}
             </div>
             <p className="text-xs text-text-muted mt-1">Avaliação média dos utilizadores</p>
@@ -227,7 +517,7 @@ const Landing = () => {
           {[
             { icon: ShieldCheck, label: "100% Seguro" },
             { icon: Lock, label: "Encriptação total" },
-            { icon: ShieldCheck, label: "Privacidade primeiro" },
+            { icon: CreditCard, label: "Pagamentos Stripe" },
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="flex items-center gap-2 justify-center md:justify-start">
               <Icon className="h-5 w-5 text-primary" />
@@ -237,224 +527,12 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* SEC 2 — Fala naturalmente */}
-      <section className="py-28 sm:py-36 px-6">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-          <motion.div {...fadeUp}>
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">
-              Fala naturalmente com a IA.
-            </h2>
-            <p className="mt-6 text-lg text-text-secondary max-w-lg">
-              Escreve exatamente como falarias com um amigo. Sem formulários, sem categorias
-              obrigatórias, sem complicações.
-            </p>
-          </motion.div>
-
-          <motion.div {...fadeUp} className="rounded-3xl bg-surface border border-border-subtle p-6 sm:p-8 shadow-xl">
-            <div className="space-y-3">
-              <ChatBubble from="user" text="Gasolina 50€" />
-              <ChatBubble from="ai" text="✓ Registado em Transportes." delay={0.1} />
-              <ChatBubble from="user" text="Almoço 18€" delay={0.2} />
-              <ChatBubble from="ai" text="✓ Registado em Restaurantes." delay={0.3} />
-              <ChatBubble from="user" text="Recebi salário" delay={0.4} />
-              <ChatBubble from="ai" text="Perfeito! Já atualizei o teu saldo do mês." delay={0.5} />
-              <ChatBubble from="user" text="Quanto gastei este mês?" delay={0.6} />
-              <ChatBubble
-                from="ai"
-                text="1.243€ até agora. A maior categoria foi Alimentação (32%)."
-                delay={0.7}
-              />
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* SEC 3 — 3 cards */}
-      <section className="py-28 sm:py-36 px-6 bg-secondary/40">
-        <div className="max-w-6xl mx-auto">
-          <motion.div {...fadeUp} className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
-              A IA faz o trabalho por ti.
-            </h2>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Zap,
-                title: "Registo automático",
-                desc: "Escreve uma frase. A IA classifica e organiza tudo por ti.",
-              },
-              {
-                icon: LineChart,
-                title: "Insights inteligentes",
-                desc: "Descobre padrões, alertas e oportunidades de poupança.",
-              },
-              {
-                icon: Target,
-                title: "Objetivos financeiros",
-                desc: "Define metas e recebe um plano claro para as alcançar.",
-              },
-            ].map(({ icon: Icon, title, desc }, i) => (
-              <motion.div
-                key={title}
-                {...fadeUp}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="group rounded-3xl bg-surface border border-border-subtle p-8 hover:shadow-xl hover:-translate-y-1 transition-all"
-              >
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <Icon className="h-5 w-5 text-primary group-hover:text-primary-foreground" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{title}</h3>
-                <p className="text-text-secondary leading-relaxed">{desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SEC 4 — Dashboard mockup */}
-      <section className="py-28 sm:py-36 px-6">
-        <div className="max-w-6xl mx-auto">
-          <motion.div {...fadeUp} className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
-              Percebe finalmente para onde vai o teu dinheiro.
-            </h2>
-            <p className="mt-6 text-lg text-text-secondary">
-              Um painel claro, visual e sem ruído. Tudo o que precisas num só ecrã.
-            </p>
-          </motion.div>
-
-          <motion.div {...fadeUp} className="relative">
-            <div className="absolute -inset-8 bg-gradient-to-tr from-primary/20 via-transparent to-accent/10 rounded-[3rem] blur-2xl" />
-            <div className="relative rounded-[2rem] bg-surface border border-border-subtle shadow-2xl p-6 sm:p-10">
-              <div className="grid md:grid-cols-3 gap-4 mb-6">
-                {[
-                  { label: "Saldo atual", value: "3.847€", tone: "text-primary" },
-                  { label: "Entradas", value: "2.100€", tone: "text-foreground" },
-                  { label: "Saídas", value: "1.243€", tone: "text-foreground" },
-                ].map((k) => (
-                  <div key={k.label} className="rounded-2xl bg-secondary/50 border border-border-subtle p-5">
-                    <div className="text-[10px] uppercase tracking-wider text-text-muted font-semibold">
-                      {k.label}
-                    </div>
-                    <div className={`mt-2 text-3xl font-bold tracking-tight ${k.tone}`}>{k.value}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Fake chart */}
-              <div className="rounded-2xl bg-gradient-to-br from-primary/5 to-transparent border border-border-subtle p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm font-semibold">Evolução do saldo</div>
-                  <div className="text-xs text-text-muted">Últimos 6 meses</div>
-                </div>
-                <svg viewBox="0 0 400 120" className="w-full h-32">
-                  <defs>
-                    <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(160 84% 39%)" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="hsl(160 84% 39%)" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0,90 C60,80 90,60 140,55 C190,50 220,75 270,60 C320,45 350,25 400,20 L400,120 L0,120 Z"
-                    fill="url(#g1)"
-                  />
-                  <path
-                    d="M0,90 C60,80 90,60 140,55 C190,50 220,75 270,60 C320,45 350,25 400,20"
-                    fill="none"
-                    stroke="hsl(160 84% 39%)"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-border-subtle p-5">
-                  <div className="text-sm font-semibold mb-4">Categorias</div>
-                  {[
-                    { name: "Alimentação", pct: 32, color: "hsl(160 84% 39%)" },
-                    { name: "Transportes", pct: 18, color: "hsl(239 84% 67%)" },
-                    { name: "Casa", pct: 24, color: "hsl(38 92% 50%)" },
-                  ].map((c) => (
-                    <div key={c.name} className="mb-3 last:mb-0">
-                      <div className="flex justify-between text-xs mb-1.5">
-                        <span className="text-text-secondary">{c.name}</span>
-                        <span className="font-semibold">{c.pct}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${c.pct * 2}%`, background: c.color }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-2xl border border-border-subtle p-5">
-                  <div className="text-sm font-semibold mb-4">Objetivos</div>
-                  {[
-                    { name: "Férias", pct: 68 },
-                    { name: "Poupança emergência", pct: 42 },
-                    { name: "Novo portátil", pct: 85 },
-                  ].map((g) => (
-                    <div key={g.name} className="mb-3 last:mb-0">
-                      <div className="flex justify-between text-xs mb-1.5">
-                        <span className="text-text-secondary">{g.name}</span>
-                        <span className="font-semibold text-primary">{g.pct}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${g.pct}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* SEC 5 — Como funciona */}
-      <section className="py-28 sm:py-36 px-6 bg-secondary/40">
-        <div className="max-w-5xl mx-auto">
-          <motion.h2
-            {...fadeUp}
-            className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-center mb-20"
-          >
-            Como funciona.
-          </motion.h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { n: "1", t: "Escreve uma mensagem.", d: "Como falarias com um amigo." },
-              { n: "2", t: "A IA organiza automaticamente.", d: "Categorias, datas e valores." },
-              { n: "3", t: "Recebe insights personalizados.", d: "E sabe onde poupar já." },
-            ].map((s, i) => (
-              <motion.div
-                key={s.n}
-                {...fadeUp}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="text-center"
-              >
-                <div className="mx-auto h-16 w-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary/30">
-                  {s.n}
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{s.t}</h3>
-                <p className="text-text-secondary">{s.d}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SEC 6 — FAQ */}
-      <section className="py-28 sm:py-36 px-6">
+      {/* FAQ */}
+      <section className="py-24 sm:py-28 px-6">
         <div className="max-w-3xl mx-auto">
           <motion.h2
             {...fadeUp}
-            className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-center mb-16"
+            className="font-display text-4xl sm:text-5xl font-bold tracking-tight text-center mb-14"
           >
             Perguntas frequentes.
           </motion.h2>
@@ -499,32 +577,24 @@ const Landing = () => {
         <motion.div
           {...fadeUp}
           className="max-w-6xl mx-auto rounded-[2.5rem] relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, hsl(160 84% 32%) 0%, hsl(160 84% 42%) 100%)",
-          }}
+          style={{ background: "linear-gradient(135deg, hsl(160 84% 32%) 0%, hsl(160 84% 42%) 100%)" }}
         >
           <div className="absolute inset-0 opacity-30">
             <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/10 blur-3xl" />
             <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-white/10 blur-3xl" />
           </div>
-          <div className="relative px-8 sm:px-16 py-20 sm:py-28 text-center">
+          <div className="relative px-8 sm:px-16 py-20 sm:py-24 text-center">
             <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-primary-foreground leading-tight max-w-3xl mx-auto">
               Começa hoje a controlar o teu dinheiro.
             </h2>
             <p className="mt-6 text-lg sm:text-xl text-primary-foreground/90 max-w-xl mx-auto">
-              Experimenta gratuitamente durante 3 dias.
+              Experimenta gratuitamente durante 3 dias. Sem compromisso.
             </p>
             <div className="mt-10 flex justify-center">
-              <Link
-                to={SIGNUP_URL}
-                className="inline-flex items-center gap-2 rounded-full bg-white text-primary px-10 py-5 text-lg font-semibold shadow-2xl hover:scale-[1.03] transition-transform"
-              >
-                Começar agora
-                <ArrowRight className="h-5 w-5" />
-              </Link>
+              <CTAButton size="xl" variant="white" />
             </div>
             <p className="mt-6 text-sm text-primary-foreground/80">
-              Sem compromisso · Cancela quando quiseres
+              Cancela quando quiseres · Configuração em menos de 2 minutos
             </p>
           </div>
         </motion.div>
