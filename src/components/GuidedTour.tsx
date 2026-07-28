@@ -74,6 +74,13 @@ const TOUR_STEPS: TourStep[] = [
     target: "[data-tour='month-selector']",
   },
   {
+    title: "Instale o Saldo+ no seu telemóvel 📱",
+    description: "O Saldo+ funciona como uma app real quando adicionado ao ecrã principal — abre em ecrã inteiro, com ícone próprio, sem barras do navegador.",
+    icon: Smartphone,
+    tip: "Assim tem o Saldo+ sempre à mão, como qualquer outra app.",
+    install: true,
+  },
+  {
     title: "Tudo pronto! 🚀",
     description: "Comece por adicionar uma conta e os primeiros movimentos — ou peça diretamente ao Assistente. Em minutos terá uma visão clara das suas finanças.",
     icon: Sparkles,
