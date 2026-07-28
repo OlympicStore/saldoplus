@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, ArrowRight, ArrowLeft, Home, ArrowLeftRight, Target,
-  Sparkles, Menu, Plus, HomeIcon, Calculator,
+  Sparkles, Menu, Plus, HomeIcon, Calculator, Smartphone, Share, MoreVertical,
 } from "lucide-react";
 
 type Tab = "dashboard" | "balance" | "entries" | "expenses" | "investments" | "annual" | "goals" | "budgets" | "minha_casa" | "account" | "movements" | "assistente";
@@ -15,6 +15,8 @@ interface TourStep {
   tab?: Tab;
   /** CSS selector of the element to highlight on screen. */
   target?: string;
+  /** Renders the special "install on phone" block inside the step. */
+  install?: boolean;
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -72,6 +74,13 @@ const TOUR_STEPS: TourStep[] = [
     target: "[data-tour='month-selector']",
   },
   {
+    title: "Instale o Saldo+ no seu telemóvel 📱",
+    description: "O Saldo+ funciona como uma app real quando adicionado ao ecrã principal — abre em ecrã inteiro, com ícone próprio, sem barras do navegador.",
+    icon: Smartphone,
+    tip: "Assim tem o Saldo+ sempre à mão, como qualquer outra app.",
+    install: true,
+  },
+  {
     title: "Tudo pronto! 🚀",
     description: "Comece por adicionar uma conta e os primeiros movimentos — ou peça diretamente ao Assistente. Em minutos terá uma visão clara das suas finanças.",
     icon: Sparkles,
@@ -95,7 +104,7 @@ const IMOBILIARIA_EXTRA_STEPS: TourStep[] = [
   },
 ];
 
-const TOUR_STORAGE_KEY = "saldoplus_tour_completed_v2";
+const TOUR_STORAGE_KEY = "saldoplus_tour_completed_v3";
 
 interface GuidedTourProps {
   forceShow?: boolean;
@@ -236,6 +245,31 @@ const GuidedTour = ({ forceShow, onClose, onNavigate, plan }: GuidedTourProps) =
 
             <h3 className="text-base font-bold text-foreground mb-1.5">{step.title}</h3>
             <p className="text-sm text-text-muted leading-relaxed mb-3">{step.description}</p>
+
+            {step.install && (
+              <div className="space-y-2.5 mb-3">
+                <div className="rounded-xl border border-border-subtle/60 bg-surface-hover/40 p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-primary">iPhone / iPad</span>
+                  </div>
+                  <ol className="text-xs text-text-muted leading-relaxed space-y-1 list-decimal list-inside">
+                    <li>Abra o Saldo+ no <b>Safari</b>.</li>
+                    <li>Toque no ícone <Share className="inline h-3.5 w-3.5 -mt-0.5" /> <b>Partilhar</b> (barra inferior).</li>
+                    <li>Escolha <b>“Adicionar ao ecrã principal”</b> e confirme.</li>
+                  </ol>
+                </div>
+                <div className="rounded-xl border border-border-subtle/60 bg-surface-hover/40 p-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-primary">Android</span>
+                  </div>
+                  <ol className="text-xs text-text-muted leading-relaxed space-y-1 list-decimal list-inside">
+                    <li>Abra o Saldo+ no <b>Chrome</b>.</li>
+                    <li>Toque no menu <MoreVertical className="inline h-3.5 w-3.5 -mt-0.5" /> (canto superior direito).</li>
+                    <li>Escolha <b>“Adicionar ao ecrã principal”</b> ou <b>“Instalar app”</b>.</li>
+                  </ol>
+                </div>
+              </div>
+            )}
 
             {step.tip && (
               <div className="rounded-lg bg-primary/5 border border-primary/10 p-2.5 mb-4">
