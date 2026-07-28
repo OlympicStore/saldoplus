@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   ShieldCheck,
@@ -16,6 +16,10 @@ import {
   Home,
   Gem,
   CreditCard,
+  Smartphone,
+  MapPin,
+  Crown,
+  TrendingUp,
 } from "lucide-react";
 
 const SIGNUP_URL = "/auth?mode=signup";
