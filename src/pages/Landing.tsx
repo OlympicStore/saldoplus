@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   ShieldCheck,
@@ -16,6 +16,10 @@ import {
   Home,
   Gem,
   CreditCard,
+  Smartphone,
+  MapPin,
+  Crown,
+  TrendingUp,
 } from "lucide-react";
 
 const SIGNUP_URL = "/auth?mode=signup";
@@ -32,10 +36,14 @@ const CTAButton = ({
   children = CTA_LABEL,
   size = "lg",
   variant = "primary",
+  reassure = false,
+  align = "center",
 }: {
   children?: React.ReactNode;
   size?: "md" | "lg" | "xl";
   variant?: "primary" | "white";
+  reassure?: boolean;
+  align?: "center" | "start";
 }) => {
   const sizeCls =
     size === "xl" ? "px-9 py-5 text-lg" : size === "md" ? "px-5 py-3 text-sm" : "px-7 py-4 text-base";
@@ -43,14 +51,25 @@ const CTAButton = ({
     variant === "white"
       ? "bg-white text-primary shadow-2xl hover:scale-[1.03]"
       : "bg-primary text-primary-foreground shadow-[0_10px_40px_-10px_hsl(160_84%_39%/0.7)] hover:shadow-[0_16px_50px_-10px_hsl(160_84%_39%/0.9)] hover:scale-[1.02]";
+  const reassureColor = variant === "white" ? "text-primary-foreground/90" : "text-text-secondary";
+  const alignCls = align === "start" ? "items-start" : "items-center";
   return (
-    <Link
-      to={SIGNUP_URL}
-      className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all ${variantCls} ${sizeCls}`}
-    >
-      {children}
-      <ArrowRight className="h-4 w-4" />
-    </Link>
+    <div className={`flex flex-col gap-3 ${alignCls}`}>
+      <Link
+        to={SIGNUP_URL}
+        className={`inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full font-semibold transition-all ${variantCls} ${sizeCls}`}
+      >
+        {children}
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+      {reassure && (
+        <ul className={`flex flex-wrap gap-x-4 gap-y-1 text-xs sm:text-sm ${reassureColor} ${align === "center" ? "justify-center" : ""}`}>
+          <li className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Cancela quando quiseres</li>
+          <li className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Ativação em menos de 2 minutos</li>
+          <li className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> Acesso imediato após o registo</li>
+        </ul>
+      )}
+    </div>
   );
 };
 
@@ -93,7 +112,7 @@ const plans = [
     icon: Zap,
     price: "15,99€",
     interval: "/mês",
-    tagline: "Para controlares as tuas finanças pessoais.",
+    tagline: "Ideal para quem quer começar a organizar as finanças.",
     highlights: ["Dashboard financeiro", "Despesas e receitas ilimitadas", "Objetivos básicos", "Assistente IA (50 msg/mês)"],
     cta: CTA_LABEL,
     featured: false,
@@ -104,7 +123,7 @@ const plans = [
     icon: Home,
     price: "28,99€",
     interval: "/mês",
-    tagline: "Para famílias e casais que querem tudo automatizado.",
+    tagline: "A melhor escolha para gerir todas as finanças com ajuda da IA.",
     highlights: ["Tudo do Starter", "Modo Casal (4 modos de divisão)", "Orçamentos por categoria", "IA ilimitada", "Relatórios avançados"],
     cta: CTA_LABEL,
     featured: true,
@@ -117,11 +136,18 @@ const plans = [
     price: "159,99€",
     interval: "/ano",
     perMonth: "≈ 13,33€/mês",
-    tagline: "Para quem quer o Saldo+ no máximo, com IA que lê faturas.",
-    highlights: ["Tudo do Casa+", "OCR inteligente de faturas", "IA lê PDFs e fotografias", "Multi Workspace", "Suporte prioritário"],
+    tagline: "A experiência completa, com todas as funcionalidades e o melhor preço anual.",
+    highlights: [
+      "👑 Todas as funcionalidades desbloqueadas",
+      "Tudo do Casa+",
+      "OCR inteligente de faturas",
+      "IA lê PDFs e fotografias",
+      "Multi Workspace",
+      "Suporte prioritário",
+    ],
     cta: CTA_LABEL,
     featured: false,
-    savings: "Poupe 60%",
+    savings: "Poupa 60%",
   },
 ];
 
@@ -139,6 +165,149 @@ const featureMatrix: { name: string; s: boolean; c: boolean; e: boolean }[] = [
   { name: "Prioridade no suporte", s: false, c: true, e: true },
   { name: "Relatórios avançados", s: false, c: true, e: true },
 ];
+
+// Auto-playing AI demo — shows how a message becomes a categorised expense + insight
+const demoScript: Array<
+  | { kind: "user"; text: string }
+  | { kind: "ai"; text: string }
+  | { kind: "card"; category: string; amount: string; icon: string }
+  | { kind: "insight"; label: string; value: string }
+> = [
+  { kind: "user", text: "Supermercado 15€" },
+  { kind: "ai", text: "✓ Despesa registada com sucesso." },
+  { kind: "card", category: "Alimentação", amount: "−15,00€", icon: "🍔" },
+  { kind: "ai", text: "Este mês já gastaste 214€ em alimentação." },
+  { kind: "insight", label: "Alimentação • Novembro", value: "214€ / 250€" },
+  { kind: "ai", text: "Queres definir um limite de 250€?" },
+];
+
+const AIDemoSection = () => {
+  const [visible, setVisible] = useState(1);
+  useEffect(() => {
+    if (visible >= demoScript.length) {
+      const reset = setTimeout(() => setVisible(1), 4500);
+      return () => clearTimeout(reset);
+    }
+    const t = setTimeout(() => setVisible((v) => v + 1), 1100);
+    return () => clearTimeout(t);
+  }, [visible]);
+
+  return (
+    <section className="py-24 sm:py-28 px-6 bg-background">
+      <div className="max-w-3xl mx-auto text-center mb-12">
+        <motion.h2 {...fadeUp} className="font-display text-4xl sm:text-5xl font-bold tracking-tight">
+          Escreve. A IA trata do resto.
+        </motion.h2>
+        <motion.p {...fadeUp} transition={{ duration: 0.6, delay: 0.1 }} className="mt-4 text-lg text-text-secondary">
+          Uma mensagem simples torna-se numa despesa categorizada e num insight — em segundos.
+        </motion.p>
+      </div>
+
+      <motion.div
+        {...fadeUp}
+        className="relative max-w-2xl mx-auto rounded-[2rem] bg-surface border border-border-subtle shadow-2xl p-6 sm:p-8"
+      >
+        <div className="absolute -inset-6 -z-10 bg-gradient-to-br from-primary/15 to-accent/5 rounded-[3rem] blur-2xl" />
+
+        <div className="flex items-center gap-2 mb-6">
+          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold">Assistente Saldo+</div>
+            <div className="text-[10px] text-text-muted flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              A escrever…
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3 min-h-[360px]">
+          <AnimatePresence initial={false}>
+            {demoScript.slice(0, visible).map((step, i) => {
+              if (step.kind === "user" || step.kind === "ai") {
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className={`flex ${step.kind === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[85%] px-4 py-2.5 text-sm rounded-2xl ${
+                        step.kind === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-sm"
+                          : "bg-secondary text-foreground rounded-bl-sm border border-border-subtle"
+                      }`}
+                    >
+                      {step.text}
+                    </div>
+                  </motion.div>
+                );
+              }
+              if (step.kind === "card") {
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.45 }}
+                    className="ml-2 max-w-[85%] rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-center gap-3"
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-surface border border-border-subtle flex items-center justify-center text-lg">
+                      {step.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] uppercase tracking-widest font-bold text-text-muted">Categoria</div>
+                      <div className="text-sm font-semibold">{step.category}</div>
+                    </div>
+                    <div className="text-sm font-bold tabular-nums text-foreground">{step.amount}</div>
+                  </motion.div>
+                );
+              }
+              // insight bar
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45 }}
+                  className="ml-2 max-w-[85%] rounded-2xl border border-border-subtle bg-surface p-4"
+                >
+                  <div className="flex items-center justify-between text-xs text-text-secondary mb-2">
+                    <span className="inline-flex items-center gap-1.5 font-medium">
+                      <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                      {step.label}
+                    </span>
+                    <span className="font-bold text-foreground tabular-nums">{step.value}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: "85%" }}
+                      transition={{ duration: 0.9, ease: "easeOut" }}
+                      className="h-full bg-primary rounded-full"
+                    />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+        <div className="mt-6 rounded-xl bg-secondary/60 border border-border-subtle px-4 py-3 flex items-center gap-2 text-sm text-text-muted">
+          <MessageCircle className="h-4 w-4" />
+          Escreve uma mensagem…
+        </div>
+      </motion.div>
+
+      <div className="mt-10 flex justify-center">
+        <CTAButton size="lg" reassure />
+      </div>
+    </section>
+  );
+};
 
 const Landing = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -217,17 +386,9 @@ const Landing = () => {
             </p>
 
             <div className="mt-10">
-              <CTAButton size="xl" />
+              <CTAButton size="xl" reassure align="start" />
             </div>
 
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-text-secondary">
-              {["3 dias grátis", "Cancela quando quiseres", "Configuração em menos de 2 minutos"].map((t) => (
-                <li key={t} className="flex items-center gap-1.5">
-                  <Check className="h-4 w-4 text-primary" />
-                  {t}
-                </li>
-              ))}
-            </ul>
 
             {/* Trust row */}
             <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-text-muted">
@@ -280,6 +441,30 @@ const Landing = () => {
           Pode cancelar a qualquer momento durante os 3 dias gratuitos.
         </p>
       </section>
+
+      {/* TRUST STRIP */}
+      <section className="border-y border-border-subtle/60 bg-surface/60">
+        <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          {[
+            { icon: CreditCard, label: "Pagamentos seguros via Stripe" },
+            { icon: Lock, label: "Dados protegidos e encriptados" },
+            { icon: MapPin, label: "Desenvolvido em Portugal 🇵🇹" },
+            { icon: Smartphone, label: "Compatível com Android e iPhone" },
+          ].map(({ icon: Icon, label }) => (
+            <div key={label} className="flex items-center gap-2.5 justify-center md:justify-start">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Icon className="h-4 w-4 text-primary" />
+              </div>
+              <span className="font-medium text-text-secondary">{label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* AI DEMO — auto-playing */}
+      <AIDemoSection />
+
+
 
       {/* PROBLEMA — Antes vs Depois */}
       <section className="py-24 sm:py-28 px-6 bg-secondary/40">
@@ -410,9 +595,23 @@ const Landing = () => {
                     <span className="text-5xl font-black tracking-tight">{p.price}</span>
                     <span className="text-text-muted font-medium">{p.interval}</span>
                   </div>
-                  {p.perMonth && (
-                    <div className="mt-2 inline-flex self-start items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-3 py-1">
-                      {p.perMonth}
+                  {(p.perMonth || p.savings) && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {p.perMonth && (
+                        <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-3 py-1">
+                          {p.perMonth}
+                        </span>
+                      )}
+                      {p.savings && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 text-accent text-xs font-bold px-3 py-1">
+                          💰 {p.savings}
+                        </span>
+                      )}
+                      {p.id === "pro" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-foreground/5 text-foreground text-xs font-bold px-3 py-1">
+                          <Crown className="h-3 w-3" /> Tudo desbloqueado
+                        </span>
+                      )}
                     </div>
                   )}
 
@@ -498,7 +697,7 @@ const Landing = () => {
           </motion.div>
 
           <div className="mt-10 flex justify-center">
-            <CTAButton size="lg" />
+            <CTAButton size="lg" reassure />
           </div>
         </div>
       </section>
@@ -591,11 +790,8 @@ const Landing = () => {
               Experimenta gratuitamente durante 3 dias. Sem compromisso.
             </p>
             <div className="mt-10 flex justify-center">
-              <CTAButton size="xl" variant="white" />
+              <CTAButton size="xl" variant="white" reassure />
             </div>
-            <p className="mt-6 text-sm text-primary-foreground/80">
-              Cancela quando quiseres · Configuração em menos de 2 minutos
-            </p>
           </div>
         </motion.div>
       </section>
