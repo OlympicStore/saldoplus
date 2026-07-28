@@ -31,6 +31,9 @@ interface Profile {
   trial_ends_at: string | null;
   grace_period_ends_at: string | null;
   data_deleted_at: string | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  stripe_subscription_status: string | null;
 }
 
 interface AuthContextType {
