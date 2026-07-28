@@ -5,7 +5,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { fbTrackPurchase } from "@/lib/fbPixel";
+import { fbTrackPurchase, fbTrackStartTrial } from "@/lib/fbPixel";
 
 const EBOOK_URL = "/downloads/SaldoPlus_Guia_Financas.pdf";
 
