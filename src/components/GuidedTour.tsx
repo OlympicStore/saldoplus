@@ -15,6 +15,8 @@ interface TourStep {
   tab?: Tab;
   /** CSS selector of the element to highlight on screen. */
   target?: string;
+  /** Renders the special "install on phone" block inside the step. */
+  install?: boolean;
 }
 
 const TOUR_STEPS: TourStep[] = [
