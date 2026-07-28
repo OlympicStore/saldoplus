@@ -299,6 +299,30 @@ const Landing = () => {
         </p>
       </section>
 
+      {/* TRUST STRIP */}
+      <section className="border-y border-border-subtle/60 bg-surface/60">
+        <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          {[
+            { icon: CreditCard, label: "Pagamentos seguros via Stripe" },
+            { icon: Lock, label: "Dados protegidos e encriptados" },
+            { icon: MapPin, label: "Desenvolvido em Portugal 🇵🇹" },
+            { icon: Smartphone, label: "Compatível com Android e iPhone" },
+          ].map(({ icon: Icon, label }) => (
+            <div key={label} className="flex items-center gap-2.5 justify-center md:justify-start">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Icon className="h-4 w-4 text-primary" />
+              </div>
+              <span className="font-medium text-text-secondary">{label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* AI DEMO — auto-playing */}
+      <AIDemoSection />
+
+
+
       {/* PROBLEMA — Antes vs Depois */}
       <section className="py-24 sm:py-28 px-6 bg-secondary/40">
         <div className="max-w-5xl mx-auto">
