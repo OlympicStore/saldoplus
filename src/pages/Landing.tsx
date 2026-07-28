@@ -595,9 +595,23 @@ const Landing = () => {
                     <span className="text-5xl font-black tracking-tight">{p.price}</span>
                     <span className="text-text-muted font-medium">{p.interval}</span>
                   </div>
-                  {p.perMonth && (
-                    <div className="mt-2 inline-flex self-start items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-3 py-1">
-                      {p.perMonth}
+                  {(p.perMonth || p.savings) && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {p.perMonth && (
+                        <span className="inline-flex items-center rounded-full bg-primary/10 text-primary text-xs font-bold px-3 py-1">
+                          {p.perMonth}
+                        </span>
+                      )}
+                      {p.savings && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 text-accent text-xs font-bold px-3 py-1">
+                          💰 {p.savings}
+                        </span>
+                      )}
+                      {p.id === "pro" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-foreground/5 text-foreground text-xs font-bold px-3 py-1">
+                          <Crown className="h-3 w-3" /> Tudo desbloqueado
+                        </span>
+                      )}
                     </div>
                   )}
 
