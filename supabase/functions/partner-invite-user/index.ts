@@ -117,33 +117,15 @@ serve(async (req) => {
 
     if (inviteError) throw new Error(`Failed to create invite: ${inviteError.message}`);
 
-    // If user already exists, activate immediately
+    // Do NOT auto-link existing users to this partner. Auto-linking would silently
+    // grant the partner read access to that user's private data (via partner_id-scoped
+    // RLS policies) without any consent. The invite must remain pending until the
+    // target user explicitly accepts it on their side.
     const { data: existingProfile } = await supabaseAdmin
       .from("profiles")
       .select("id")
       .eq("email", email)
       .maybeSingle();
-
-    if (existingProfile) {
-      const planExpires = new Date(now);
-      planExpires.setFullYear(planExpires.getFullYear() + 1);
-
-      await supabaseAdmin
-        .from("profiles")
-        .update({
-          plan: "imobiliaria",
-          plan_source: "partner",
-          partner_id,
-          plan_started_at: now.toISOString(),
-          plan_expires_at: planExpires.toISOString(),
-        })
-        .eq("id", existingProfile.id);
-
-      await supabaseAdmin
-        .from("partner_invites")
-        .update({ status: "accepted" })
-        .eq("id", invite.id);
-    }
 
     return new Response(
       JSON.stringify({ success: true, invite, user_existed: !!existingProfile }),
