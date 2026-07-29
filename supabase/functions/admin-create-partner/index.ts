@@ -56,7 +56,13 @@ serve(async (req) => {
     if (insertError) throw new Error(`Failed to create partner: ${insertError.message}`);
 
     // Create auth user for the partner (so they can login)
-    const partnerPassword = password || "Partner2026!";
+    // Generate a strong random password if none supplied — never fall back to a fixed literal.
+    const generateStrongPassword = () => {
+      const bytes = new Uint8Array(24);
+      crypto.getRandomValues(bytes);
+      return btoa(String.fromCharCode(...bytes)).replace(/[+/=]/g, "") + "Aa1!";
+    };
+    const partnerPassword = password || generateStrongPassword();
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: partnerPassword,
