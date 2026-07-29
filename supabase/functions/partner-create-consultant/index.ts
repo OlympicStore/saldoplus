@@ -68,15 +68,19 @@ serve(async (req) => {
     // Try to find existing user with this email
     const { data: existingProfile } = await supabaseAdmin
       .from("profiles")
-      .select("id")
+      .select("id, partner_id")
       .eq("email", email)
       .maybeSingle();
 
     let userId: string;
     if (existingProfile) {
-      // Reuse existing user — just promote to consultant
+      // Only allow reuse if the account already belongs to THIS partner org.
+      // Otherwise a partner could hijack any user's account by resetting their password.
+      if (existingProfile.partner_id !== resolvedPartnerId) {
+        throw new Error("Já existe um utilizador com este email fora da sua organização. Peça-lhe para usar outro email.");
+      }
       userId = existingProfile.id;
-      // Update password
+      // Update password (safe — this account is already scoped to caller's partner)
       const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         password,
         user_metadata: { full_name: name },
