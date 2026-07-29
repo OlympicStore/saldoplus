@@ -44,7 +44,12 @@ serve(async (req) => {
       throw new Error("Payment does not belong to this user");
     }
 
-    // Validate bumps against actual Stripe line items (don't trust metadata alone)
+    // Derive plan server-side from purchased line items (never trust client input)
+    const PLAN_PRICE_IDS: Record<string, string> = {
+      essencial: "price_1TxGZAImKoY4gMb7A6VdD5Bt",
+      casa: "price_1TxGZTImKoY4gMb7ykSwbaDu",
+      pro: "price_1TxGZjImKoY4gMb7Tkg5Cccp",
+    };
     const BUMP_PRICE_IDS: Record<string, string> = {
       lifetime: "price_1TIJZTImKoY4gMb70G2tP7Gc",
       ebook: "price_1TIJZpImKoY4gMb7rW65hJo7",
@@ -54,6 +59,16 @@ serve(async (req) => {
     const purchasedPriceIds = new Set(
       lineItems.data.map((li: any) => li.price?.id).filter(Boolean)
     );
+
+    let plan: string | undefined;
+    for (const [planKey, priceId] of Object.entries(PLAN_PRICE_IDS)) {
+      if (purchasedPriceIds.has(priceId)) { plan = planKey; break; }
+    }
+    // Fallback to session metadata if line item isn't a known plan price
+    if (!plan && session.metadata?.plan && ["essencial", "casa", "pro"].includes(session.metadata.plan)) {
+      plan = session.metadata.plan;
+    }
+    if (!plan) throw new Error("Could not determine purchased plan");
 
     const verifiedBumps: string[] = [];
     for (const [bumpKey, priceId] of Object.entries(BUMP_PRICE_IDS)) {
