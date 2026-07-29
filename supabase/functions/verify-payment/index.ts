@@ -19,8 +19,8 @@ serve(async (req) => {
   );
 
   try {
-    const { session_id, plan } = await req.json();
-    if (!session_id || !plan) throw new Error("Missing session_id or plan");
+    const { session_id } = await req.json();
+    if (!session_id) throw new Error("Missing session_id");
 
     // Verify user
     const authHeader = req.headers.get("Authorization")!;
